@@ -175,7 +175,7 @@ export default function Home() {
                   </ul>
                   <a
                     className="mt-6 inline-flex h-11 w-full items-center justify-center rounded-full bg-zinc-900 px-5 text-sm font-medium text-white hover:bg-zinc-800"
-                    href="mailto:julian@aiacrobatics.com?subject=Pitch%20deck%20package%20-%20\""
+                    href="mailto:julian@aiacrobatics.com?subject=Pitch%20deck%20package"
                   >
                     Start
                   </a>
