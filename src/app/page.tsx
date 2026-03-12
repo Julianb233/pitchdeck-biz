@@ -1,7 +1,7 @@
 import { Header } from "@/components/layout/header"
 import { Footer } from "@/components/layout/footer"
 import { Hero } from "@/components/sections/hero"
-import { SelectedWorks } from "@/components/sections/selected-works"
+import { HowItWorks } from "@/components/sections/how-it-works"
 import { About } from "@/components/sections/about"
 import { ClientLogos } from "@/components/sections/client-logos"
 import { Testimonials } from "@/components/sections/testimonials"
@@ -16,7 +16,7 @@ export default function HomePage() {
       <Header />
       <main>
         <Hero />
-        <SelectedWorks />
+        <HowItWorks />
         <About />
         <ClientLogos />
         <Testimonials />
