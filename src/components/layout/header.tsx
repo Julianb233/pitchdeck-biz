@@ -8,11 +8,10 @@ import { Menu, X } from "lucide-react"
 import { cn } from "@/lib/utils"
 
 const navItems = [
-  { href: "#works", label: "Selected work", number: "01" },
-  { href: "#about", label: "About", number: "02" },
-  { href: "#testimonials", label: "What clients say", number: "03" },
-  { href: "#awards", label: "Awards & Recognition", number: "04" },
-  { href: "#insights", label: "Insights", number: "05" },
+  { href: "#how-it-works", label: "How It Works" },
+  { href: "#deliverables", label: "Deliverables" },
+  { href: "#pricing", label: "Pricing" },
+  { href: "#faq", label: "FAQ" },
 ]
 
 export function Header() {
@@ -31,7 +30,7 @@ export function Header() {
     e.preventDefault()
     const element = document.querySelector(href)
     if (element) {
-      const headerOffset = 80 // Height of fixed header
+      const headerOffset = 80
       const elementPosition = element.getBoundingClientRect().top
       const offsetPosition = elementPosition + window.pageYOffset - headerOffset
 
@@ -60,9 +59,15 @@ export function Header() {
                 e.preventDefault()
                 window.scrollTo({ top: 0, behavior: "smooth" })
               }}
-              className="text-lg font-semibold tracking-tight"
+              className="text-xl font-bold tracking-tight"
+              style={{
+                background: "linear-gradient(135deg, #ff006e 0%, #8b5cf6 50%, #00d4ff 100%)",
+                WebkitBackgroundClip: "text",
+                WebkitTextFillColor: "transparent",
+                backgroundClip: "text",
+              }}
             >
-              portfolio
+              pitchdeck.biz
             </Link>
 
             {/* Desktop Navigation */}
@@ -72,10 +77,9 @@ export function Header() {
                   key={item.href}
                   href={item.href}
                   onClick={(e) => handleNavClick(e, item.href)}
-                  className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+                  className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
                 >
                   {item.label}
-                  <span className="text-xs ml-1 opacity-50">({item.number})</span>
                 </Link>
               ))}
             </div>
@@ -83,16 +87,16 @@ export function Header() {
             {/* CTA Button */}
             <div className="hidden md:block">
               <Link
-                href="#contact"
-                className="inline-flex items-center justify-center px-5 py-2.5 text-sm font-medium rounded-full text-white transition-all hover:shadow-xl relative overflow-hidden group"
+                href="#pricing"
+                onClick={(e) => handleNavClick(e, "#pricing")}
+                className="inline-flex items-center justify-center px-6 py-2.5 text-sm font-semibold rounded-full text-white transition-all hover:scale-105 relative overflow-hidden group"
                 style={{
-                  background: "linear-gradient(135deg, #203eec 0%, #00d4ff 100%)",
-                  boxShadow: "0 4px 20px rgba(32, 62, 236, 0.3)",
+                  background: "linear-gradient(135deg, #ff006e 0%, #8b5cf6 50%, #203eec 100%)",
+                  boxShadow: "0 4px 20px rgba(255, 0, 110, 0.3)",
                 }}
               >
-                <span className="relative z-10">Let's Talk</span>
-                {/* Glow effect on hover */}
-                <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 blur-xl bg-gradient-to-r from-[#203eec] to-[#00d4ff]" />
+                <span className="relative z-10">Create Your Deck</span>
+                <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 blur-xl bg-gradient-to-r from-[#ff006e] via-[#8b5cf6] to-[#203eec]" />
               </Link>
             </div>
 
@@ -109,8 +113,17 @@ export function Header() {
         <div className="fixed inset-0 z-50 bg-background md:hidden">
           <div className="flex flex-col h-full p-6">
             <div className="flex items-center justify-between">
-              <Link href="/" className="text-lg font-semibold tracking-tight">
-                portfolio
+              <Link
+                href="/"
+                className="text-xl font-bold tracking-tight"
+                style={{
+                  background: "linear-gradient(135deg, #ff006e 0%, #8b5cf6 50%, #00d4ff 100%)",
+                  WebkitBackgroundClip: "text",
+                  WebkitTextFillColor: "transparent",
+                  backgroundClip: "text",
+                }}
+              >
+                pitchdeck.biz
               </Link>
               <button onClick={() => setIsMobileMenuOpen(false)} className="p-2 -mr-2" aria-label="Close menu">
                 <X className="w-5 h-5" />
@@ -130,17 +143,19 @@ export function Header() {
             </nav>
             <div className="mt-auto">
               <Link
-                href="#contact"
-                onClick={() => setIsMobileMenuOpen(false)}
-                className="inline-flex items-center justify-center w-full px-5 py-3 text-base font-medium rounded-full text-white transition-all hover:shadow-xl relative overflow-hidden group"
+                href="#pricing"
+                onClick={(e) => {
+                  handleNavClick(e, "#pricing")
+                  setIsMobileMenuOpen(false)
+                }}
+                className="inline-flex items-center justify-center w-full px-5 py-3 text-base font-semibold rounded-full text-white transition-all hover:scale-105 relative overflow-hidden group"
                 style={{
-                  background: "linear-gradient(135deg, #203eec 0%, #00d4ff 100%)",
-                  boxShadow: "0 4px 20px rgba(32, 62, 236, 0.3)",
+                  background: "linear-gradient(135deg, #ff006e 0%, #8b5cf6 50%, #203eec 100%)",
+                  boxShadow: "0 4px 20px rgba(255, 0, 110, 0.3)",
                 }}
               >
-                <span className="relative z-10">Let's Talk</span>
-                {/* Glow effect on hover */}
-                <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 blur-xl bg-gradient-to-r from-[#203eec] to-[#00d4ff]" />
+                <span className="relative z-10">Create Your Deck</span>
+                <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 blur-xl bg-gradient-to-r from-[#ff006e] via-[#8b5cf6] to-[#203eec]" />
               </Link>
             </div>
           </div>
