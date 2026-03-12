@@ -95,3 +95,50 @@ export interface DeckGenerationRequest {
   style: DeckStyle;
   slideCount?: number;
 }
+
+// Slide Content Types
+
+export type SlideType =
+  | "title"
+  | "problem"
+  | "solution"
+  | "market"
+  | "product"
+  | "business-model"
+  | "traction"
+  | "team"
+  | "financials"
+  | "ask"
+  | "why-now"
+  | "closing";
+
+export interface SlideContent {
+  slideNumber: number;
+  type: SlideType;
+  title: string;
+  subtitle?: string;
+  bulletPoints?: string[];
+  notes?: string;
+  imagePrompt?: string;
+}
+
+// Deck Content (full deliverable output from AI generation)
+
+export interface DeckContent {
+  slides: SlideContent[];
+  sellSheet: {
+    headline: string;
+    subheadline: string;
+    sections: { title: string; content: string }[];
+  };
+  onePager: {
+    headline: string;
+    sections: { title: string; content: string }[];
+  };
+  brandKit: {
+    colorRationale: string;
+    fontPairing: { heading: string; body: string };
+    brandVoice: string;
+    logoDirection: string;
+  };
+}
