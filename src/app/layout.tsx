@@ -27,10 +27,20 @@ export const metadata: Metadata = {
     description: "Create stunning, investor-ready pitch decks in minutes with AI.",
   },
   metadataBase: new URL("https://pitchdeck.biz"),
+  icons: {
+    icon: [
+      { url: "/icon.svg", type: "image/svg+xml" },
+      { url: "/icon-dark-32x32.png", sizes: "32x32", type: "image/png" },
+    ],
+    apple: "/apple-icon.png",
+  },
 }
 
 export const viewport: Viewport = {
-  themeColor: "#ffffff",
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: "#ffffff" },
+    { media: "(prefers-color-scheme: dark)", color: "#0f0a1a" },
+  ],
   width: "device-width",
   initialScale: 1,
 }
