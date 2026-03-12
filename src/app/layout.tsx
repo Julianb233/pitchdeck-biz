@@ -11,16 +11,22 @@ const interTight = Inter_Tight({
 })
 
 export const metadata: Metadata = {
-  title: "Portfolio | Digital Product Designer",
-  description: "Independent digital product designer crafting thoughtful, pixel-perfect experiences for the web.",
-  keywords: ["design", "portfolio", "UI/UX", "product design", "digital design"],
-  authors: [{ name: "Portfolio" }],
+  title: "pitchdeck.biz | AI Pitch Deck Generator",
+  description: "Create stunning, investor-ready pitch decks in minutes with AI. Bold designs, compelling narratives, data-driven insights — all powered by artificial intelligence.",
+  keywords: ["pitch deck", "AI", "startup", "investor", "fundraising", "presentation", "pitch deck generator", "AI pitch deck"],
+  authors: [{ name: "pitchdeck.biz" }],
   openGraph: {
-    title: "Portfolio | Digital Product Designer",
-    description: "Independent digital product designer crafting thoughtful, pixel-perfect experiences for the web.",
+    title: "pitchdeck.biz | AI Pitch Deck Generator",
+    description: "Create stunning, investor-ready pitch decks in minutes with AI. Bold designs, compelling narratives, data-driven insights.",
     type: "website",
+    siteName: "pitchdeck.biz",
   },
-    generator: 'v0.app'
+  twitter: {
+    card: "summary_large_image",
+    title: "pitchdeck.biz | AI Pitch Deck Generator",
+    description: "Create stunning, investor-ready pitch decks in minutes with AI.",
+  },
+  metadataBase: new URL("https://pitchdeck.biz"),
 }
 
 export const viewport: Viewport = {
