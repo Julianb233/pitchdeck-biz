@@ -4,9 +4,10 @@ import { Hero } from "@/components/sections/hero"
 import { HowItWorks } from "@/components/sections/how-it-works"
 import { Deliverables } from "@/components/sections/deliverables"
 import { Benefits } from "@/components/sections/benefits"
+import { SubscriptionUpsell } from "@/components/sections/subscription-upsell"
 import { Testimonials } from "@/components/sections/testimonials"
-import { Awards } from "@/components/sections/awards"
-import { Insights } from "@/components/sections/insights"
+import { Pricing } from "@/components/sections/pricing"
+import { FAQ } from "@/components/sections/faq"
 import { FinalCTA } from "@/components/sections/final-cta"
 import { GradientBar } from "@/components/ui/gradient-bar"
 
@@ -19,9 +20,10 @@ export default function HomePage() {
         <HowItWorks />
         <Deliverables />
         <Benefits />
+        <SubscriptionUpsell />
         <Testimonials />
-        <Awards />
-        <Insights />
+        <Pricing />
+        <FAQ />
         <FinalCTA />
       </main>
       <Footer />
