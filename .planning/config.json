@@ -1,0 +1,14 @@
+{
+  "project": "pitchdeck.biz",
+  "path": "/opt/agency-workspace/pitchdeck.biz",
+  "mode": "yolo",
+  "depth": "comprehensive",
+  "parallelization": true,
+  "milestone": "v1.0",
+  "created": "2026-03-12",
+  "settings": {
+    "auto_commit": true,
+    "auto_verify": true,
+    "max_parallel_agents": 5
+  }
+}
