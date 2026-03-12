@@ -1,33 +1,46 @@
-import type { Metadata } from "next";
-import { Fraunces, Plus_Jakarta_Sans } from "next/font/google";
-import "./globals.css";
+import type React from "react"
+import type { Metadata, Viewport } from "next"
+import { Inter_Tight } from "next/font/google"
+import { Analytics } from "@vercel/analytics/next"
+import { MagneticCursor } from "@/components/ui/magnetic-cursor"
+import "./globals.css"
 
-const display = Fraunces({
-  variable: "--font-display",
+const interTight = Inter_Tight({
   subsets: ["latin"],
-});
-
-const body = Plus_Jakarta_Sans({
-  variable: "--font-body",
-  subsets: ["latin"],
-});
+  variable: "--font-inter-tight",
+})
 
 export const metadata: Metadata = {
-  title: "pitchdeck.biz — Investor-ready pitch decks",
-  description:
-    "Investor-ready pitch decks in days: narrative, design, and polish. Built for founders who need to ship the story fast.",
-};
+  title: "Portfolio | Digital Product Designer",
+  description: "Independent digital product designer crafting thoughtful, pixel-perfect experiences for the web.",
+  keywords: ["design", "portfolio", "UI/UX", "product design", "digital design"],
+  authors: [{ name: "Portfolio" }],
+  openGraph: {
+    title: "Portfolio | Digital Product Designer",
+    description: "Independent digital product designer crafting thoughtful, pixel-perfect experiences for the web.",
+    type: "website",
+  },
+    generator: 'v0.app'
+}
+
+export const viewport: Viewport = {
+  themeColor: "#ffffff",
+  width: "device-width",
+  initialScale: 1,
+}
 
 export default function RootLayout({
   children,
 }: Readonly<{
-  children: React.ReactNode;
+  children: React.ReactNode
 }>) {
   return (
     <html lang="en">
-      <body className={`${display.variable} ${body.variable} antialiased`}>
+      <body className={`${interTight.className} font-sans antialiased`}>
+        <MagneticCursor />
         {children}
+        <Analytics />
       </body>
     </html>
-  );
+  )
 }
