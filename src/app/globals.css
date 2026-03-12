@@ -517,3 +517,41 @@
     animation: none;
   }
 }
+
+/* Brand gradient text animation */
+.brand-gradient-animated {
+  animation: gradient-shift 3s ease infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .brand-gradient-animated {
+    animation: none;
+  }
+}
+
+/* Brand gradient glow effect for buttons/CTAs */
+.brand-gradient-glow {
+  position: relative;
+}
+
+.brand-gradient-glow::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: var(--brand-gradient-primary);
+  filter: blur(20px);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  z-index: -1;
+  border-radius: inherit;
+}
+
+.brand-gradient-glow:hover::after {
+  opacity: 0.5;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .brand-gradient-glow::after {
+    display: none;
+  }
+}
