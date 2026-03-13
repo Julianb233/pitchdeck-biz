@@ -39,7 +39,7 @@ export async function saveAsset(
     return null;
   }
 
-  return data as AssetRow;
+  return data as unknown as AssetRow;
 }
 
 /**
@@ -64,7 +64,7 @@ export async function getUserAssets(
     return [];
   }
 
-  return (data ?? []) as AssetRow[];
+  return (data ?? []) as unknown as AssetRow[];
 }
 
 /**
@@ -85,5 +85,5 @@ export async function getAsset(assetId: string): Promise<AssetRow | null> {
     return null;
   }
 
-  return data as AssetRow;
+  return data as unknown as AssetRow;
 }

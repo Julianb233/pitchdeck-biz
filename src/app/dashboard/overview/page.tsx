@@ -1,20 +1,59 @@
 "use client";
 
 import Link from "next/link";
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { useAuth } from "@/hooks/use-auth";
 
-interface Deck {
+interface DeckRow {
   id: string;
-  name: string;
-  createdAt: string;
-  status: "paid" | "pending";
+  title: string;
+  status: string;
+  created_at: string;
+  analysis_id: string | null;
+}
+
+interface AnalysisRow {
+  id: string;
+  business_name: string;
+  created_at: string;
 }
 
 export default function DashboardOverviewPage() {
   const { user, loading } = useAuth();
-  const [decks] = useState<Deck[]>([]);
+  const [decks, setDecks] = useState<DeckRow[]>([]);
+  const [analyses, setAnalyses] = useState<AnalysisRow[]>([]);
+  const [dataLoading, setDataLoading] = useState(true);
   const [checkoutLoading, setCheckoutLoading] = useState(false);
+
+  useEffect(() => {
+    if (!user) return;
+
+    async function fetchData() {
+      setDataLoading(true);
+      try {
+        const [decksRes, analysesRes] = await Promise.all([
+          fetch("/api/decks"),
+          fetch("/api/analyses"),
+        ]);
+
+        if (decksRes.ok) {
+          const decksData = await decksRes.json();
+          setDecks(decksData.decks ?? []);
+        }
+
+        if (analysesRes.ok) {
+          const analysesData = await analysesRes.json();
+          setAnalyses(analysesData.analyses ?? []);
+        }
+      } catch (err) {
+        console.error("Failed to load dashboard data:", err);
+      } finally {
+        setDataLoading(false);
+      }
+    }
+
+    fetchData();
+  }, [user]);
 
   const handleCheckout = useCallback(async (type: "deck" | "subscription", deckId?: string) => {
     setCheckoutLoading(true);
@@ -45,6 +84,14 @@ export default function DashboardOverviewPage() {
 
   if (!user) return null;
 
+  function formatDate(dateStr: string) {
+    return new Date(dateStr).toLocaleDateString("en-US", {
+      month: "short",
+      day: "numeric",
+      year: "numeric",
+    });
+  }
+
   return (
     <div className="space-y-8">
       {/* Welcome header */}
@@ -56,7 +103,7 @@ export default function DashboardOverviewPage() {
           </p>
         </div>
         <Link
-          href="/dashboard"
+          href="/create"
           className="px-5 py-2.5 rounded-lg font-semibold text-white text-sm transition-all hover:opacity-90"
           style={{
             background: "linear-gradient(135deg, #ff006e 0%, #8b5cf6 50%, #00d4ff 100%)",
@@ -77,13 +124,17 @@ export default function DashboardOverviewPage() {
         </div>
 
         <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-5">
-          <p className="text-zinc-500 text-xs font-medium uppercase tracking-wider">Subscription</p>
-          <p className="mt-2 text-lg font-semibold text-white">None</p>
+          <p className="text-zinc-500 text-xs font-medium uppercase tracking-wider">Analyses</p>
+          <p className="mt-2 text-lg font-semibold text-white">
+            {dataLoading ? "..." : analyses.length}
+          </p>
         </div>
 
         <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-5">
           <p className="text-zinc-500 text-xs font-medium uppercase tracking-wider">Total Decks</p>
-          <p className="mt-2 text-lg font-semibold text-white">{decks.length}</p>
+          <p className="mt-2 text-lg font-semibold text-white">
+            {dataLoading ? "..." : decks.length}
+          </p>
         </div>
       </div>
 
@@ -108,46 +159,88 @@ export default function DashboardOverviewPage() {
       {/* Decks list */}
       <div>
         <h2 className="text-lg font-semibold text-white mb-4">Your Decks</h2>
-        {decks.length === 0 ? (
+        {dataLoading ? (
+          <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-12 text-center">
+            <p className="text-zinc-400">Loading decks...</p>
+          </div>
+        ) : decks.length === 0 ? (
           <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-12 text-center">
             <p className="text-zinc-400">No decks yet. Create your first pitch deck!</p>
           </div>
         ) : (
           <div className="space-y-3">
             {decks.map((deck) => (
-              <div
+              <Link
                 key={deck.id}
+                href={`/create/preview?deck_id=${deck.id}`}
+                className="block bg-zinc-900 border border-zinc-800 rounded-xl p-4 hover:border-zinc-700 transition-colors"
+              >
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-4">
+                    <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-violet-500/20 to-cyan-500/20 flex items-center justify-center text-violet-400">
+                      <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={1.5}
+                          d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                        />
+                      </svg>
+                    </div>
+                    <div>
+                      <p className="text-white font-medium">{deck.title}</p>
+                      <p className="text-zinc-500 text-sm">{formatDate(deck.created_at)}</p>
+                    </div>
+                  </div>
+                  <span
+                    className={`text-xs font-medium px-2.5 py-1 rounded-full ${
+                      deck.status === "generated"
+                        ? "bg-emerald-500/10 text-emerald-400"
+                        : "bg-amber-500/10 text-amber-400"
+                    }`}
+                  >
+                    {deck.status === "generated" ? "Ready" : deck.status}
+                  </span>
+                </div>
+              </Link>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* Analyses list */}
+      <div>
+        <h2 className="text-lg font-semibold text-white mb-4">Recent Analyses</h2>
+        {dataLoading ? (
+          <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-12 text-center">
+            <p className="text-zinc-400">Loading analyses...</p>
+          </div>
+        ) : analyses.length === 0 ? (
+          <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-12 text-center">
+            <p className="text-zinc-400">No analyses yet.</p>
+          </div>
+        ) : (
+          <div className="space-y-3">
+            {analyses.map((analysis) => (
+              <div
+                key={analysis.id}
                 className="bg-zinc-900 border border-zinc-800 rounded-xl p-4 flex items-center justify-between hover:border-zinc-700 transition-colors"
               >
                 <div className="flex items-center gap-4">
-                  <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-violet-500/20 to-cyan-500/20 flex items-center justify-center text-violet-400">
+                  <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-pink-500/20 to-violet-500/20 flex items-center justify-center text-pink-400">
                     <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path
                         strokeLinecap="round"
                         strokeLinejoin="round"
                         strokeWidth={1.5}
-                        d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                        d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"
                       />
                     </svg>
                   </div>
                   <div>
-                    <p className="text-white font-medium">{deck.name}</p>
-                    <p className="text-zinc-500 text-sm">{deck.createdAt}</p>
+                    <p className="text-white font-medium">{analysis.business_name}</p>
+                    <p className="text-zinc-500 text-sm">{formatDate(analysis.created_at)}</p>
                   </div>
-                </div>
-                <div className="flex items-center gap-3">
-                  <span
-                    className={`text-xs font-medium px-2.5 py-1 rounded-full ${
-                      deck.status === "paid"
-                        ? "bg-emerald-500/10 text-emerald-400"
-                        : "bg-amber-500/10 text-amber-400"
-                    }`}
-                  >
-                    {deck.status === "paid" ? "Ready" : "Pending"}
-                  </span>
-                  <button className="px-3 py-1.5 rounded-lg bg-zinc-800 border border-zinc-700 text-zinc-300 text-sm hover:bg-zinc-700 transition-colors">
-                    Download
-                  </button>
                 </div>
               </div>
             ))}
