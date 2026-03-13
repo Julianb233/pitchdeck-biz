@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { verifyWebhookSignature } from '@/lib/stripe';
+import { resetMonthlyTokens } from '@/lib/tokens';
 import type Stripe from 'stripe';
 
 // In-memory stores — replace with a database in production
@@ -55,7 +56,9 @@ export async function POST(request: NextRequest) {
         subscriptionId: subscription.id,
         customerId,
       });
-      console.log(`Subscription created for customer ${customerId}`);
+      // Allocate initial token balance for new subscriber
+      resetMonthlyTokens(customerId);
+      console.log(`Subscription created for customer ${customerId}, tokens allocated`);
       break;
     }
 

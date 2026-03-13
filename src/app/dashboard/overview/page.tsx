@@ -1,15 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { useState, useEffect, useCallback } from "react";
-import { useRouter } from "next/navigation";
-
-interface UserInfo {
-  id: string;
-  email: string;
-  name: string;
-  subscriptionStatus: "free" | "pro";
-}
+import { useState, useCallback } from "react";
+import { useSession } from "next-auth/react";
 
 interface Deck {
   id: string;
@@ -19,27 +12,10 @@ interface Deck {
 }
 
 export default function DashboardOverviewPage() {
-  const router = useRouter();
-  const [user, setUser] = useState<UserInfo | null>(null);
+  const { data: session, status } = useSession();
+  const user = session?.user;
   const [decks] = useState<Deck[]>([]);
-  const [loading, setLoading] = useState(true);
   const [checkoutLoading, setCheckoutLoading] = useState(false);
-
-  useEffect(() => {
-    fetch("/api/auth/me")
-      .then((res) => {
-        if (!res.ok) {
-          router.push("/login");
-          return null;
-        }
-        return res.json();
-      })
-      .then((data) => {
-        if (data?.user) setUser(data.user);
-      })
-      .catch(() => router.push("/login"))
-      .finally(() => setLoading(false));
-  }, [router]);
 
   const handleCheckout = useCallback(async (type: "deck" | "subscription", deckId?: string) => {
     setCheckoutLoading(true);
@@ -60,7 +36,7 @@ export default function DashboardOverviewPage() {
     }
   }, []);
 
-  if (loading) {
+  if (status === "loading") {
     return (
       <div className="flex items-center justify-center min-h-[60vh]">
         <div className="text-zinc-400">Loading...</div>
@@ -70,8 +46,6 @@ export default function DashboardOverviewPage() {
 
   if (!user) return null;
 
-  const isPro = user.subscriptionStatus === "pro";
-
   return (
     <div className="space-y-8">
       {/* Welcome header */}
@@ -79,7 +53,7 @@ export default function DashboardOverviewPage() {
         <div>
           <h1 className="text-2xl font-bold text-white">Welcome, {user.name}</h1>
           <p className="text-zinc-400 text-sm mt-1">
-            {user.email} &middot; {isPro ? "Pro" : "Free"} plan
+            {user.email}
           </p>
         </div>
         <Link
@@ -98,22 +72,14 @@ export default function DashboardOverviewPage() {
         <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-5">
           <p className="text-zinc-500 text-xs font-medium uppercase tracking-wider">Plan</p>
           <div className="mt-2 flex items-center gap-2">
-            <span
-              className={`inline-block w-2 h-2 rounded-full ${
-                isPro ? "bg-emerald-500" : "bg-zinc-600"
-              }`}
-            />
-            <span className="text-lg font-semibold text-white">
-              {isPro ? "Pro" : "Free"}
-            </span>
+            <span className="inline-block w-2 h-2 rounded-full bg-zinc-600" />
+            <span className="text-lg font-semibold text-white">Free</span>
           </div>
         </div>
 
         <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-5">
           <p className="text-zinc-500 text-xs font-medium uppercase tracking-wider">Subscription</p>
-          <p className="mt-2 text-lg font-semibold text-white">
-            {isPro ? "$49/mo" : "None"}
-          </p>
+          <p className="mt-2 text-lg font-semibold text-white">None</p>
         </div>
 
         <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-5">
@@ -122,37 +88,23 @@ export default function DashboardOverviewPage() {
         </div>
       </div>
 
-      {/* Manage subscription */}
-      {isPro ? (
-        <div className="bg-zinc-900/50 border border-zinc-800 rounded-xl p-5 flex items-center justify-between">
-          <div>
-            <p className="text-white font-medium">Monthly Subscription</p>
-            <p className="text-zinc-400 text-sm">$49/mo &middot; Unlimited decks &middot; Renews monthly</p>
-          </div>
-          <button
-            className="px-4 py-2 rounded-lg bg-zinc-800 border border-zinc-700 text-zinc-300 text-sm font-medium hover:bg-zinc-700 transition-colors"
-          >
-            Manage Subscription
-          </button>
+      {/* Upgrade CTA */}
+      <div className="bg-gradient-to-r from-violet-500/10 to-cyan-500/10 border border-violet-500/20 rounded-xl p-5 flex items-center justify-between">
+        <div>
+          <p className="text-white font-medium">Upgrade to Pro</p>
+          <p className="text-zinc-400 text-sm">Subscribe for $49/mo for unlimited deck creation</p>
         </div>
-      ) : (
-        <div className="bg-gradient-to-r from-violet-500/10 to-cyan-500/10 border border-violet-500/20 rounded-xl p-5 flex items-center justify-between">
-          <div>
-            <p className="text-white font-medium">Upgrade to Pro</p>
-            <p className="text-zinc-400 text-sm">Subscribe for $49/mo for unlimited deck creation</p>
-          </div>
-          <button
-            onClick={() => handleCheckout("subscription")}
-            disabled={checkoutLoading}
-            className="px-4 py-2 rounded-lg font-semibold text-white text-sm disabled:opacity-50"
-            style={{
-              background: "linear-gradient(135deg, #ff006e 0%, #8b5cf6 50%, #00d4ff 100%)",
-            }}
-          >
-            {checkoutLoading ? "Loading..." : "Subscribe Now"}
-          </button>
-        </div>
-      )}
+        <button
+          onClick={() => handleCheckout("subscription")}
+          disabled={checkoutLoading}
+          className="px-4 py-2 rounded-lg font-semibold text-white text-sm disabled:opacity-50"
+          style={{
+            background: "linear-gradient(135deg, #ff006e 0%, #8b5cf6 50%, #00d4ff 100%)",
+          }}
+        >
+          {checkoutLoading ? "Loading..." : "Subscribe Now"}
+        </button>
+      </div>
 
       {/* Decks list */}
       <div>

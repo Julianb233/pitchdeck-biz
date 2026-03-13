@@ -108,7 +108,7 @@ export function Testimonials() {
             {duplicatedTestimonials.map((testimonial, index) => (
               <article
                 key={`${testimonial.id}-${index}`}
-                className="relative flex-shrink-0 w-[85vw] md:w-[400px] p-6 md:p-8 border bg-card hover:shadow-lg transition-shadow overflow-hidden border-zinc-100 md:px-6 md:py-6 rounded-3xl"
+                className="relative flex-shrink-0 w-[85vw] md:w-[400px] p-6 md:p-8 border bg-card hover:shadow-lg transition-shadow overflow-hidden border-border md:px-6 md:py-6 rounded-3xl"
               >
                 {/* Author Info */}
                 <div className="flex items-center gap-3 mb-4">
@@ -151,7 +151,7 @@ export function Testimonials() {
             {duplicatedTestimonialsReverse.map((testimonial, index) => (
               <article
                 key={`reverse-${testimonial.id}-${index}`}
-                className="relative flex-shrink-0 w-[85vw] md:w-[400px] p-6 md:p-8 border bg-card hover:shadow-lg transition-shadow overflow-hidden border-zinc-100 md:px-6 md:py-6 rounded-3xl"
+                className="relative flex-shrink-0 w-[85vw] md:w-[400px] p-6 md:p-8 border bg-card hover:shadow-lg transition-shadow overflow-hidden border-border md:px-6 md:py-6 rounded-3xl"
               >
                 {/* Author Info */}
                 <div className="flex items-center gap-3 mb-4">

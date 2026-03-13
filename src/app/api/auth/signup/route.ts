@@ -1,13 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
-import {
-  getUserByEmail,
-  createUser,
-  hashPassword,
-  createSessionToken,
-  setSessionCookie,
-  toSafeUser,
-} from "@/lib/auth";
+import { signUp } from "@/lib/auth";
 
 const SignupSchema = z.object({
   email: z.string().email("Invalid email address"),
@@ -28,20 +21,32 @@ export async function POST(request: NextRequest) {
     }
 
     const { email, password, name } = parsed.data;
+    const { data, error } = await signUp(email, password, name);
 
-    if (getUserByEmail(email)) {
+    if (error) {
+      if (error.message.includes("already registered")) {
+        return NextResponse.json(
+          { error: "An account with this email already exists" },
+          { status: 409 },
+        );
+      }
       return NextResponse.json(
-        { error: "An account with this email already exists" },
-        { status: 409 },
+        { error: error.message },
+        { status: 400 },
       );
     }
 
-    const passwordHash = await hashPassword(password);
-    const user = createUser(email, name, passwordHash);
-    const token = await createSessionToken(user.id);
-    const headers = setSessionCookie(token);
-
-    return NextResponse.json({ user: toSafeUser(user) }, { status: 201, headers });
+    const user = data.user;
+    return NextResponse.json(
+      {
+        user: {
+          id: user?.id,
+          email: user?.email,
+          name,
+        },
+      },
+      { status: 201 },
+    );
   } catch {
     return NextResponse.json(
       { error: "Internal server error" },
