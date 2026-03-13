@@ -1,7 +1,9 @@
 "use client";
 
-// Auth is handled by Supabase via cookies — no React context provider needed.
-// This wrapper is kept for layout.tsx import compatibility.
+import { SessionProvider as NextAuthSessionProvider } from "next-auth/react";
+
+// Wraps the app with NextAuth's SessionProvider for useSession() support.
+// Also works alongside Supabase cookie-based auth.
 export function SessionProvider({ children }: { children: React.ReactNode }) {
-  return <>{children}</>;
+  return <NextAuthSessionProvider>{children}</NextAuthSessionProvider>;
 }

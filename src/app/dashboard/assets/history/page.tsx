@@ -71,12 +71,22 @@ export default function AssetHistoryPage() {
   const [viewMode, setViewMode] = useState<ViewMode>("grid")
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
   const [isLoading, setIsLoading] = useState(true)
+  const [userId, setUserId] = useState<string | null>(null)
+
+  // Get current user ID from Supabase
+  useEffect(() => {
+    const supabase = createClient()
+    supabase.auth.getUser().then(({ data: { user } }) => {
+      if (user) setUserId(user.id)
+    })
+  }, [])
 
   const loadAssets = useCallback(async (page: number, type: AssetType | "all") => {
+    if (!userId) return
     setIsLoading(true)
     try {
       const params = new URLSearchParams({
-        userId: "demo-user",
+        userId,
         page: String(page),
         limit: String(PAGE_SIZE),
       })
