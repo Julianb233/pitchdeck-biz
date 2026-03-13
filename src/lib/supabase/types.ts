@@ -149,6 +149,7 @@ export interface Database {
           template_name: string | null;
           prompt: string | null;
           image_data: string | null;
+          brand_colors: Json;
           tokens_used: number;
           created_at: string;
         };
@@ -160,6 +161,7 @@ export interface Database {
           template_name?: string | null;
           prompt?: string | null;
           image_data?: string | null;
+          brand_colors?: Json;
           tokens_used?: number;
           created_at?: string;
         };
@@ -171,6 +173,7 @@ export interface Database {
           template_name?: string | null;
           prompt?: string | null;
           image_data?: string | null;
+          brand_colors?: Json;
           tokens_used?: number;
           created_at?: string;
         };
