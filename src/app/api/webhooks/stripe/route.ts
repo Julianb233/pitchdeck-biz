@@ -80,7 +80,9 @@ export async function POST(request: NextRequest) {
           ? invoice.customer
           : invoice.customer?.id;
       if (customerId) {
-        console.log(`Invoice payment succeeded for customer ${customerId}`);
+        // Reset token balance on subscription renewal payment
+        resetMonthlyTokens(customerId);
+        console.log(`Invoice payment succeeded for customer ${customerId}, tokens reset`);
       }
       break;
     }
