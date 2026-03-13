@@ -46,7 +46,7 @@ export async function updateOrderStatus(
 ): Promise<OrderRow | null> {
   try {
     const supabase = await createClient();
-    const updateData: Record<string, unknown> = { status };
+    const updateData: { status: string; stripe_session_id?: string } = { status };
     if (stripeSessionId) {
       updateData.stripe_session_id = stripeSessionId;
     }

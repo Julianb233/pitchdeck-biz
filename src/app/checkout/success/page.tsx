@@ -1,6 +1,8 @@
 import Link from "next/link";
 import { CheckCircle, ArrowRight, Home } from "lucide-react";
 
+export const dynamic = "force-dynamic";
+
 interface Props {
   searchParams: Promise<{ session_id?: string }>;
 }

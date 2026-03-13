@@ -95,6 +95,12 @@ export function Header() {
               {user ? (
                 <>
                   <Link
+                    href="/create"
+                    className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
+                  >
+                    Create
+                  </Link>
+                  <Link
                     href="/dashboard/overview"
                     className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
                   >
@@ -176,12 +182,19 @@ export function Header() {
               {user ? (
                 <>
                   <Link
-                    href="/dashboard/overview"
+                    href="/create"
                     className="inline-flex items-center justify-center w-full px-5 py-3 text-base font-semibold rounded-full text-white transition-all hover:scale-105"
                     style={{
                       background: "linear-gradient(135deg, #ff006e 0%, #8b5cf6 50%, #203eec 100%)",
                       boxShadow: "0 4px 20px rgba(255, 0, 110, 0.3)",
                     }}
+                    onClick={() => setIsMobileMenuOpen(false)}
+                  >
+                    Create New Deck
+                  </Link>
+                  <Link
+                    href="/dashboard/overview"
+                    className="block w-full text-center px-5 py-3 text-base font-medium text-muted-foreground hover:text-foreground transition-colors"
                     onClick={() => setIsMobileMenuOpen(false)}
                   >
                     Dashboard

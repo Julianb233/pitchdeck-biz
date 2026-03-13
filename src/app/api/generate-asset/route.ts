@@ -178,6 +178,23 @@ export async function POST(request: NextRequest) {
       ? brandColors.filter((c): c is string => typeof c === "string" && /^#[0-9a-fA-F]{6}$/.test(c)).slice(0, 6)
       : []
 
+    // ── Subscription gate ─────────────────────────────────────────────────
+
+    const { data: activeSub } = await supabase
+      .from("subscriptions")
+      .select("id")
+      .eq("user_id", userId)
+      .eq("status", "active")
+      .limit(1)
+      .maybeSingle()
+
+    if (!activeSub) {
+      return NextResponse.json(
+        { error: "Active subscription required to generate assets." },
+        { status: 403 },
+      )
+    }
+
     // ── Token check ───────────────────────────────────────────────────────
 
     const validAssetType = assetType as AssetType
@@ -210,15 +227,7 @@ export async function POST(request: NextRequest) {
 
     // ── Save asset to Supabase ────────────────────────────────────────────
 
-    // Look up active subscription ID for the user
-    const { data: activeSub } = await supabase
-      .from("subscriptions")
-      .select("id")
-      .eq("user_id", userId)
-      .eq("status", "active")
-      .limit(1)
-      .maybeSingle()
-
+    // activeSub is already fetched from the subscription gate check above
     const savedAsset = await saveAsset(
       userId,
       activeSub?.id ?? null,

@@ -29,11 +29,20 @@ export function useAuth(): UseAuthReturn {
       const supabase = createClient();
       const { data: { user: supaUser } } = await supabase.auth.getUser();
       if (supaUser) {
+        // Check subscription status from DB
+        const { data: sub } = await supabase
+          .from("subscriptions")
+          .select("status")
+          .eq("user_id", supaUser.id)
+          .eq("status", "active")
+          .limit(1)
+          .maybeSingle();
+
         setUser({
           id: supaUser.id,
           email: supaUser.email ?? "",
           name: supaUser.user_metadata?.name ?? supaUser.email ?? "",
-          subscriptionStatus: "free",
+          subscriptionStatus: sub ? "pro" : "free",
           createdAt: supaUser.created_at,
         });
       } else {
