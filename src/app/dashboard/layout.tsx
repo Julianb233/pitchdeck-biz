@@ -1,7 +1,7 @@
 import type React from "react"
 import Link from "next/link"
 import { redirect } from "next/navigation"
-import { auth } from "@/lib/auth/auth"
+import { getSessionFromCookies } from "@/lib/auth"
 import { LogoutButton } from "@/components/dashboard/logout-button"
 
 const NAV_ITEMS = [
@@ -44,13 +44,11 @@ function NavIcon({ icon }: { icon: string }) {
 }
 
 export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
-  const session = await auth();
+  const user = await getSessionFromCookies();
 
-  if (!session?.user) {
+  if (!user) {
     redirect("/login");
   }
-
-  const user = session.user;
 
   return (
     <div className="min-h-screen bg-zinc-950 text-white">
