@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import Anthropic from "@anthropic-ai/sdk";
 import type { BusinessAnalysis, DeckContent } from "@/lib/types";
+import { attachImagesToSlides } from "@/lib/ai/slide-image-generator";
 
 export const runtime = "nodejs";
 export const maxDuration = 60;
@@ -114,6 +115,11 @@ export async function POST(request: NextRequest) {
         { status: 500 }
       );
     }
+
+    // Attach generated chart/brand images to each slide
+    const industry = analysis.market?.targetAudience ?? analysis.businessModel?.type ?? "technology";
+    const description = analysis.summary ?? analysis.brandEssence?.mission ?? "innovative business";
+    deckContent.slides = attachImagesToSlides(deckContent.slides, industry, description);
 
     return NextResponse.json({
       success: true,

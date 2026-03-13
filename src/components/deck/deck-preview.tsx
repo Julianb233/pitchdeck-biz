@@ -80,6 +80,18 @@ function SlideCard({ slide, isActive, isExpanded, onClick }: SlideCardProps) {
             </p>
           )}
 
+          {/* Generated slide image */}
+          {isExpanded && slide.generatedImage && (
+            <div className="rounded-lg overflow-hidden border border-border/40 bg-muted/20">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={slide.generatedImage}
+                alt={`Visual for ${slide.title}`}
+                className="w-full object-contain max-h-64"
+              />
+            </div>
+          )}
+
           {slide.bulletPoints && slide.bulletPoints.length > 0 && (
             <ul className={cn(
               "space-y-1",
@@ -128,10 +140,15 @@ function SlideThumb({ slide, isActive, onClick }: SlideThumbProps) {
       )}
     >
       <div className={cn(
-        "w-12 h-8 rounded border flex items-center justify-center text-[9px] font-bold",
-        colorClass
+        "w-12 h-8 rounded border overflow-hidden flex items-center justify-center text-[9px] font-bold",
+        slide.generatedImage ? "" : colorClass
       )}>
-        {String(slide.slideNumber).padStart(2, "0")}
+        {slide.generatedImage ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img src={slide.generatedImage} alt="" className="w-full h-full object-cover" />
+        ) : (
+          String(slide.slideNumber).padStart(2, "0")
+        )}
       </div>
       <span className="text-[9px] text-muted-foreground truncate max-w-[64px]">
         {SLIDE_TYPE_LABELS[slide.type]}

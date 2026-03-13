@@ -120,6 +120,8 @@ export interface SlideContent {
   bulletPoints?: string[];
   notes?: string;
   imagePrompt?: string;
+  /** Generated image as a data URI (SVG or base64 PNG) attached server-side */
+  generatedImage?: string;
 }
 
 // Deck Content (full deliverable output from AI generation)
