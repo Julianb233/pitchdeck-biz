@@ -25,7 +25,7 @@ export function FinalCTA() {
               }}
             >
               <span className="relative z-10 inline-flex items-center gap-2">
-                Create Your Pitch Deck — $99
+                Create Your Pitch Deck — $497
                 <ArrowUpRight className="w-4 h-4" />
               </span>
               <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 blur-2xl bg-gradient-to-r from-[#203eec] to-[#00d4ff]" />

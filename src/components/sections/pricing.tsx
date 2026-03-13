@@ -8,7 +8,7 @@ const plans = [
     name: "Pay Per Deck",
     badge: "Most Popular",
     badgeIcon: Sparkles,
-    price: "$99",
+    price: "$497",
     period: "per deck",
     description: "Everything you need to pitch your business professionally",
     featured: false,

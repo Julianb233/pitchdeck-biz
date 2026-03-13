@@ -72,6 +72,9 @@ export function MagneticCursor() {
     }
   }, [])
 
+  const dotSize = isHovering ? 40 : 8
+  const ringSize = isHovering ? 60 : 32
+
   return (
     <>
       {/* Main cursor dot */}
@@ -79,15 +82,15 @@ export function MagneticCursor() {
         ref={cursorRef}
         className="fixed top-0 left-0 pointer-events-none z-[9999] mix-blend-difference hidden md:block"
         style={{
-          transform: `translate(${position.x}px, ${position.y}px)`,
+          transform: `translate(${position.x - dotSize / 2}px, ${position.y - dotSize / 2}px)`,
           transition: isHovering ? "width 0.2s, height 0.2s" : "none",
         }}
       >
         <div
-          className="relative -translate-x-1/2 -translate-y-1/2 rounded-full bg-white"
+          className="rounded-full bg-white"
           style={{
-            width: isHovering ? "40px" : "8px",
-            height: isHovering ? "40px" : "8px",
+            width: `${dotSize}px`,
+            height: `${dotSize}px`,
             transition: "width 0.2s, height 0.2s",
           }}
         />
@@ -97,15 +100,15 @@ export function MagneticCursor() {
       <div
         className="fixed top-0 left-0 pointer-events-none z-[9998] mix-blend-difference hidden md:block"
         style={{
-          transform: `translate(${position.x}px, ${position.y}px)`,
+          transform: `translate(${position.x - ringSize / 2}px, ${position.y - ringSize / 2}px)`,
           transition: "transform 0.1s",
         }}
       >
         <div
-          className="relative -translate-x-1/2 -translate-y-1/2 rounded-full border border-white/40"
+          className="rounded-full border border-white/40"
           style={{
-            width: isHovering ? "60px" : "32px",
-            height: isHovering ? "60px" : "32px",
+            width: `${ringSize}px`,
+            height: `${ringSize}px`,
             transition: "width 0.3s, height 0.3s",
           }}
         />

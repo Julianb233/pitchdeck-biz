@@ -1,5 +1,6 @@
 "use client"
 
+import Image from "next/image"
 import { Upload, Mic, Sparkles, Wand2, Download, Presentation } from "lucide-react"
 import { SectionTitle } from "@/components/ui/section-title"
 
@@ -14,6 +15,7 @@ const steps = [
       "We extract what matters automatically",
     ],
     icons: [Upload, Mic],
+    image: "/images/step-1-upload.png",
     gradient: "from-[#ff006e] to-[#8b5cf6]",
     glowColor: "rgba(255, 0, 110, 0.15)",
     borderColor: "rgba(255, 0, 110, 0.2)",
@@ -28,6 +30,7 @@ const steps = [
       "Generates professional copy and visuals",
     ],
     icons: [Sparkles, Wand2],
+    image: "/images/step-2-analyze.png",
     gradient: "from-[#8b5cf6] to-[#203eec]",
     glowColor: "rgba(139, 92, 246, 0.15)",
     borderColor: "rgba(139, 92, 246, 0.2)",
@@ -42,6 +45,7 @@ const steps = [
       "Ready to present to investors, partners, or buyers",
     ],
     icons: [Download, Presentation],
+    image: "/images/step-3-download.png",
     gradient: "from-[#203eec] to-[#00d4ff]",
     glowColor: "rgba(32, 62, 236, 0.15)",
     borderColor: "rgba(32, 62, 236, 0.2)",
@@ -100,6 +104,17 @@ export function HowItWorks() {
                     e.currentTarget.style.boxShadow = `0 0 0 0 ${step.glowColor}`
                   }}
                 >
+                  {/* Step Image */}
+                  <div className="mb-4 -mx-8 md:-mx-10 -mt-8 md:-mt-10 overflow-hidden rounded-t-2xl md:rounded-t-3xl">
+                    <Image
+                      src={step.image}
+                      alt={step.title}
+                      width={600}
+                      height={400}
+                      className="w-full object-cover aspect-[3/2]"
+                    />
+                  </div>
+
                   {/* Step Number */}
                   <div
                     className={`text-7xl md:text-8xl font-bold bg-gradient-to-br ${step.gradient} bg-clip-text text-transparent opacity-20 absolute top-4 right-6 select-none`}

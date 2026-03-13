@@ -1,6 +1,7 @@
 "use client"
 
 import { useEffect, useRef, useState } from "react"
+import Image from "next/image"
 import { SectionTitle } from "@/components/ui/section-title"
 import { Presentation, FileText, FileCheck, Palette } from "lucide-react"
 
@@ -14,7 +15,7 @@ const deliverables = [
       "Problem, solution, market size, business model, team, financials, and the ask — beautifully designed to close rounds.",
     gradient: "from-[#7c3aed] to-[#3b82f6]",
     accentColor: "#7c3aed",
-    mockupType: "slides" as const,
+    image: "/images/deliverable-pitch-deck.png",
   },
   {
     icon: FileText,
@@ -25,7 +26,7 @@ const deliverables = [
       "Perfect for partner meetings, trade shows, and quick pitches. Everything that matters, nothing that doesn't.",
     gradient: "from-[#ec4899] to-[#f97316]",
     accentColor: "#ec4899",
-    mockupType: "document" as const,
+    image: "/images/deliverable-sell-sheet.png",
   },
   {
     icon: FileCheck,
@@ -36,7 +37,7 @@ const deliverables = [
       "One page that captures everything. Send it ahead of meetings and walk in with momentum.",
     gradient: "from-[#06b6d4] to-[#10b981]",
     accentColor: "#06b6d4",
-    mockupType: "onepager" as const,
+    image: "/images/deliverable-one-pager.png",
   },
   {
     icon: Palette,
@@ -47,176 +48,9 @@ const deliverables = [
       "Logo concepts, color palette, typography, and brand guidelines — everything to look like a million bucks.",
     gradient: "from-[#f97316] to-[#7c3aed]",
     accentColor: "#f97316",
-    mockupType: "brand" as const,
+    image: "/images/deliverable-branding-kit.png",
   },
 ]
-
-function SlidesMockup({ accentColor }: { accentColor: string }) {
-  return (
-    <div className="relative w-full h-full flex items-center justify-center">
-      {/* Back slides fanned */}
-      <div
-        className="absolute w-[60%] h-[70%] rounded-lg opacity-20 border border-white/20"
-        style={{
-          background: `linear-gradient(135deg, ${accentColor}33, ${accentColor}11)`,
-          transform: "rotate(-8deg) translateX(-12px)",
-        }}
-      />
-      <div
-        className="absolute w-[60%] h-[70%] rounded-lg opacity-40 border border-white/20"
-        style={{
-          background: `linear-gradient(135deg, ${accentColor}44, ${accentColor}22)`,
-          transform: "rotate(-4deg) translateX(-6px)",
-        }}
-      />
-      {/* Front slide */}
-      <div
-        className="relative w-[60%] h-[70%] rounded-lg border border-white/30 overflow-hidden"
-        style={{
-          background: `linear-gradient(135deg, ${accentColor}66, ${accentColor}33)`,
-        }}
-      >
-        <div className="p-3 space-y-2">
-          <div className="w-1/2 h-2 rounded-full bg-white/40" />
-          <div className="w-3/4 h-1.5 rounded-full bg-white/20" />
-          <div className="w-2/3 h-1.5 rounded-full bg-white/20" />
-          <div className="mt-3 w-full h-[40%] rounded bg-white/10" />
-          <div className="flex gap-1 mt-2">
-            <div className="w-1/3 h-4 rounded bg-white/15" />
-            <div className="w-1/3 h-4 rounded bg-white/15" />
-            <div className="w-1/3 h-4 rounded bg-white/15" />
-          </div>
-        </div>
-      </div>
-    </div>
-  )
-}
-
-function DocumentMockup({ accentColor }: { accentColor: string }) {
-  return (
-    <div className="relative w-full h-full flex items-center justify-center">
-      {/* Second page behind */}
-      <div
-        className="absolute w-[50%] h-[75%] rounded-lg opacity-30 border border-white/20"
-        style={{
-          background: `linear-gradient(180deg, ${accentColor}22, ${accentColor}11)`,
-          transform: "translateX(8px) translateY(6px)",
-        }}
-      />
-      {/* Front page */}
-      <div
-        className="relative w-[50%] h-[75%] rounded-lg border border-white/30 overflow-hidden"
-        style={{
-          background: `linear-gradient(180deg, ${accentColor}55, ${accentColor}22)`,
-        }}
-      >
-        {/* Header bar */}
-        <div
-          className="h-[18%] w-full"
-          style={{ background: `${accentColor}66` }}
-        />
-        <div className="p-3 space-y-1.5">
-          <div className="w-3/4 h-1.5 rounded-full bg-white/30" />
-          <div className="w-full h-1 rounded-full bg-white/15" />
-          <div className="w-full h-1 rounded-full bg-white/15" />
-          <div className="w-2/3 h-1 rounded-full bg-white/15" />
-          <div className="mt-2 flex gap-2">
-            <div className="w-1/2 h-8 rounded bg-white/10" />
-            <div className="w-1/2 h-8 rounded bg-white/10" />
-          </div>
-          <div className="w-full h-1 rounded-full bg-white/15" />
-          <div className="w-4/5 h-1 rounded-full bg-white/15" />
-        </div>
-      </div>
-    </div>
-  )
-}
-
-function OnePagerMockup({ accentColor }: { accentColor: string }) {
-  return (
-    <div className="relative w-full h-full flex items-center justify-center">
-      <div
-        className="relative w-[50%] h-[75%] rounded-lg border border-white/30 overflow-hidden"
-        style={{
-          background: `linear-gradient(180deg, ${accentColor}44, ${accentColor}18)`,
-        }}
-      >
-        {/* Accent stripe */}
-        <div
-          className="h-1.5 w-full"
-          style={{ background: `${accentColor}88` }}
-        />
-        <div className="p-3 space-y-1.5">
-          <div className="w-2/3 h-2 rounded-full bg-white/35" />
-          <div className="w-1/2 h-1 rounded-full bg-white/20" />
-          <div className="mt-2 w-full h-1 rounded-full bg-white/15" />
-          <div className="w-full h-1 rounded-full bg-white/15" />
-          <div className="w-3/4 h-1 rounded-full bg-white/15" />
-          <div className="mt-2 grid grid-cols-3 gap-1">
-            <div className="h-6 rounded bg-white/10" />
-            <div className="h-6 rounded bg-white/10" />
-            <div className="h-6 rounded bg-white/10" />
-          </div>
-          <div className="w-full h-1 rounded-full bg-white/15" />
-          <div className="w-full h-1 rounded-full bg-white/15" />
-          <div className="w-1/2 h-1 rounded-full bg-white/15" />
-        </div>
-      </div>
-    </div>
-  )
-}
-
-function BrandMockup({ accentColor }: { accentColor: string }) {
-  return (
-    <div className="relative w-full h-full flex items-center justify-center">
-      <div
-        className="relative w-[70%] h-[70%] rounded-lg border border-white/30 overflow-hidden p-3"
-        style={{
-          background: `linear-gradient(135deg, ${accentColor}33, ${accentColor}15)`,
-        }}
-      >
-        {/* Logo placeholder */}
-        <div className="flex items-center gap-2 mb-2">
-          <div
-            className="w-6 h-6 rounded-full"
-            style={{ background: `${accentColor}88` }}
-          />
-          <div className="w-12 h-1.5 rounded-full bg-white/30" />
-        </div>
-        {/* Color swatches */}
-        <div className="flex gap-1 mb-2">
-          <div className="w-5 h-5 rounded" style={{ background: accentColor }} />
-          <div className="w-5 h-5 rounded" style={{ background: `${accentColor}bb` }} />
-          <div className="w-5 h-5 rounded" style={{ background: `${accentColor}77` }} />
-          <div className="w-5 h-5 rounded bg-white/30" />
-          <div className="w-5 h-5 rounded bg-white/15" />
-        </div>
-        {/* Typography samples */}
-        <div className="space-y-1 mb-2">
-          <div className="w-3/4 h-2 rounded-full bg-white/25" />
-          <div className="w-1/2 h-1.5 rounded-full bg-white/15" />
-        </div>
-        {/* Pattern blocks */}
-        <div className="grid grid-cols-2 gap-1">
-          <div
-            className="h-6 rounded"
-            style={{
-              background: `linear-gradient(135deg, ${accentColor}55, ${accentColor}22)`,
-            }}
-          />
-          <div className="h-6 rounded bg-white/10" />
-        </div>
-      </div>
-    </div>
-  )
-}
-
-const mockupComponents = {
-  slides: SlidesMockup,
-  document: DocumentMockup,
-  onepager: OnePagerMockup,
-  brand: BrandMockup,
-}
 
 function DeliverableCard({
   item,
@@ -248,7 +82,6 @@ function DeliverableCard({
     return () => observer.disconnect()
   }, [isVisible])
 
-  const MockupComponent = mockupComponents[item.mockupType]
   const Icon = item.icon
 
   return (
@@ -282,7 +115,7 @@ function DeliverableCard({
             backgroundSize: "24px 24px",
           }}
         />
-        <MockupComponent accentColor={item.accentColor} />
+        <Image src={item.image} alt={item.title} width={800} height={500} className="w-full h-full object-cover" />
       </div>
 
       {/* Content area */}

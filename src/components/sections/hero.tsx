@@ -140,84 +140,16 @@ export function Hero() {
         </div>
       </div>
 
-      {/* Pitch deck mockup placeholder */}
+      {/* Pitch deck mockup */}
       <div className="w-full mt-8 px-6 md:px-12 max-w-[1280px] mx-auto">
-        <div
-          className="w-full aspect-[16/9] max-h-[500px] rounded-2xl relative overflow-hidden"
-          style={{
-            background: "linear-gradient(135deg, #0f0f1a 0%, #1a1033 30%, #0f172a 60%, #0a0a14 100%)",
-            boxShadow: "0 20px 60px rgba(0,0,0,0.3), 0 0 120px rgba(139,92,246,0.1)",
-          }}
-        >
-          {/* Simulated slide grid */}
-          <div className="absolute inset-6 md:inset-10 grid grid-cols-3 gap-3 md:gap-4 opacity-80">
-            {/* Title slide */}
-            <div className="col-span-2 rounded-xl p-4 md:p-6 flex flex-col justify-between"
-              style={{ background: "linear-gradient(135deg, rgba(255,0,110,0.15) 0%, rgba(139,92,246,0.1) 100%)", border: "1px solid rgba(139,92,246,0.2)" }}
-            >
-              <div>
-                <div className="w-16 md:w-24 h-2 rounded-full mb-3" style={{ background: "linear-gradient(90deg, #ff006e, #8b5cf6)" }} />
-                <div className="w-32 md:w-48 h-3 md:h-4 rounded-full bg-white/20 mb-2" />
-                <div className="w-24 md:w-36 h-2 md:h-3 rounded-full bg-white/10" />
-              </div>
-              <div className="w-20 md:w-28 h-2 rounded-full bg-white/10" />
-            </div>
-
-            {/* Stats slide */}
-            <div className="rounded-xl p-3 md:p-4 flex flex-col gap-2"
-              style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)" }}
-            >
-              <div className="w-full h-2 rounded-full bg-white/10" />
-              <div className="flex-1 flex flex-col justify-center gap-1.5">
-                <div className="w-full h-6 md:h-8 rounded-lg" style={{ background: "linear-gradient(90deg, rgba(0,212,255,0.3), rgba(0,212,255,0.1))" }} />
-                <div className="w-3/4 h-6 md:h-8 rounded-lg" style={{ background: "linear-gradient(90deg, rgba(139,92,246,0.3), rgba(139,92,246,0.1))" }} />
-                <div className="w-1/2 h-6 md:h-8 rounded-lg" style={{ background: "linear-gradient(90deg, rgba(255,0,110,0.3), rgba(255,0,110,0.1))" }} />
-              </div>
-            </div>
-
-            {/* Team slide */}
-            <div className="rounded-xl p-3 md:p-4"
-              style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)" }}
-            >
-              <div className="w-full h-2 rounded-full bg-white/10 mb-3" />
-              <div className="grid grid-cols-2 gap-2">
-                {[0,1,2,3].map(i => (
-                  <div key={i} className="flex flex-col items-center gap-1">
-                    <div className="w-6 h-6 md:w-8 md:h-8 rounded-full" style={{ background: `linear-gradient(135deg, ${["#ff006e","#8b5cf6","#00d4ff","#203eec"][i]}, transparent)` }} />
-                    <div className="w-full h-1 rounded-full bg-white/10" />
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* Chart slide */}
-            <div className="col-span-2 rounded-xl p-3 md:p-4 flex flex-col"
-              style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)" }}
-            >
-              <div className="w-24 h-2 rounded-full bg-white/10 mb-3" />
-              <div className="flex-1 flex items-end gap-1.5 md:gap-2">
-                {[30, 45, 35, 60, 50, 75, 65, 85, 70, 90, 80, 95].map((h, i) => (
-                  <div
-                    key={i}
-                    className="flex-1 rounded-t-sm transition-all"
-                    style={{
-                      height: `${h}%`,
-                      background: `linear-gradient(to top, rgba(${i < 4 ? "255,0,110" : i < 8 ? "139,92,246" : "0,212,255"},0.6), rgba(${i < 4 ? "255,0,110" : i < 8 ? "139,92,246" : "0,212,255"},0.2))`,
-                    }}
-                  />
-                ))}
-              </div>
-            </div>
-          </div>
-
-          {/* Shine overlay */}
-          <div
-            className="absolute inset-0 pointer-events-none"
-            style={{
-              background: "linear-gradient(135deg, rgba(255,255,255,0.05) 0%, transparent 50%, rgba(139,92,246,0.05) 100%)",
-            }}
-          />
-        </div>
+        <Image
+          src="/images/hero-deck-mockup.png"
+          alt="AI-generated pitch deck preview"
+          width={1280}
+          height={720}
+          className="w-full rounded-2xl"
+          style={{ boxShadow: "0 20px 60px rgba(0,0,0,0.3), 0 0 120px rgba(139,92,246,0.1)" }}
+        />
       </div>
     </section>
   )

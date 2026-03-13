@@ -12,6 +12,7 @@ import { cn } from "@/lib/utils"
 const navItems = [
   { href: "#how-it-works", label: "How It Works" },
   { href: "#deliverables", label: "Deliverables" },
+  { href: "/branding-assets", label: "Asset Studio" },
   { href: "#pricing", label: "Pricing" },
   { href: "#faq", label: "FAQ" },
 ]
@@ -31,6 +32,10 @@ export function Header() {
   }, [])
 
   const handleNavClick = (e: React.MouseEvent<HTMLAnchorElement>, href: string) => {
+    if (!href.startsWith("#")) {
+      setIsMobileMenuOpen(false)
+      return
+    }
     e.preventDefault()
     const element = document.querySelector(href)
     if (element) {

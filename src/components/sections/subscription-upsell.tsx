@@ -1,5 +1,6 @@
 "use client"
 
+import Image from "next/image"
 import { ImageIcon, Package, FileText, Palette } from "lucide-react"
 
 const assetTypes = [
@@ -53,6 +54,18 @@ export function SubscriptionUpsell() {
           <p className="mt-6 text-zinc-400 text-lg leading-relaxed">
             Monthly branding assets, powered by AI. Upload your product images and brand materials, and our AI generates marketing assets on demand using your monthly token allocation.
           </p>
+        </div>
+
+        {/* Preview Image */}
+        <div className="relative max-w-4xl mx-auto mb-16 md:mb-20 rounded-2xl overflow-hidden border border-zinc-800">
+          <Image
+            src="/images/subscription-preview.png"
+            alt="AI-powered design generation dashboard"
+            width={1000}
+            height={600}
+            className="w-full h-auto"
+          />
+          <div className="absolute inset-0 bg-gradient-to-t from-zinc-950 via-transparent to-transparent" />
         </div>
 
         {/* 4-Column Icon Grid */}
