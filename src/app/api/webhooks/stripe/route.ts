@@ -107,15 +107,17 @@ export async function POST(request: NextRequest) {
 
         if (userId) {
           const now = new Date();
-          const subAny = subscription as any;
-          const periodStart = subAny.current_period_start
-            ? new Date(subAny.current_period_start * 1000).toISOString()
+          // In Stripe Clover API, period dates are on SubscriptionItem
+          const item = subscription.items?.data?.[0];
+          const periodStart = item?.current_period_start
+            ? new Date(item.current_period_start * 1000).toISOString()
             : new Date(now.getFullYear(), now.getMonth(), 1).toISOString();
-          const periodEnd = subAny.current_period_end
-            ? new Date(subAny.current_period_end * 1000).toISOString()
+          const periodEnd = item?.current_period_end
+            ? new Date(item.current_period_end * 1000).toISOString()
             : new Date(now.getFullYear(), now.getMonth() + 1, 1).toISOString();
 
-          const { error } = await supabase.from('subscriptions').insert({
+          // Use upsert to avoid conflicts if checkout.session.completed already inserted
+          const { error } = await supabase.from('subscriptions').upsert({
             user_id: userId,
             stripe_subscription_id: subscription.id,
             stripe_customer_id: customerId,
@@ -127,7 +129,7 @@ export async function POST(request: NextRequest) {
           });
 
           if (error) {
-            console.error('Error inserting subscription into Supabase:', error);
+            console.error('Error upserting subscription into Supabase:', error);
           } else {
             console.log(`Subscription persisted to Supabase for customer ${customerId}`);
           }
@@ -139,25 +141,18 @@ export async function POST(request: NextRequest) {
 
     case 'customer.subscription.updated': {
       const subscription = event.data.object as Stripe.Subscription;
-      const customerId =
-        typeof subscription.customer === 'string'
-          ? subscription.customer
-          : subscription.customer.id;
 
       if (supabase) {
-        const subAny = subscription as any;
-        const periodStart = subAny.current_period_start
-          ? new Date(subAny.current_period_start * 1000).toISOString()
-          : undefined;
-        const periodEnd = subAny.current_period_end
-          ? new Date(subAny.current_period_end * 1000).toISOString()
-          : undefined;
-
+        const item = subscription.items?.data?.[0];
         const updateData: Record<string, unknown> = {
           status: subscription.status,
         };
-        if (periodStart) updateData.current_period_start = periodStart;
-        if (periodEnd) updateData.current_period_end = periodEnd;
+        if (item?.current_period_start) {
+          updateData.current_period_start = new Date(item.current_period_start * 1000).toISOString();
+        }
+        if (item?.current_period_end) {
+          updateData.current_period_end = new Date(item.current_period_end * 1000).toISOString();
+        }
 
         const { error } = await supabase
           .from('subscriptions')
@@ -167,7 +162,7 @@ export async function POST(request: NextRequest) {
         if (error) {
           console.error('Error updating subscription in Supabase:', error);
         } else {
-          console.log(`Subscription ${subscription.id} updated for customer ${customerId}`);
+          console.log(`Subscription ${subscription.id} updated`);
         }
       }
       break;
