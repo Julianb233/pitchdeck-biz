@@ -13,24 +13,34 @@ const interTight = Inter_Tight({
 })
 
 export const metadata: Metadata = {
-  title: "pitchdeck.biz | AI Pitch Deck Generator",
-  description: "Create stunning, investor-ready pitch decks in minutes with AI. Bold designs, compelling narratives, data-driven insights — all powered by artificial intelligence.",
+  title: "pitchdeck.biz — AI Pitch Deck Generator",
+  description: "Create a professional investor pitch deck in minutes with AI. Upload your business docs, get a complete pitch deck, sell sheet, one-pager, and branding kit.",
   keywords: ["pitch deck", "AI", "startup", "investor", "fundraising", "presentation", "pitch deck generator", "AI pitch deck"],
   authors: [{ name: "pitchdeck.biz" }],
   openGraph: {
-    title: "pitchdeck.biz | AI Pitch Deck Generator",
-    description: "Create stunning, investor-ready pitch decks in minutes with AI. Bold designs, compelling narratives, data-driven insights.",
+    title: "pitchdeck.biz — AI Pitch Deck Generator",
+    description: "Create a professional investor pitch deck in minutes with AI. Upload your business docs, get a complete pitch deck, sell sheet, one-pager, and branding kit.",
     type: "website",
     siteName: "pitchdeck.biz",
+    images: [
+      {
+        url: "/og-image.svg",
+        width: 1200,
+        height: 630,
+        alt: "pitchdeck.biz — AI Pitch Deck Generator",
+      },
+    ],
   },
   twitter: {
     card: "summary_large_image",
-    title: "pitchdeck.biz | AI Pitch Deck Generator",
-    description: "Create stunning, investor-ready pitch decks in minutes with AI.",
+    title: "pitchdeck.biz — AI Pitch Deck Generator",
+    description: "Create a professional investor pitch deck in minutes with AI. Upload your business docs, get a complete pitch deck, sell sheet, one-pager, and branding kit.",
+    images: ["/og-image.svg"],
   },
   metadataBase: new URL("https://pitchdeck.biz"),
   icons: {
     icon: [
+      { url: "/favicon.svg", type: "image/svg+xml" },
       { url: "/icon.svg", type: "image/svg+xml" },
       { url: "/icon-dark-32x32.png", sizes: "32x32", type: "image/png" },
     ],
