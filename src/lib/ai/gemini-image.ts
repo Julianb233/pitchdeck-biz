@@ -128,11 +128,13 @@ export async function generateDeckGraphic(
 /**
  * Generate a branding asset of the specified type.
  * Returns base64 data-URI or SVG placeholder.
+ * @param referenceImages Optional array of reference image data URIs (max 3) to inform generation.
  */
 export async function generateBrandAsset(
   type: "social" | "mockup" | "collateral" | "identity",
   prompt: string,
   brandColors: { primary?: string; secondary?: string; accent?: string },
+  referenceImages: string[] = [],
 ): Promise<string> {
   const primary = brandColors.primary ?? "#4F46E5";
   const secondary = brandColors.secondary ?? "#7C3AED";
@@ -164,15 +166,31 @@ export async function generateBrandAsset(
       identity: "brand identity element like a logo mark or icon (800x800)",
     };
 
-    const fullPrompt = [
+    const promptParts: string[] = [
       `Create a ${typeDescriptions[type]} for a brand.`,
       `Brand colors: primary ${primary}, secondary ${secondary}${brandColors.accent ? `, accent ${brandColors.accent}` : ""}`,
       `Description: ${prompt}`,
       `Make it professional, modern, and visually compelling.`,
-    ].join("\n");
+    ];
+
+    if (referenceImages.length > 0) {
+      promptParts.push(`Reference images provided: ${referenceImages.length} image(s) to use as style/context reference.`);
+    }
+
+    // Build content parts: text prompt + inline reference images
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const contentParts: any[] = [{ text: promptParts.join("\n") }];
+    for (const dataUri of referenceImages.slice(0, 3)) {
+      const mimeMatch = dataUri.match(/^data:(image\/[^;]+);base64,/);
+      if (mimeMatch) {
+        const mimeType = mimeMatch[1];
+        const base64Data = dataUri.slice(dataUri.indexOf(",") + 1);
+        contentParts.push({ inlineData: { mimeType, data: base64Data } });
+      }
+    }
 
     const result = await model.generateContent({
-      contents: [{ role: "user", parts: [{ text: fullPrompt }] }],
+      contents: [{ role: "user", parts: contentParts }],
       generationConfig: { responseMimeType: "text/plain" },
     });
 

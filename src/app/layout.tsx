@@ -4,6 +4,7 @@ import { Inter_Tight } from "next/font/google"
 import { Analytics } from "@vercel/analytics/next"
 import { MagneticCursor } from "@/components/ui/magnetic-cursor"
 import { Toaster } from "@/components/ui/sonner"
+import { SessionProvider } from "@/components/providers/session-provider"
 import "./globals.css"
 
 const interTight = Inter_Tight({
@@ -54,10 +55,12 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={`${interTight.className} font-sans antialiased`}>
-        <MagneticCursor />
-        {children}
-        <Toaster />
-        <Analytics />
+        <SessionProvider>
+          <MagneticCursor />
+          {children}
+          <Toaster />
+          <Analytics />
+        </SessionProvider>
       </body>
     </html>
   )

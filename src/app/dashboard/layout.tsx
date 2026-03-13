@@ -1,5 +1,8 @@
 import type React from "react"
 import Link from "next/link"
+import { redirect } from "next/navigation"
+import { auth } from "@/lib/auth/auth"
+import { LogoutButton } from "@/components/dashboard/logout-button"
 
 const NAV_ITEMS = [
   { href: "/dashboard", label: "Asset Generator", icon: "sparkles" },
@@ -40,7 +43,15 @@ function NavIcon({ icon }: { icon: string }) {
   }
 }
 
-export default function DashboardLayout({ children }: { children: React.ReactNode }) {
+export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
+  const session = await auth();
+
+  if (!session?.user) {
+    redirect("/login");
+  }
+
+  const user = session.user;
+
   return (
     <div className="min-h-screen bg-zinc-950 text-white">
       {/* Dashboard Header */}
@@ -70,12 +81,8 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
               </Link>
             ))}
             <div className="w-px h-5 bg-zinc-800" />
-            <Link
-              href="/login"
-              className="text-sm font-medium text-zinc-500 hover:text-zinc-300 transition-colors"
-            >
-              Sign Out
-            </Link>
+            <span className="text-sm text-zinc-400">{user.name}</span>
+            <LogoutButton />
           </nav>
         </div>
       </header>

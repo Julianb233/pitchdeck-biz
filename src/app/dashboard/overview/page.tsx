@@ -1,7 +1,15 @@
 "use client";
 
 import Link from "next/link";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
+import { useRouter } from "next/navigation";
+
+interface UserInfo {
+  id: string;
+  email: string;
+  name: string;
+  subscriptionStatus: "free" | "pro";
+}
 
 interface Deck {
   id: string;
@@ -10,31 +18,49 @@ interface Deck {
   status: "paid" | "pending";
 }
 
-interface UserData {
-  subscriptionStatus: "active" | "inactive";
-  tokensRemaining: number;
-  decks: Deck[];
-}
-
-// Mock data for demo — in production, fetch from API
-const MOCK_USER_DATA: UserData = {
-  subscriptionStatus: "active",
-  tokensRemaining: 487,
-  decks: [
-    { id: "deck_1", name: "TechVenture Series A", createdAt: "2026-03-10", status: "paid" },
-    { id: "deck_2", name: "GreenEnergy Seed Round", createdAt: "2026-03-08", status: "paid" },
-    { id: "deck_3", name: "HealthAI Pre-Seed", createdAt: "2026-03-05", status: "paid" },
-  ],
-};
-
 export default function DashboardOverviewPage() {
-  const [userData, setUserData] = useState<UserData | null>(null);
+  const router = useRouter();
+  const [user, setUser] = useState<UserInfo | null>(null);
+  const [decks] = useState<Deck[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [checkoutLoading, setCheckoutLoading] = useState(false);
 
   useEffect(() => {
-    setUserData(MOCK_USER_DATA);
+    fetch("/api/auth/me")
+      .then((res) => {
+        if (!res.ok) {
+          router.push("/login");
+          return null;
+        }
+        return res.json();
+      })
+      .then((data) => {
+        if (data?.user) setUser(data.user);
+      })
+      .catch(() => router.push("/login"))
+      .finally(() => setLoading(false));
+  }, [router]);
+
+  const handleCheckout = useCallback(async (type: "deck" | "subscription", deckId?: string) => {
+    setCheckoutLoading(true);
+    try {
+      const res = await fetch("/api/checkout/session", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ type, deckId }),
+      });
+      const data = await res.json();
+      if (data.url) {
+        window.location.href = data.url;
+      }
+    } catch (err) {
+      console.error("Checkout failed:", err);
+    } finally {
+      setCheckoutLoading(false);
+    }
   }, []);
 
-  if (!userData) {
+  if (loading) {
     return (
       <div className="flex items-center justify-center min-h-[60vh]">
         <div className="text-zinc-400">Loading...</div>
@@ -42,14 +68,18 @@ export default function DashboardOverviewPage() {
     );
   }
 
+  if (!user) return null;
+
+  const isPro = user.subscriptionStatus === "pro";
+
   return (
     <div className="space-y-8">
       {/* Welcome header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-white">Dashboard</h1>
+          <h1 className="text-2xl font-bold text-white">Welcome, {user.name}</h1>
           <p className="text-zinc-400 text-sm mt-1">
-            Manage your pitch decks and subscription
+            {user.email} &middot; {isPro ? "Pro" : "Free"} plan
           </p>
         </div>
         <Link
@@ -66,47 +96,40 @@ export default function DashboardOverviewPage() {
       {/* Stats cards */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-5">
-          <p className="text-zinc-500 text-xs font-medium uppercase tracking-wider">Subscription</p>
+          <p className="text-zinc-500 text-xs font-medium uppercase tracking-wider">Plan</p>
           <div className="mt-2 flex items-center gap-2">
             <span
               className={`inline-block w-2 h-2 rounded-full ${
-                userData.subscriptionStatus === "active" ? "bg-emerald-500" : "bg-zinc-600"
+                isPro ? "bg-emerald-500" : "bg-zinc-600"
               }`}
             />
-            <span className="text-lg font-semibold text-white capitalize">
-              {userData.subscriptionStatus}
+            <span className="text-lg font-semibold text-white">
+              {isPro ? "Pro" : "Free"}
             </span>
           </div>
         </div>
 
         <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-5">
-          <p className="text-zinc-500 text-xs font-medium uppercase tracking-wider">Tokens Remaining</p>
+          <p className="text-zinc-500 text-xs font-medium uppercase tracking-wider">Subscription</p>
           <p className="mt-2 text-lg font-semibold text-white">
-            {userData.subscriptionStatus === "active" ? userData.tokensRemaining : "--"}
-            {userData.subscriptionStatus === "active" && (
-              <span className="text-zinc-500 text-sm font-normal"> / 500</span>
-            )}
+            {isPro ? "$49/mo" : "None"}
           </p>
         </div>
 
         <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-5">
           <p className="text-zinc-500 text-xs font-medium uppercase tracking-wider">Total Decks</p>
-          <p className="mt-2 text-lg font-semibold text-white">{userData.decks.length}</p>
+          <p className="mt-2 text-lg font-semibold text-white">{decks.length}</p>
         </div>
       </div>
 
       {/* Manage subscription */}
-      {userData.subscriptionStatus === "active" ? (
+      {isPro ? (
         <div className="bg-zinc-900/50 border border-zinc-800 rounded-xl p-5 flex items-center justify-between">
           <div>
             <p className="text-white font-medium">Monthly Subscription</p>
-            <p className="text-zinc-400 text-sm">$49/mo &middot; 500 tokens &middot; Renews monthly</p>
+            <p className="text-zinc-400 text-sm">$49/mo &middot; Unlimited decks &middot; Renews monthly</p>
           </div>
           <button
-            onClick={() => {
-              // In production: call /api/portal to get Stripe portal URL
-              alert("Stripe Customer Portal would open here.");
-            }}
             className="px-4 py-2 rounded-lg bg-zinc-800 border border-zinc-700 text-zinc-300 text-sm font-medium hover:bg-zinc-700 transition-colors"
           >
             Manage Subscription
@@ -115,31 +138,32 @@ export default function DashboardOverviewPage() {
       ) : (
         <div className="bg-gradient-to-r from-violet-500/10 to-cyan-500/10 border border-violet-500/20 rounded-xl p-5 flex items-center justify-between">
           <div>
-            <p className="text-white font-medium">No active subscription</p>
-            <p className="text-zinc-400 text-sm">Subscribe for $49/mo and get 500 tokens per month</p>
+            <p className="text-white font-medium">Upgrade to Pro</p>
+            <p className="text-zinc-400 text-sm">Subscribe for $49/mo for unlimited deck creation</p>
           </div>
-          <Link
-            href="/#pricing"
-            className="px-4 py-2 rounded-lg font-semibold text-white text-sm"
+          <button
+            onClick={() => handleCheckout("subscription")}
+            disabled={checkoutLoading}
+            className="px-4 py-2 rounded-lg font-semibold text-white text-sm disabled:opacity-50"
             style={{
               background: "linear-gradient(135deg, #ff006e 0%, #8b5cf6 50%, #00d4ff 100%)",
             }}
           >
-            Subscribe Now
-          </Link>
+            {checkoutLoading ? "Loading..." : "Subscribe Now"}
+          </button>
         </div>
       )}
 
       {/* Decks list */}
       <div>
         <h2 className="text-lg font-semibold text-white mb-4">Your Decks</h2>
-        {userData.decks.length === 0 ? (
+        {decks.length === 0 ? (
           <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-12 text-center">
             <p className="text-zinc-400">No decks yet. Create your first pitch deck!</p>
           </div>
         ) : (
           <div className="space-y-3">
-            {userData.decks.map((deck) => (
+            {decks.map((deck) => (
               <div
                 key={deck.id}
                 className="bg-zinc-900 border border-zinc-800 rounded-xl p-4 flex items-center justify-between hover:border-zinc-700 transition-colors"

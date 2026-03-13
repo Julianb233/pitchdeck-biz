@@ -1,3 +1,5 @@
+"use client"
+
 import { ImageIcon, Package, FileText, Palette } from "lucide-react"
 
 const assetTypes = [

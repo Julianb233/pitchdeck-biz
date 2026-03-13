@@ -7,13 +7,8 @@ export function GradientBar() {
 
   useEffect(() => {
     const handleScroll = () => {
-      const selectedWorksSection = document.querySelector("#works")
-      if (selectedWorksSection) {
-        const rect = selectedWorksSection.getBoundingClientRect()
-        // Show gradient when Selected Works section is in viewport
-        const isSectionVisible = rect.top < window.innerHeight && rect.bottom > 0
-        setIsVisible(isSectionVisible)
-      }
+      // Show gradient bar once user scrolls past the hero section
+      setIsVisible(window.scrollY > 100)
     }
 
     handleScroll()

@@ -105,8 +105,7 @@ export function Hero() {
           {/* CTAs */}
           <div className="flex flex-col sm:flex-row items-start gap-4 mt-10">
             <Link
-              href="#pricing"
-              onClick={(e) => handleNavClick(e, "#pricing")}
+              href="/create"
               className="inline-flex items-center justify-center px-8 py-4 text-base font-semibold text-white rounded-full transition-all hover:scale-105 relative overflow-hidden group"
               style={{
                 background: "linear-gradient(135deg, #ff006e 0%, #8b5cf6 50%, #203eec 100%)",

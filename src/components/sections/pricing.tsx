@@ -53,10 +53,25 @@ export function Pricing() {
   async function handleCheckout(priceType: "one-time" | "subscription") {
     setLoading(priceType)
     try {
+      // Check if user is logged in first
+      const meRes = await fetch("/api/auth/me")
+      if (!meRes.ok) {
+        window.location.href = "/signup"
+        return
+      }
+
+      const type = priceType === "one-time" ? "deck" : "subscription"
+      const body: Record<string, string> = { type }
+      // For one-time deck purchases, use a placeholder deckId
+      // (in production, user would create a deck first)
+      if (type === "deck") {
+        body.deckId = `deck_${Date.now()}`
+      }
+
       const res = await fetch("/api/checkout/session", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ priceType }),
+        body: JSON.stringify(body),
       })
       const data = await res.json()
       if (data.url) {

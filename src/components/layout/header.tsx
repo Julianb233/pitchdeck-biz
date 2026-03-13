@@ -5,6 +5,7 @@ import type React from "react"
 import { useState, useEffect } from "react"
 import Link from "next/link"
 import { Menu, X } from "lucide-react"
+import { useSession, signOut } from "next-auth/react"
 import { cn } from "@/lib/utils"
 
 const navItems = [
@@ -15,6 +16,8 @@ const navItems = [
 ]
 
 export function Header() {
+  const { data: session } = useSession()
+  const user = session?.user
   const [isScrolled, setIsScrolled] = useState(false)
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
 
@@ -42,6 +45,10 @@ export function Header() {
     setIsMobileMenuOpen(false)
   }
 
+  const handleLogout = async () => {
+    await signOut({ callbackUrl: "/" })
+  }
+
   return (
     <>
       <header
@@ -54,11 +61,7 @@ export function Header() {
           <nav className="flex items-center justify-between h-16 md:h-20">
             {/* Logo */}
             <Link
-              href="#"
-              onClick={(e) => {
-                e.preventDefault()
-                window.scrollTo({ top: 0, behavior: "smooth" })
-              }}
+              href="/"
               className="text-xl font-bold tracking-tight"
               style={{
                 background: "linear-gradient(135deg, #ff006e 0%, #8b5cf6 50%, #00d4ff 100%)",
@@ -84,20 +87,45 @@ export function Header() {
               ))}
             </div>
 
-            {/* CTA Button */}
-            <div className="hidden md:block">
-              <Link
-                href="#pricing"
-                onClick={(e) => handleNavClick(e, "#pricing")}
-                className="inline-flex items-center justify-center px-6 py-2.5 text-sm font-semibold rounded-full text-white transition-all hover:scale-105 relative overflow-hidden group"
-                style={{
-                  background: "linear-gradient(135deg, #ff006e 0%, #8b5cf6 50%, #203eec 100%)",
-                  boxShadow: "0 4px 20px rgba(255, 0, 110, 0.3)",
-                }}
-              >
-                <span className="relative z-10">Create Your Deck</span>
-                <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 blur-xl bg-gradient-to-r from-[#ff006e] via-[#8b5cf6] to-[#203eec]" />
-              </Link>
+            {/* Auth-aware CTA */}
+            <div className="hidden md:flex items-center gap-4">
+              {user ? (
+                <>
+                  <Link
+                    href="/dashboard/overview"
+                    className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
+                  >
+                    Dashboard
+                  </Link>
+                  <span className="text-sm text-muted-foreground">{user.name}</span>
+                  <button
+                    onClick={handleLogout}
+                    className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
+                  >
+                    Log Out
+                  </button>
+                </>
+              ) : (
+                <>
+                  <Link
+                    href="/login"
+                    className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
+                  >
+                    Log In
+                  </Link>
+                  <Link
+                    href="/register"
+                    className="inline-flex items-center justify-center px-6 py-2.5 text-sm font-semibold rounded-full text-white transition-all hover:scale-105 relative overflow-hidden group"
+                    style={{
+                      background: "linear-gradient(135deg, #ff006e 0%, #8b5cf6 50%, #203eec 100%)",
+                      boxShadow: "0 4px 20px rgba(255, 0, 110, 0.3)",
+                    }}
+                  >
+                    <span className="relative z-10">Create Your Deck</span>
+                    <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 blur-xl bg-gradient-to-r from-[#ff006e] via-[#8b5cf6] to-[#203eec]" />
+                  </Link>
+                </>
+              )}
             </div>
 
             {/* Mobile Menu Button */}
@@ -141,22 +169,50 @@ export function Header() {
                 </Link>
               ))}
             </nav>
-            <div className="mt-auto">
-              <Link
-                href="#pricing"
-                onClick={(e) => {
-                  handleNavClick(e, "#pricing")
-                  setIsMobileMenuOpen(false)
-                }}
-                className="inline-flex items-center justify-center w-full px-5 py-3 text-base font-semibold rounded-full text-white transition-all hover:scale-105 relative overflow-hidden group"
-                style={{
-                  background: "linear-gradient(135deg, #ff006e 0%, #8b5cf6 50%, #203eec 100%)",
-                  boxShadow: "0 4px 20px rgba(255, 0, 110, 0.3)",
-                }}
-              >
-                <span className="relative z-10">Create Your Deck</span>
-                <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 blur-xl bg-gradient-to-r from-[#ff006e] via-[#8b5cf6] to-[#203eec]" />
-              </Link>
+            <div className="mt-auto space-y-3">
+              {user ? (
+                <>
+                  <Link
+                    href="/dashboard/overview"
+                    className="inline-flex items-center justify-center w-full px-5 py-3 text-base font-semibold rounded-full text-white transition-all hover:scale-105"
+                    style={{
+                      background: "linear-gradient(135deg, #ff006e 0%, #8b5cf6 50%, #203eec 100%)",
+                      boxShadow: "0 4px 20px rgba(255, 0, 110, 0.3)",
+                    }}
+                    onClick={() => setIsMobileMenuOpen(false)}
+                  >
+                    Dashboard
+                  </Link>
+                  <button
+                    onClick={() => { handleLogout(); setIsMobileMenuOpen(false); }}
+                    className="w-full px-5 py-3 text-base font-medium text-muted-foreground hover:text-foreground transition-colors"
+                  >
+                    Log Out
+                  </button>
+                </>
+              ) : (
+                <>
+                  <Link
+                    href="/register"
+                    onClick={() => setIsMobileMenuOpen(false)}
+                    className="inline-flex items-center justify-center w-full px-5 py-3 text-base font-semibold rounded-full text-white transition-all hover:scale-105 relative overflow-hidden group"
+                    style={{
+                      background: "linear-gradient(135deg, #ff006e 0%, #8b5cf6 50%, #203eec 100%)",
+                      boxShadow: "0 4px 20px rgba(255, 0, 110, 0.3)",
+                    }}
+                  >
+                    <span className="relative z-10">Create Your Deck</span>
+                    <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 blur-xl bg-gradient-to-r from-[#ff006e] via-[#8b5cf6] to-[#203eec]" />
+                  </Link>
+                  <Link
+                    href="/login"
+                    onClick={() => setIsMobileMenuOpen(false)}
+                    className="block w-full text-center px-5 py-3 text-base font-medium text-muted-foreground hover:text-foreground transition-colors"
+                  >
+                    Log In
+                  </Link>
+                </>
+              )}
             </div>
           </div>
         </div>

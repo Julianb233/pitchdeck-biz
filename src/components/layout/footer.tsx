@@ -14,7 +14,7 @@ const footerLinks = [
   { href: "#deliverables", label: "Deliverables" },
   { href: "#pricing", label: "Pricing" },
   { href: "#faq", label: "FAQ" },
-  { href: "#contact", label: "Contact" },
+  { href: "mailto:hello@pitchdeck.biz", label: "Contact" },
 ]
 
 export function Footer() {

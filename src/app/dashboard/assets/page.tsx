@@ -29,16 +29,18 @@ import {
 
 // ── Types ──────────────────────────────────────────────────────────────────
 
-interface GeneratedAsset {
+interface AssetRecord {
   id: string
-  assetType: AssetType
-  templateId: string
-  prompt: string
-  imageUrl: string
+  user_id: string
+  type: string
+  template: string | null
+  prompt: string | null
+  image_url: string | null
+  tokens_cost: number
+  created_at: string
   width: number
   height: number
-  createdAt: string
-  brandColors: string[]
+  brand_colors: string[]
 }
 
 const ASSET_TYPE_ICONS: Record<AssetType, typeof Share2> = {
@@ -59,7 +61,7 @@ export default function AssetsPage() {
   const [brandColors, setBrandColors] = useState<string[]>(DEFAULT_BRAND_COLORS)
   const [referenceFiles, setReferenceFiles] = useState<UploadedFile[]>([])
   const [isGenerating, setIsGenerating] = useState(false)
-  const [assets, setAssets] = useState<GeneratedAsset[]>([])
+  const [assets, setAssets] = useState<AssetRecord[]>([])
   const [tokensRemaining, setTokensRemaining] = useState(MONTHLY_TOKEN_ALLOCATION)
   const [resetDate, setResetDate] = useState(() => {
     const d = new Date()
@@ -81,6 +83,9 @@ export default function AssetsPage() {
       if (res.ok) {
         const data = await res.json()
         setAssets(data.assets || [])
+        if (typeof data.tokensRemaining === "number") {
+          setTokensRemaining(data.tokensRemaining)
+        }
       }
     } catch {
       // silent fail on load
@@ -96,6 +101,20 @@ export default function AssetsPage() {
 
     setIsGenerating(true)
     try {
+      // Convert reference files to base64 data URIs for the API
+      const referenceImageDataUris: string[] = []
+      for (const uploadedFile of referenceFiles) {
+        if (uploadedFile.file.type !== "image/svg+xml") {
+          const dataUri = await new Promise<string>((resolve, reject) => {
+            const reader = new FileReader()
+            reader.onload = () => resolve(reader.result as string)
+            reader.onerror = reject
+            reader.readAsDataURL(uploadedFile.file)
+          })
+          referenceImageDataUris.push(dataUri)
+        }
+      }
+
       const res = await fetch("/api/generate-asset", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -105,6 +124,7 @@ export default function AssetsPage() {
           prompt: prompt.trim(),
           brandColors,
           userId: "demo-user",
+          referenceImages: referenceImageDataUris,
         }),
       })
 
@@ -302,7 +322,9 @@ export default function AssetsPage() {
           <h2 className="text-lg font-semibold">Generated Assets</h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {assets.map((asset) => {
-              const Icon = ASSET_TYPE_ICONS[asset.assetType]
+              const assetType = asset.type as AssetType
+              const Icon = ASSET_TYPE_ICONS[assetType] ?? ImageIcon
+              const imageUrl = asset.image_url ?? ""
               return (
                 <div
                   key={asset.id}
@@ -310,11 +332,11 @@ export default function AssetsPage() {
                 >
                   {/* Preview */}
                   <div className="relative aspect-video bg-zinc-900 flex items-center justify-center overflow-hidden">
-                    {asset.imageUrl.startsWith("data:") ? (
+                    {imageUrl.startsWith("data:") ? (
                       // eslint-disable-next-line @next/next/no-img-element
                       <img
-                        src={asset.imageUrl}
-                        alt={asset.prompt}
+                        src={imageUrl}
+                        alt={asset.prompt ?? ""}
                         className="w-full h-full object-contain"
                       />
                     ) : (
@@ -322,8 +344,8 @@ export default function AssetsPage() {
                     )}
                     {/* Download overlay */}
                     <a
-                      href={asset.imageUrl}
-                      download={`${asset.templateId}-${asset.id.slice(0, 8)}`}
+                      href={imageUrl}
+                      download={`${asset.template ?? "asset"}-${asset.id.slice(0, 8)}`}
                       className="absolute inset-0 flex items-center justify-center bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity"
                     >
                       <Download className="w-8 h-8 text-white" />
@@ -334,14 +356,14 @@ export default function AssetsPage() {
                     <div className="flex items-center gap-2 mb-1.5">
                       <span className="flex items-center gap-1 text-xs px-2 py-0.5 rounded-full bg-[#8b5cf6]/10 text-[#8b5cf6]">
                         <Icon className="w-3 h-3" />
-                        {ASSET_TYPE_LABELS[asset.assetType]}
+                        {ASSET_TYPE_LABELS[assetType] ?? asset.type}
                       </span>
                     </div>
                     <p className="text-sm text-zinc-300 line-clamp-2">
                       {asset.prompt}
                     </p>
                     <p className="text-xs text-zinc-500 mt-2">
-                      {new Date(asset.createdAt).toLocaleDateString("en-US", {
+                      {new Date(asset.created_at).toLocaleDateString("en-US", {
                         month: "short",
                         day: "numeric",
                         hour: "numeric",
