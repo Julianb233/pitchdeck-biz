@@ -3,8 +3,9 @@ import { generateMockupSVG } from "./mockup-svg-generator";
 
 // ---------------------------------------------------------------------------
 // Gemini Image Generation Service
-// Uses Google Gemini API for generating pitch deck visuals & branding assets.
-// Falls back to placeholder gradient SVGs when no API key is configured.
+// Primary: AI-crafted SVG graphics via Gemini text model (always works)
+// Secondary: Imagen 3 via @google/genai SDK (when installed + configured)
+// Fallback: Algorithmic placeholder SVGs when no API key is configured
 // ---------------------------------------------------------------------------
 
 const API_KEY = process.env.GOOGLE_API_KEY ?? process.env.GEMINI_API_KEY ?? "";
@@ -12,6 +13,149 @@ const API_KEY = process.env.GOOGLE_API_KEY ?? process.env.GEMINI_API_KEY ?? "";
 function getClient() {
   if (!API_KEY) return null;
   return new GoogleGenerativeAI(API_KEY);
+}
+
+// ---------------------------------------------------------------------------
+// Imagen 3 support (optional — requires @google/genai package)
+// ---------------------------------------------------------------------------
+
+async function generateWithImagen(prompt: string): Promise<string | null> {
+  const imagenKey =
+    process.env.GOOGLE_IMAGEN_API_KEY ??
+    process.env.GOOGLE_API_KEY ??
+    process.env.GEMINI_API_KEY ??
+    "";
+  if (!imagenKey) return null;
+
+  try {
+    // Dynamic import — skipped silently when @google/genai is not installed
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    const genaiModule = await (Function('return import("@google/genai")')() as Promise<{
+      GoogleGenAI: new (opts: { apiKey: string }) => {
+        models: {
+          generateImages: (params: {
+            model: string;
+            prompt: string;
+            config: { numberOfImages: number };
+          }) => Promise<{
+            generatedImages?: Array<{
+              image?: { imageBytes?: string };
+            }>;
+          }>;
+        };
+      };
+    }>);
+
+    const client = new genaiModule.GoogleGenAI({ apiKey: imagenKey });
+
+    const response = await client.models.generateImages({
+      model: "imagen-3.0-generate-002",
+      prompt,
+      config: { numberOfImages: 1 },
+    });
+
+    const image = response.generatedImages?.[0];
+    if (image?.image?.imageBytes) {
+      return `data:image/png;base64,${image.image.imageBytes}`;
+    }
+    return null;
+  } catch {
+    // @google/genai not installed or Imagen not available — silent fallback
+    return null;
+  }
+}
+
+// ---------------------------------------------------------------------------
+// AI SVG generation via Gemini text model
+// ---------------------------------------------------------------------------
+
+function buildSvgPrompt(
+  description: string,
+  width: number,
+  height: number,
+  colors: { primary: string; secondary?: string; accent?: string },
+  context: string,
+): string {
+  return [
+    `Generate a sophisticated, professional SVG graphic. Return ONLY the SVG markup starting with <svg, no explanation, no markdown fences, no backticks.`,
+    ``,
+    `Context: ${context}`,
+    `Description: ${description}`,
+    `Dimensions: ${width}x${height}`,
+    `Brand colors: primary ${colors.primary}${colors.secondary ? `, secondary ${colors.secondary}` : ""}${colors.accent ? `, accent ${colors.accent}` : ""}`,
+    ``,
+    `Requirements:`,
+    `- Valid SVG with xmlns="http://www.w3.org/2000/svg" and viewBox="0 0 ${width} ${height}"`,
+    `- Use the brand colors for gradients, fills, and strokes`,
+    `- Include defs with linearGradient or radialGradient elements`,
+    `- Use geometric patterns, abstract shapes, circles, paths, and polygons`,
+    `- Add depth with opacity variations and layered elements`,
+    `- Keep text minimal — at most a short label or none at all`,
+    `- Modern, clean, polished visual style`,
+    `- No <script> tags, no event handler attributes`,
+  ].join("\n");
+}
+
+function extractSvg(text: string): string | null {
+  const svgMatch = text.match(/<svg[\s\S]*?<\/svg>/i);
+  if (!svgMatch) return null;
+
+  const svg = svgMatch[0];
+  if (!svg.includes("xmlns")) return null;
+
+  // Sanitize: strip any script tags or event handlers
+  return svg
+    .replace(/<script[\s\S]*?<\/script>/gi, "")
+    .replace(/\bon\w+\s*=/gi, "data-removed=");
+}
+
+async function generateAiSvg(
+  description: string,
+  width: number,
+  height: number,
+  colors: { primary: string; secondary?: string; accent?: string },
+  context: string,
+): Promise<string | null> {
+  const client = getClient();
+  if (!client) return null;
+
+  try {
+    const model = client.getGenerativeModel({ model: "gemini-2.0-flash-exp" });
+    const prompt = buildSvgPrompt(description, width, height, colors, context);
+
+    const result = await model.generateContent({
+      contents: [{ role: "user", parts: [{ text: prompt }] }],
+      generationConfig: {
+        responseMimeType: "text/plain",
+        temperature: 0.8,
+      },
+    });
+
+    return extractSvg(result.response.text());
+  } catch (error) {
+    console.error("[gemini-image] AI SVG generation error:", error);
+    return null;
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Brand name extraction from prompts
+// ---------------------------------------------------------------------------
+
+function extractBrandName(prompt: string): string {
+  const patterns = [
+    /(?:for|brand(?:ed)?|company|called|named)\s+["']?([A-Z][A-Za-z0-9\s]{1,20})["']?/i,
+    /^["']?([A-Z][A-Za-z0-9]{1,15})["']?\s/,
+  ];
+  for (const pattern of patterns) {
+    const match = prompt.match(pattern);
+    if (match) return match[1].trim();
+  }
+  const words = prompt.split(/\s+/);
+  for (const word of words) {
+    if (/^[A-Z][a-z]/.test(word) && word.length > 2) return word;
+  }
+  return "Brand";
 }
 
 // ---------------------------------------------------------------------------
@@ -41,26 +185,8 @@ function placeholderGradientSvg(
 </svg>`;
 }
 
-// ---------------------------------------------------------------------------
-// Brand name extraction from prompts
-// ---------------------------------------------------------------------------
-
-function extractBrandName(prompt: string): string {
-  // Try to extract a brand name from common prompt patterns
-  const patterns = [
-    /(?:for|brand(?:ed)?|company|called|named)\s+["']?([A-Z][A-Za-z0-9\s]{1,20})["']?/i,
-    /^["']?([A-Z][A-Za-z0-9]{1,15})["']?\s/,
-  ];
-  for (const pattern of patterns) {
-    const match = prompt.match(pattern);
-    if (match) return match[1].trim();
-  }
-  // Fall back to first capitalized word
-  const words = prompt.split(/\s+/);
-  for (const word of words) {
-    if (/^[A-Z][a-z]/.test(word) && word.length > 2) return word;
-  }
-  return "Brand";
+function svgToDataUri(svg: string): string {
+  return `data:image/svg+xml;base64,${Buffer.from(svg).toString("base64")}`;
 }
 
 // ---------------------------------------------------------------------------
@@ -101,57 +227,44 @@ function checkRateLimit(key: string): boolean {
 
 /**
  * Generate a graphic for a pitch deck slide.
- * Returns a base64 data-URI string or an SVG placeholder.
+ * Strategy: Imagen 3 -> AI-crafted SVG -> placeholder SVG fallback.
+ * Returns a base64 data-URI string.
  */
 export async function generateDeckGraphic(
   prompt: string,
   style: string,
   colors: { primary: string; secondary: string },
 ): Promise<string> {
-  const client = getClient();
-  if (!client) {
-    return `data:image/svg+xml;base64,${Buffer.from(placeholderGradientSvg(800, 600, colors.primary, colors.secondary, prompt.slice(0, 60))).toString("base64")}`;
-  }
-
   if (!checkRateLimit("deck-graphic")) {
     throw new Error("Rate limit exceeded. Please wait before generating more images.");
   }
 
-  try {
-    const model = client.getGenerativeModel({ model: "gemini-2.0-flash-exp" });
+  // 1) Try Imagen 3 (photorealistic quality, optional)
+  const imagenResult = await generateWithImagen(
+    `Professional pitch deck slide graphic. Style: ${style}. ${prompt}. Use brand colors ${colors.primary} and ${colors.secondary}. Clean, modern, business presentation.`,
+  );
+  if (imagenResult) return imagenResult;
 
-    const fullPrompt = [
-      `Create a professional pitch deck graphic.`,
-      `Style: ${style}`,
-      `Primary color: ${colors.primary}, Secondary color: ${colors.secondary}`,
-      `Description: ${prompt}`,
-      `The image should be clean, modern, and suitable for a business presentation slide.`,
-    ].join("\n");
+  // 2) Try AI-crafted SVG via Gemini text model
+  const aiSvg = await generateAiSvg(
+    prompt,
+    800,
+    600,
+    colors,
+    `Pitch deck slide graphic. Style: ${style}. Create an abstract, professional business graphic with geometric shapes, data visualization elements, or conceptual illustrations suitable for a presentation slide.`,
+  );
+  if (aiSvg) return svgToDataUri(aiSvg);
 
-    const result = await model.generateContent({
-      contents: [{ role: "user", parts: [{ text: fullPrompt }] }],
-      generationConfig: {
-        responseMimeType: "text/plain",
-      },
-    });
-
-    const text = result.response.text();
-
-    // If the model returns a data URI or base64, use it directly
-    if (text.startsWith("data:image")) return text;
-
-    // Otherwise return the SVG fallback with the AI-generated description
-    return `data:image/svg+xml;base64,${Buffer.from(placeholderGradientSvg(800, 600, colors.primary, colors.secondary, text.slice(0, 80))).toString("base64")}`;
-  } catch (error) {
-    console.error("[gemini-image] generateDeckGraphic error:", error);
-    return `data:image/svg+xml;base64,${Buffer.from(placeholderGradientSvg(800, 600, colors.primary, colors.secondary, "Generation failed")).toString("base64")}`;
-  }
+  // 3) Fallback to simple gradient placeholder
+  return svgToDataUri(
+    placeholderGradientSvg(800, 600, colors.primary, colors.secondary, prompt.slice(0, 60)),
+  );
 }
 
 /**
  * Generate a branding asset of the specified type.
- * Returns base64 data-URI or SVG placeholder.
- * @param referenceImages Optional array of reference image data URIs (max 3) to inform generation.
+ * Strategy: Imagen 3 -> AI-crafted SVG (with reference images) -> mockup SVG template -> placeholder.
+ * Returns base64 data-URI.
  */
 export async function generateBrandAsset(
   type: "social" | "mockup" | "collateral" | "identity",
@@ -171,88 +284,89 @@ export async function generateBrandAsset(
   };
   const [w, h] = dimensions[type] ?? [800, 600];
 
-  // For mockup types, use dedicated SVG templates as the primary fallback
-  const mockupFallback = type === "mockup" && templateId
-    ? generateMockupSVG(templateId, brandColors, extractBrandName(prompt))
-    : null;
-
-  const client = getClient();
-  if (!client) {
-    if (mockupFallback) {
-      return `data:image/svg+xml;base64,${Buffer.from(mockupFallback).toString("base64")}`;
-    }
-    return `data:image/svg+xml;base64,${Buffer.from(placeholderGradientSvg(w, h, primary, secondary, `${type}: ${prompt.slice(0, 40)}`)).toString("base64")}`;
-  }
+  // Pre-compute mockup SVG fallback for mockup types
+  const mockupFallback =
+    type === "mockup" && templateId
+      ? generateMockupSVG(templateId, brandColors, extractBrandName(prompt))
+      : null;
 
   if (!checkRateLimit("brand-asset")) {
     throw new Error("Rate limit exceeded. Please wait before generating more assets.");
   }
 
-  try {
-    const model = client.getGenerativeModel({ model: "gemini-2.0-flash-exp" });
+  const typeDescriptions: Record<string, string> = {
+    social:
+      "social media post graphic with engaging layout, bold typography areas, and branded visual elements (1200x630)",
+    mockup:
+      "product/service mockup with device frames, screens, or packaging visualization (1200x800)",
+    collateral:
+      "business collateral cover design with professional layout, sections, and branding (800x1100)",
+    identity:
+      "brand identity element — a logo mark, icon, or monogram using geometric shapes (800x800)",
+  };
 
-    const typeDescriptions: Record<string, string> = {
-      social: "social media post graphic (1200x630)",
-      mockup: "product/service mockup image (1024x768)",
-      collateral: "business collateral like a flyer or brochure cover (800x1100)",
-      identity: "brand identity element like a logo mark or icon (800x800)",
-    };
+  // 1) Try Imagen 3 (optional)
+  const imagenPrompt = `Professional ${typeDescriptions[type]}. ${prompt}. Brand colors: ${primary}, ${secondary}${brandColors.accent ? `, ${brandColors.accent}` : ""}. High quality, modern design.`;
+  const imagenResult = await generateWithImagen(imagenPrompt);
+  if (imagenResult) return imagenResult;
 
-    const promptParts: string[] = [
-      `Create a ${typeDescriptions[type]} for a brand.`,
-      `Brand colors: primary ${primary}, secondary ${secondary}${brandColors.accent ? `, accent ${brandColors.accent}` : ""}`,
-      `Description: ${prompt}`,
-      `Make it professional, modern, and visually compelling.`,
-    ];
+  // 2) Try AI-crafted SVG via Gemini (supports reference images for context)
+  const client = getClient();
+  if (client) {
+    try {
+      const model = client.getGenerativeModel({ model: "gemini-2.0-flash-exp" });
 
-    if (referenceImages.length > 0) {
-      promptParts.push(`Reference images provided: ${referenceImages.length} image(s) to use as style/context reference.`);
-    }
+      const svgPrompt = buildSvgPrompt(
+        prompt,
+        w,
+        h,
+        { primary, secondary: brandColors.secondary, accent: brandColors.accent },
+        `Brand asset type: ${typeDescriptions[type]}.`,
+      );
 
-    // Build content parts: text prompt + inline reference images
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const contentParts: any[] = [{ text: promptParts.join("\n") }];
-    for (const dataUri of referenceImages.slice(0, 3)) {
-      const mimeMatch = dataUri.match(/^data:(image\/[^;]+);base64,/);
-      if (mimeMatch) {
-        const mimeType = mimeMatch[1];
-        const base64Data = dataUri.slice(dataUri.indexOf(",") + 1);
-        contentParts.push({ inlineData: { mimeType, data: base64Data } });
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const contentParts: any[] = [{ text: svgPrompt }];
+      for (const dataUri of referenceImages.slice(0, 3)) {
+        const mimeMatch = dataUri.match(/^data:(image\/[^;]+);base64,/);
+        if (mimeMatch) {
+          const mimeType = mimeMatch[1];
+          const base64Data = dataUri.slice(dataUri.indexOf(",") + 1);
+          contentParts.push({ inlineData: { mimeType, data: base64Data } });
+        }
       }
-    }
 
-    const result = await model.generateContent({
-      contents: [{ role: "user", parts: contentParts }],
-      generationConfig: { responseMimeType: "text/plain" },
-    });
+      const result = await model.generateContent({
+        contents: [{ role: "user", parts: contentParts }],
+        generationConfig: { responseMimeType: "text/plain", temperature: 0.8 },
+      });
 
-    const text = result.response.text();
-    if (text.startsWith("data:image")) return text;
-
-    // Gemini returned text instead of an image — use mockup SVG if available
-    if (mockupFallback) {
-      return `data:image/svg+xml;base64,${Buffer.from(mockupFallback).toString("base64")}`;
+      const svg = extractSvg(result.response.text());
+      if (svg) return svgToDataUri(svg);
+    } catch (error) {
+      console.error("[gemini-image] generateBrandAsset AI SVG error:", error);
     }
-    return `data:image/svg+xml;base64,${Buffer.from(placeholderGradientSvg(w, h, primary, secondary, text.slice(0, 80))).toString("base64")}`;
-  } catch (error) {
-    console.error("[gemini-image] generateBrandAsset error:", error);
-    if (mockupFallback) {
-      return `data:image/svg+xml;base64,${Buffer.from(mockupFallback).toString("base64")}`;
-    }
-    return `data:image/svg+xml;base64,${Buffer.from(placeholderGradientSvg(w, h, primary, secondary, "Generation failed")).toString("base64")}`;
   }
+
+  // 3) Mockup SVG template fallback (for mockup types)
+  if (mockupFallback) {
+    return svgToDataUri(mockupFallback);
+  }
+
+  // 4) Simple gradient placeholder
+  return svgToDataUri(
+    placeholderGradientSvg(w, h, primary, secondary, `${type}: ${prompt.slice(0, 40)}`),
+  );
 }
 
 /**
  * Generate a cohesive color scheme for a given industry and mood.
+ * Uses Gemini for intelligent palette generation with algorithmic fallback.
  */
 export async function generateColorScheme(
   industry: string,
   mood: string,
 ): Promise<{ primary: string; secondary: string; accent: string; background: string }> {
   const client = getClient();
-
-  // Algorithmic fallback
   const fallback = algorithmicColorScheme(industry, mood);
   if (!client) return fallback;
 
@@ -264,7 +378,9 @@ export async function generateColorScheme(
     const model = client.getGenerativeModel({ model: "gemini-2.0-flash-exp" });
 
     const prompt = [
-      `Generate a professional color scheme for a ${industry} company with a ${mood} mood.`,
+      `Generate a professional, cohesive color scheme for a ${industry} company with a ${mood} mood.`,
+      `Consider color theory: complementary, analogous, or split-complementary relationships.`,
+      `The background should be very light (near-white) to work as a page background.`,
       `Return ONLY a JSON object with exactly these keys: primary, secondary, accent, background.`,
       `Each value should be a hex color code (e.g. "#4F46E5").`,
       `No explanation, just the JSON.`,
@@ -273,7 +389,6 @@ export async function generateColorScheme(
     const result = await model.generateContent(prompt);
     const text = result.response.text().trim();
 
-    // Extract JSON from the response
     const jsonMatch = text.match(/\{[\s\S]*\}/);
     if (!jsonMatch) return fallback;
 
@@ -336,6 +451,9 @@ function algorithmicColorScheme(
     elegant: { saturation: 35, lightness: 35 },
     playful: { saturation: 75, lightness: 55 },
     trustworthy: { saturation: 55, lightness: 42 },
+    innovative: { saturation: 70, lightness: 48 },
+    minimal: { saturation: 25, lightness: 50 },
+    luxurious: { saturation: 45, lightness: 30 },
   };
 
   const m = moodMap[mood.toLowerCase()] ?? { saturation: 60, lightness: 45 };
