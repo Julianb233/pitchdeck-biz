@@ -65,6 +65,7 @@ export default function AssetsPage() {
   const [assets, setAssets] = useState<AssetRecord[]>([])
   const [tokensRemaining, setTokensRemaining] = useState(MONTHLY_TOKEN_ALLOCATION)
   const [userId, setUserId] = useState<string | null>(null)
+  const [authChecked, setAuthChecked] = useState(false)
   const [resetDate, setResetDate] = useState(() => {
     const d = new Date()
     return new Date(d.getFullYear(), d.getMonth() + 1, 1).toISOString()
@@ -77,6 +78,7 @@ export default function AssetsPage() {
     const supabase = createClient()
     supabase.auth.getUser().then(({ data: { user } }) => {
       if (user) setUserId(user.id)
+      setAuthChecked(true)
     })
   }, [])
 
@@ -86,7 +88,7 @@ export default function AssetsPage() {
     setSelectedTemplate(t[0] || null)
   }, [selectedType])
 
-  // Load existing assets
+  // Load existing assets and token balance
   const loadAssets = useCallback(async () => {
     if (!userId) return
     try {
@@ -96,6 +98,9 @@ export default function AssetsPage() {
         setAssets(data.assets || [])
         if (typeof data.tokensRemaining === "number") {
           setTokensRemaining(data.tokensRemaining)
+        }
+        if (data.currentPeriodEnd) {
+          setResetDate(data.currentPeriodEnd)
         }
       }
     } catch {
@@ -157,6 +162,32 @@ export default function AssetsPage() {
   }
 
   const cost = ASSET_TOKEN_COSTS[selectedType]
+
+  if (!authChecked) {
+    return (
+      <div className="flex items-center justify-center py-24">
+        <Loader2 className="w-6 h-6 text-zinc-500 animate-spin" />
+      </div>
+    )
+  }
+
+  if (!userId) {
+    return (
+      <div className="text-center py-24">
+        <Sparkles className="w-12 h-12 text-zinc-700 mx-auto mb-4" />
+        <h2 className="text-xl font-semibold text-zinc-200 mb-2">Sign in to generate assets</h2>
+        <p className="text-sm text-zinc-500 mb-6">
+          You need an account to create and manage branding assets.
+        </p>
+        <Link
+          href="/login"
+          className="inline-flex items-center gap-2 rounded-xl bg-[#8b5cf6] px-6 py-2.5 text-sm font-medium text-white hover:bg-[#7c3aed] transition-colors"
+        >
+          Sign In
+        </Link>
+      </div>
+    )
+  }
 
   return (
     <div className="space-y-8">

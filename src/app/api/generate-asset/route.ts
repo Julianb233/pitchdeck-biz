@@ -109,6 +109,7 @@ export async function GET(request: NextRequest) {
       pagination: { page, limit, total, totalPages },
       tokensUsed: balance.tokens_used,
       tokensRemaining: balance.token_balance,
+      currentPeriodEnd: balance.current_period_end,
     })
   } catch {
     // Return empty on error
@@ -118,6 +119,7 @@ export async function GET(request: NextRequest) {
       pagination: { page, limit, total: 0, totalPages: 1 },
       tokensUsed: balance.tokens_used,
       tokensRemaining: balance.token_balance,
+      currentPeriodEnd: balance.current_period_end,
     })
   }
 }

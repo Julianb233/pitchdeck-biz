@@ -72,12 +72,18 @@ export default function AssetHistoryPage() {
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
   const [isLoading, setIsLoading] = useState(true)
   const [userId, setUserId] = useState<string | null>(null)
+  const [authChecked, setAuthChecked] = useState(false)
 
   // Get current user ID from Supabase
   useEffect(() => {
     const supabase = createClient()
     supabase.auth.getUser().then(({ data: { user } }) => {
-      if (user) setUserId(user.id)
+      if (user) {
+        setUserId(user.id)
+      } else {
+        setIsLoading(false)
+      }
+      setAuthChecked(true)
     })
   }, [])
 
@@ -183,6 +189,24 @@ export default function AssetHistoryPage() {
     "product-mockup": "#ff006e",
     "marketing-collateral": "#00d4ff",
     "brand-identity": "#22c55e",
+  }
+
+  if (authChecked && !userId) {
+    return (
+      <div className="text-center py-24">
+        <ImageIcon className="w-12 h-12 text-zinc-700 mx-auto mb-4" />
+        <h2 className="text-xl font-semibold text-zinc-200 mb-2">Sign in to view history</h2>
+        <p className="text-sm text-zinc-500 mb-6">
+          You need an account to view your generated assets.
+        </p>
+        <Link
+          href="/login"
+          className="inline-flex items-center gap-2 rounded-xl bg-[#8b5cf6] px-6 py-2.5 text-sm font-medium text-white hover:bg-[#7c3aed] transition-colors"
+        >
+          Sign In
+        </Link>
+      </div>
+    )
   }
 
   return (
