@@ -132,7 +132,7 @@ export function Pricing() {
                   className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold ${
                     plan.featured
                       ? "bg-gradient-to-r from-[#203eec] to-[#00d4ff] text-white"
-                      : "bg-zinc-100 text-zinc-700"
+                      : "bg-secondary text-secondary-foreground"
                   }`}
                 >
                   <plan.badgeIcon className="w-3 h-3" />
@@ -163,7 +163,7 @@ export function Pricing() {
                 onClick={() => handleCheckout(plan.priceType)}
                 disabled={loading !== null}
                 className={`w-full flex items-center justify-center px-8 py-4 rounded-full text-base font-medium transition-all relative overflow-hidden group mb-8 disabled:opacity-70 disabled:cursor-not-allowed ${
-                  plan.featured ? "text-white hover:shadow-2xl" : "hover:bg-zinc-100"
+                  plan.featured ? "text-white hover:shadow-2xl" : "hover:bg-secondary"
                 }`}
                 style={
                   plan.featured
