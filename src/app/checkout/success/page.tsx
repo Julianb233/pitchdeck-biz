@@ -1,6 +1,13 @@
 import Link from "next/link";
 
-export default function CheckoutSuccessPage() {
+interface Props {
+  searchParams: Promise<{ session_id?: string }>;
+}
+
+export default async function CheckoutSuccessPage({ searchParams }: Props) {
+  const params = await searchParams;
+  const sessionId = params.session_id;
+
   return (
     <div className="min-h-screen bg-zinc-950 flex items-center justify-center px-4">
       <div className="max-w-md text-center">
@@ -11,9 +18,15 @@ export default function CheckoutSuccessPage() {
         </div>
 
         <h1 className="text-2xl font-bold text-white mb-2">Payment Successful!</h1>
-        <p className="text-zinc-400 mb-8">
+        <p className="text-zinc-400 mb-4">
           Your deck is ready. Head to the dashboard to download it or create more.
         </p>
+
+        {sessionId && (
+          <p className="text-zinc-600 text-xs mb-8 font-mono break-all">
+            Order ref: {sessionId}
+          </p>
+        )}
 
         <div className="flex flex-col sm:flex-row gap-3 justify-center">
           <Link

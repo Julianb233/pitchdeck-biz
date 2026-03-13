@@ -1,3 +1,6 @@
+"use client"
+
+import { useState } from "react"
 import { Check, Sparkles, Crown } from "lucide-react"
 
 const plans = [
@@ -10,6 +13,7 @@ const plans = [
     description: "Everything you need to pitch your business professionally",
     featured: false,
     cta: "Create Your Deck",
+    priceType: "one-time" as const,
     features: [
       "Investor Pitch Deck (10-15 slides)",
       "Business Sell Sheet",
@@ -29,6 +33,7 @@ const plans = [
     description: "Unlimited branding power for growing businesses",
     featured: true,
     cta: "Start Subscription",
+    priceType: "subscription" as const,
     features: [
       "Everything in Pay Per Deck",
       "500 branding asset tokens/month",
@@ -43,6 +48,29 @@ const plans = [
 ]
 
 export function Pricing() {
+  const [loading, setLoading] = useState<string | null>(null)
+
+  async function handleCheckout(priceType: "one-time" | "subscription") {
+    setLoading(priceType)
+    try {
+      const res = await fetch("/api/checkout/session", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ priceType }),
+      })
+      const data = await res.json()
+      if (data.url) {
+        window.location.href = data.url
+      } else {
+        console.error("No checkout URL returned", data)
+        setLoading(null)
+      }
+    } catch (err) {
+      console.error("Checkout failed", err)
+      setLoading(null)
+    }
+  }
+
   return (
     <section id="pricing" className="py-20 md:py-32">
       <div className="max-w-[1280px] mx-auto px-6 md:px-12">
@@ -116,9 +144,10 @@ export function Pricing() {
               </div>
 
               {/* CTA Button */}
-              <a
-                href="/create"
-                className={`w-full flex items-center justify-center px-8 py-4 rounded-full text-base font-medium transition-all relative overflow-hidden group mb-8 ${
+              <button
+                onClick={() => handleCheckout(plan.priceType)}
+                disabled={loading !== null}
+                className={`w-full flex items-center justify-center px-8 py-4 rounded-full text-base font-medium transition-all relative overflow-hidden group mb-8 disabled:opacity-70 disabled:cursor-not-allowed ${
                   plan.featured ? "text-white hover:shadow-2xl" : "hover:bg-zinc-100"
                 }`}
                 style={
@@ -130,11 +159,13 @@ export function Pricing() {
                     : { border: "1px solid #203eec", color: "#203eec" }
                 }
               >
-                <span className="relative z-10">{plan.cta}</span>
+                <span className="relative z-10">
+                  {loading === plan.priceType ? "Redirecting..." : plan.cta}
+                </span>
                 {plan.featured && (
                   <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 blur-2xl bg-gradient-to-r from-[#203eec] to-[#00d4ff]" />
                 )}
-              </a>
+              </button>
 
               {/* Features */}
               <ul className="space-y-3 relative z-10">

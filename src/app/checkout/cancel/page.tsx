@@ -1,6 +1,13 @@
 import Link from "next/link";
 
-export default function CheckoutCancelPage() {
+interface Props {
+  searchParams: Promise<{ session_id?: string }>;
+}
+
+export default async function CheckoutCancelPage({ searchParams }: Props) {
+  // searchParams available if needed for future use
+  await searchParams;
+
   return (
     <div className="min-h-screen bg-zinc-950 flex items-center justify-center px-4">
       <div className="max-w-md text-center">
