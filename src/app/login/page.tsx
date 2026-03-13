@@ -67,7 +67,7 @@ function LoginForm() {
           <h1 className="mt-6 text-3xl font-bold tracking-tight">Sign in to your account</h1>
           <p className="mt-2 text-sm text-muted-foreground">
             Don&apos;t have an account?{" "}
-            <Link href="/signup" className="font-medium text-primary hover:underline">
+            <Link href={`/signup${searchParams.get("next") ? `?next=${encodeURIComponent(searchParams.get("next")!)}` : ""}`} className="font-medium text-primary hover:underline">
               Sign up
             </Link>
           </p>
