@@ -24,12 +24,9 @@ export async function signUp(email: string, password: string, name: string) {
 
   // Sync to public.users table (safety net — DB trigger handles this too)
   if (!error && data.user) {
-    await supabase.from("users").upsert(
-      {
-        id: data.user.id,
-        email,
-        name,
-      } as { id: string; email: string; name: string },
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    await (supabase.from("users") as any).upsert(
+      { id: data.user.id, email, name },
       { onConflict: "id" }
     );
   }
