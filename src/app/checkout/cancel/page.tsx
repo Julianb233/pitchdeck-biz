@@ -1,12 +1,7 @@
 import Link from "next/link";
 import { ArrowLeft, Home } from "lucide-react";
 
-interface Props {
-  searchParams: Promise<{ session_id?: string }>;
-}
-
-export default async function CheckoutCancelPage({ searchParams }: Props) {
-  await searchParams;
+export default function CheckoutCancelPage() {
 
   return (
     <div className="min-h-screen bg-zinc-950 relative overflow-hidden">
