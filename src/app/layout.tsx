@@ -37,6 +37,7 @@ export const metadata: Metadata = {
     description: "Create a professional investor pitch deck in minutes with AI. Upload your business docs, get a complete pitch deck, sell sheet, one-pager, and branding kit.",
     images: ["/og-image.svg"],
   },
+  manifest: "/manifest.json",
   metadataBase: new URL("https://pitchdeck.biz"),
   icons: {
     icon: [
