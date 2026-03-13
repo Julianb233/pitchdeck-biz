@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useEffect, useCallback } from "react"
+import { createClient } from "@/lib/supabase/client"
 import Link from "next/link"
 import {
   Share2,
@@ -63,12 +64,21 @@ export default function AssetsPage() {
   const [isGenerating, setIsGenerating] = useState(false)
   const [assets, setAssets] = useState<AssetRecord[]>([])
   const [tokensRemaining, setTokensRemaining] = useState(MONTHLY_TOKEN_ALLOCATION)
+  const [userId, setUserId] = useState<string | null>(null)
   const [resetDate, setResetDate] = useState(() => {
     const d = new Date()
     return new Date(d.getFullYear(), d.getMonth() + 1, 1).toISOString()
   })
 
   const templates = getTemplatesByCategory(selectedType)
+
+  // Get current user ID from Supabase
+  useEffect(() => {
+    const supabase = createClient()
+    supabase.auth.getUser().then(({ data: { user } }) => {
+      if (user) setUserId(user.id)
+    })
+  }, [])
 
   // Auto-select first template when type changes
   useEffect(() => {
@@ -78,8 +88,9 @@ export default function AssetsPage() {
 
   // Load existing assets
   const loadAssets = useCallback(async () => {
+    if (!userId) return
     try {
-      const res = await fetch("/api/generate-asset?userId=demo-user")
+      const res = await fetch(`/api/generate-asset?userId=${userId}`)
       if (res.ok) {
         const data = await res.json()
         setAssets(data.assets || [])

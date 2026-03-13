@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useCallback, useEffect } from "react"
+import { createClient } from "@/lib/supabase/client"
 import {
   Sparkles,
   AlertCircle,
@@ -47,10 +48,19 @@ export default function DashboardPage() {
   const [tokensRemaining, setTokensRemaining] = useState(MONTHLY_TOKEN_ALLOCATION)
   const [error, setError] = useState<string | null>(null)
   const [generatedImageUrl, setGeneratedImageUrl] = useState<string | null>(null)
+  const [userId, setUserId] = useState<string | null>(null)
   const [resetDate] = useState(() => {
     const d = new Date()
     return new Date(d.getFullYear(), d.getMonth() + 1, 1).toISOString()
   })
+
+  // Get current user ID from Supabase
+  useEffect(() => {
+    const supabase = createClient()
+    supabase.auth.getUser().then(({ data: { user } }) => {
+      if (user) setUserId(user.id)
+    })
+  }, [])
 
   const templates = getTemplatesByCategory(selectedType)
 
@@ -79,7 +89,7 @@ export default function DashboardPage() {
           templateId: selectedTemplate.id,
           prompt: prompt.trim(),
           brandColors: ["#8b5cf6", "#ff006e", "#00d4ff", "#0f0a1a"],
-          userId: "demo-user",
+          userId: userId ?? "anonymous",
         }),
       })
 

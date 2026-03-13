@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
+import { createClient } from "@/lib/supabase/client";
 
 interface AuthUser {
   id: string;
@@ -25,10 +26,16 @@ export function useAuth(): UseAuthReturn {
 
   const refresh = useCallback(async () => {
     try {
-      const res = await fetch("/api/auth/me");
-      if (res.ok) {
-        const data = await res.json();
-        setUser(data.user);
+      const supabase = createClient();
+      const { data: { user: supaUser } } = await supabase.auth.getUser();
+      if (supaUser) {
+        setUser({
+          id: supaUser.id,
+          email: supaUser.email ?? "",
+          name: supaUser.user_metadata?.name ?? supaUser.email ?? "",
+          subscriptionStatus: "free",
+          createdAt: supaUser.created_at,
+        });
       } else {
         setUser(null);
       }
@@ -44,39 +51,26 @@ export function useAuth(): UseAuthReturn {
   }, [refresh]);
 
   const login = useCallback(async (email: string, password: string) => {
-    const res = await fetch("/api/auth/login", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email, password }),
-    });
-
-    if (!res.ok) {
-      const data = await res.json();
-      throw new Error(data.error || "Login failed");
-    }
-
-    const data = await res.json();
-    setUser(data.user);
-  }, []);
+    const supabase = createClient();
+    const { error } = await supabase.auth.signInWithPassword({ email, password });
+    if (error) throw new Error(error.message);
+    await refresh();
+  }, [refresh]);
 
   const signup = useCallback(async (email: string, password: string, name: string) => {
-    const res = await fetch("/api/auth/signup", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email, password, name }),
+    const supabase = createClient();
+    const { error } = await supabase.auth.signUp({
+      email,
+      password,
+      options: { data: { name } },
     });
-
-    if (!res.ok) {
-      const data = await res.json();
-      throw new Error(data.error || "Signup failed");
-    }
-
-    const data = await res.json();
-    setUser(data.user);
-  }, []);
+    if (error) throw new Error(error.message);
+    await refresh();
+  }, [refresh]);
 
   const logout = useCallback(async () => {
-    await fetch("/api/auth/logout", { method: "POST" });
+    const supabase = createClient();
+    await supabase.auth.signOut();
     setUser(null);
   }, []);
 
