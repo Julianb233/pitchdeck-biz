@@ -89,7 +89,7 @@ export default function DashboardPage() {
       }
 
       const data = await res.json()
-      setGeneratedImageUrl(data.asset.imageUrl)
+      setGeneratedImageUrl(data.asset.image_url)
       setTokensRemaining(data.tokensRemaining)
       setPrompt("")
     } catch (err) {
