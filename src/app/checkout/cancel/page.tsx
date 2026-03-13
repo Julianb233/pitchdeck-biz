@@ -30,7 +30,7 @@ export default function CheckoutCancelPage() {
           </h1>
 
           <p className="text-zinc-400 text-lg mb-2">
-            No worries -- you haven&apos;t been charged.
+            No worries — you haven&apos;t been charged.
           </p>
           <p className="text-zinc-500 text-sm mb-10">
             Your pitch deck idea is saved. Come back anytime to get your

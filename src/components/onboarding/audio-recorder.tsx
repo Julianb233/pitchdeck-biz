@@ -327,7 +327,7 @@ export function AudioRecorder({
       {state === "idle" && (
         <p className="text-sm text-muted-foreground text-center max-w-xs">
           Describe your business, target market, and what makes you unique.
-          Speak naturally -- our AI will extract the key insights.
+          Speak naturally — our AI will extract the key insights.
         </p>
       )}
       {state === "recording" && (

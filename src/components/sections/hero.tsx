@@ -85,7 +85,7 @@ export function Hero() {
 
           {/* Description */}
           <p className="mt-8 max-w-xl leading-relaxed text-left text-lg text-zinc-500 ml-0">
-            Just describe your business -- or upload existing materials -- and our AI creates a professional
+            Just describe your business — or upload existing materials — and our AI creates a professional
             pitch deck, sell sheet, and branding kit in minutes. Save thousands compared to hiring designers
             and get investor-ready materials today.
           </p>

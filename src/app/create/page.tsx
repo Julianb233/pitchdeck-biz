@@ -406,7 +406,7 @@ export default function CreatePage() {
                     Voice Description
                   </h3>
                   <p className="text-sm text-muted-foreground">
-                    Record yourself describing your business -- just speak
+                    Record yourself describing your business — just speak
                     naturally
                   </p>
                 </button>
@@ -459,7 +459,7 @@ export default function CreatePage() {
                     {isDragging ? "Drop files here" : "Drop files or click to browse"}
                   </p>
                   <p className="text-sm text-muted-foreground">
-                    PDF, DOCX, TXT, images -- up to 25 MB each
+                    PDF, DOCX, TXT, images — up to 25 MB each
                   </p>
                 </div>
 
