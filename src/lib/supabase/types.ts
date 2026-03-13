@@ -9,54 +9,95 @@ export type Json =
 export interface Database {
   public: {
     Tables: {
-      users: {
+      analyses: {
         Row: {
           id: string;
-          email: string;
-          name: string | null;
+          user_id: string;
+          business_name: string;
+          analysis_data: Json;
+          files_uploaded: Json;
           created_at: string;
-          stripe_customer_id: string | null;
         };
         Insert: {
           id?: string;
-          email: string;
-          name?: string | null;
+          user_id: string;
+          business_name: string;
+          analysis_data?: Json;
+          files_uploaded?: Json;
           created_at?: string;
-          stripe_customer_id?: string | null;
         };
         Update: {
           id?: string;
-          email?: string;
-          name?: string | null;
+          user_id?: string;
+          business_name?: string;
+          analysis_data?: Json;
+          files_uploaded?: Json;
           created_at?: string;
-          stripe_customer_id?: string | null;
         };
       };
       decks: {
         Row: {
           id: string;
           user_id: string;
+          analysis_id: string | null;
           title: string;
-          business_analysis: Json | null;
-          deck_content: Json | null;
+          slides: Json;
+          sell_sheet: Json | null;
+          one_pager: Json | null;
+          brand_kit: Json | null;
           status: string;
           created_at: string;
         };
         Insert: {
           id?: string;
           user_id: string;
+          analysis_id?: string | null;
           title: string;
-          business_analysis?: Json | null;
-          deck_content?: Json | null;
+          slides?: Json;
+          sell_sheet?: Json | null;
+          one_pager?: Json | null;
+          brand_kit?: Json | null;
           status?: string;
           created_at?: string;
         };
         Update: {
           id?: string;
           user_id?: string;
+          analysis_id?: string | null;
           title?: string;
-          business_analysis?: Json | null;
-          deck_content?: Json | null;
+          slides?: Json;
+          sell_sheet?: Json | null;
+          one_pager?: Json | null;
+          brand_kit?: Json | null;
+          status?: string;
+          created_at?: string;
+        };
+      };
+      orders: {
+        Row: {
+          id: string;
+          user_id: string;
+          deck_id: string;
+          stripe_session_id: string | null;
+          amount_cents: number;
+          status: string;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          deck_id: string;
+          stripe_session_id?: string | null;
+          amount_cents: number;
+          status?: string;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          user_id?: string;
+          deck_id?: string;
+          stripe_session_id?: string | null;
+          amount_cents?: number;
           status?: string;
           created_at?: string;
         };
@@ -66,31 +107,37 @@ export interface Database {
           id: string;
           user_id: string;
           stripe_subscription_id: string;
+          stripe_customer_id: string;
           status: string;
+          token_balance: number;
+          tokens_allocated: number;
           current_period_start: string;
           current_period_end: string;
-          token_balance: number;
-          tokens_used: number;
+          created_at: string;
         };
         Insert: {
           id?: string;
           user_id: string;
           stripe_subscription_id: string;
+          stripe_customer_id: string;
           status?: string;
+          token_balance?: number;
+          tokens_allocated?: number;
           current_period_start: string;
           current_period_end: string;
-          token_balance?: number;
-          tokens_used?: number;
+          created_at?: string;
         };
         Update: {
           id?: string;
           user_id?: string;
           stripe_subscription_id?: string;
+          stripe_customer_id?: string;
           status?: string;
+          token_balance?: number;
+          tokens_allocated?: number;
           current_period_start?: string;
           current_period_end?: string;
-          token_balance?: number;
-          tokens_used?: number;
+          created_at?: string;
         };
       };
       assets: {
@@ -98,62 +145,62 @@ export interface Database {
           id: string;
           user_id: string;
           subscription_id: string | null;
-          type: string;
-          template: string | null;
+          asset_type: string;
+          template_name: string | null;
           prompt: string | null;
-          image_url: string | null;
-          tokens_cost: number;
+          image_data: string | null;
+          tokens_used: number;
           created_at: string;
         };
         Insert: {
           id?: string;
           user_id: string;
           subscription_id?: string | null;
-          type: string;
-          template?: string | null;
+          asset_type: string;
+          template_name?: string | null;
           prompt?: string | null;
-          image_url?: string | null;
-          tokens_cost?: number;
+          image_data?: string | null;
+          tokens_used?: number;
           created_at?: string;
         };
         Update: {
           id?: string;
           user_id?: string;
           subscription_id?: string | null;
-          type?: string;
-          template?: string | null;
+          asset_type?: string;
+          template_name?: string | null;
           prompt?: string | null;
-          image_url?: string | null;
-          tokens_cost?: number;
+          image_data?: string | null;
+          tokens_used?: number;
           created_at?: string;
         };
       };
-      orders: {
+      token_usage: {
         Row: {
           id: string;
           user_id: string;
-          deck_id: string;
-          stripe_payment_intent_id: string | null;
-          amount: number;
-          status: string;
+          subscription_id: string | null;
+          asset_id: string | null;
+          tokens_used: number;
+          action: string;
           created_at: string;
         };
         Insert: {
           id?: string;
           user_id: string;
-          deck_id: string;
-          stripe_payment_intent_id?: string | null;
-          amount: number;
-          status?: string;
+          subscription_id?: string | null;
+          asset_id?: string | null;
+          tokens_used: number;
+          action: string;
           created_at?: string;
         };
         Update: {
           id?: string;
           user_id?: string;
-          deck_id?: string;
-          stripe_payment_intent_id?: string | null;
-          amount?: number;
-          status?: string;
+          subscription_id?: string | null;
+          asset_id?: string | null;
+          tokens_used?: number;
+          action?: string;
           created_at?: string;
         };
       };

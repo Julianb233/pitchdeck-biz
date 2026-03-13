@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from "next/server"
-import type { Database } from "@/lib/supabase/types"
 import {
   type AssetType,
   ASSET_TOKEN_COSTS,
@@ -21,9 +20,16 @@ const VALID_ASSET_TYPES = new Set<string>(Object.keys(ASSET_TOKEN_COSTS))
 
 // ── In-memory asset store matching assets table schema ──────────────────────
 
-type AssetRow = Database["public"]["Tables"]["assets"]["Row"]
-
-interface StoredAsset extends AssetRow {
+interface StoredAsset {
+  id: string
+  user_id: string
+  subscription_id: string | null
+  asset_type: string
+  template_name: string | null
+  prompt: string | null
+  image_data: string | null
+  tokens_used: number
+  created_at: string
   // Extra fields for client display (not persisted to DB)
   width: number
   height: number
