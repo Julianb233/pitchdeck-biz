@@ -17,8 +17,8 @@ const navItems = [
 ]
 
 export function Header() {
-  const { data: session } = useSession()
-  const user = session?.user
+  const { user, logout } = useAuth()
+  const router = useRouter()
   const [isScrolled, setIsScrolled] = useState(false)
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
 
