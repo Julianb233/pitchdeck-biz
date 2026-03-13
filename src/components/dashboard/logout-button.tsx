@@ -1,11 +1,19 @@
 "use client";
 
-import { signOut } from "next-auth/react";
+import { useRouter } from "next/navigation";
 
 export function LogoutButton() {
+  const router = useRouter();
+
+  async function handleLogout() {
+    await fetch("/api/auth/logout", { method: "POST" });
+    router.push("/");
+    router.refresh();
+  }
+
   return (
     <button
-      onClick={() => signOut({ callbackUrl: "/" })}
+      onClick={handleLogout}
       className="text-sm font-medium text-zinc-500 hover:text-zinc-300 transition-colors"
     >
       Sign Out
