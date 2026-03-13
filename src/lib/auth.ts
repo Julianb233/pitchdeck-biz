@@ -21,6 +21,19 @@ export async function signUp(email: string, password: string, name: string) {
       data: { name },
     },
   });
+
+  // Sync to public.users table (safety net — DB trigger handles this too)
+  if (!error && data.user) {
+    await supabase.from("users").upsert(
+      {
+        id: data.user.id,
+        email,
+        name,
+      },
+      { onConflict: "id" }
+    );
+  }
+
   return { data, error };
 }
 
@@ -67,7 +80,21 @@ export async function getSessionFromCookies(): Promise<SafeUser | null> {
   const supabase = await createClient();
   const { data: { user }, error } = await supabase.auth.getUser();
   if (error || !user) return null;
-  return toSafeUser(user);
+
+  // Check subscription status from DB
+  const { data: subscription } = await supabase
+    .from("subscriptions")
+    .select("status")
+    .eq("user_id", user.id)
+    .eq("status", "active")
+    .limit(1)
+    .maybeSingle();
+
+  const safeUser = toSafeUser(user);
+  if (subscription) {
+    safeUser.subscriptionStatus = "pro";
+  }
+  return safeUser;
 }
 
 export async function getSessionFromRequest(_request: Request): Promise<SafeUser | null> {
