@@ -29,7 +29,7 @@ export async function signUp(email: string, password: string, name: string) {
         id: data.user.id,
         email,
         name,
-      },
+      } as { id: string; email: string; name: string },
       { onConflict: "id" }
     );
   }

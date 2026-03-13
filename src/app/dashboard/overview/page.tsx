@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useState, useCallback } from "react";
-import { useSession } from "next-auth/react";
+import { useAuth } from "@/hooks/use-auth";
 
 interface Deck {
   id: string;
@@ -12,8 +12,7 @@ interface Deck {
 }
 
 export default function DashboardOverviewPage() {
-  const { data: session, status } = useSession();
-  const user = session?.user;
+  const { user, loading } = useAuth();
   const [decks] = useState<Deck[]>([]);
   const [checkoutLoading, setCheckoutLoading] = useState(false);
 
@@ -36,7 +35,7 @@ export default function DashboardOverviewPage() {
     }
   }, []);
 
-  if (status === "loading") {
+  if (loading) {
     return (
       <div className="flex items-center justify-center min-h-[60vh]">
         <div className="text-zinc-400">Loading...</div>

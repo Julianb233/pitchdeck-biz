@@ -1,7 +1,7 @@
 import type React from "react"
 import Link from "next/link"
 import { redirect } from "next/navigation"
-import { getSessionFromCookies } from "@/lib/auth"
+import { createClient } from "@/lib/supabase/server"
 import { LogoutButton } from "@/components/dashboard/logout-button"
 
 const NAV_ITEMS = [
@@ -44,11 +44,14 @@ function NavIcon({ icon }: { icon: string }) {
 }
 
 export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
-  const user = await getSessionFromCookies();
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
 
   if (!user) {
     redirect("/login");
   }
+
+  const displayName = user.user_metadata?.name || user.email || "User";
 
   return (
     <div className="min-h-screen bg-zinc-950 text-white">
@@ -79,7 +82,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
               </Link>
             ))}
             <div className="w-px h-5 bg-zinc-800" />
-            <span className="text-sm text-zinc-400">{user.name}</span>
+            <span className="text-sm text-zinc-400">{displayName}</span>
             <LogoutButton />
           </nav>
         </div>

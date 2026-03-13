@@ -47,7 +47,9 @@ export function Header() {
   }
 
   const handleLogout = async () => {
-    await signOut({ callbackUrl: "/" })
+    await logout()
+    router.push("/")
+    router.refresh()
   }
 
   return (
