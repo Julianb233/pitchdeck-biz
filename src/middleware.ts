@@ -1,47 +1,28 @@
-import { updateSession } from '@/lib/supabase/middleware';
-import { createServerClient } from '@supabase/ssr';
 import { NextResponse, type NextRequest } from 'next/server';
-import type { Database } from '@/lib/supabase/types';
 
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
-  // Update Supabase session (refreshes auth token)
-  let response = await updateSession(request);
+  // Protect dashboard routes — check for session cookie
+  if (pathname.startsWith('/dashboard')) {
+    const sessionToken = request.cookies.get('session')?.value;
 
-  // Protect dashboard and create routes
-  if (pathname.startsWith('/dashboard') || pathname.startsWith('/create')) {
-    const supabase = createServerClient<Database>(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-      {
-        cookies: {
-          getAll() {
-            return request.cookies.getAll();
-          },
-          setAll(cookiesToSet) {
-            cookiesToSet.forEach(({ name, value }) =>
-              request.cookies.set(name, value)
-            );
-            response = NextResponse.next({ request });
-            cookiesToSet.forEach(({ name, value, options }) =>
-              response.cookies.set(name, value, options)
-            );
-          },
-        },
-      }
-    );
+    if (!sessionToken) {
+      const loginUrl = new URL('/login', request.url);
+      loginUrl.searchParams.set('next', pathname);
+      return NextResponse.redirect(loginUrl);
+    }
 
-    const { data: { user } } = await supabase.auth.getUser();
-
-    if (!user) {
+    // Token format validation (userId.timestamp.signature)
+    const parts = sessionToken.split('.');
+    if (parts.length !== 3) {
       const loginUrl = new URL('/login', request.url);
       loginUrl.searchParams.set('next', pathname);
       return NextResponse.redirect(loginUrl);
     }
   }
 
-  return response;
+  return NextResponse.next();
 }
 
 export const config = {
