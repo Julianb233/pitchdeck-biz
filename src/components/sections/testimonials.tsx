@@ -201,7 +201,7 @@ export function Testimonials() {
                 zIndex: index + 1,
               }}
             >
-              <article className="relative p-6 md:p-8 border bg-card transition-shadow overflow-hidden border-zinc-100 rounded-3xl">
+              <article className="relative p-6 md:p-8 border bg-card transition-shadow overflow-hidden border-border rounded-3xl">
                 {/* Author Info */}
                 <div className="flex items-center gap-3 mb-4">
                   <Image
