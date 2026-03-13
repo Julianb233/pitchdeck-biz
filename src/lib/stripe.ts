@@ -15,7 +15,7 @@ const stripe = new Proxy({} as Stripe, {
   },
 });
 
-export async function createDeckCheckoutSession(deckId: string, userId?: string) {
+export async function createDeckCheckoutSession(deckId: string, userId?: string, orderId?: string) {
   const priceId = process.env.STRIPE_PRICE_DECK;
 
   const lineItem: Stripe.Checkout.SessionCreateParams.LineItem = priceId
@@ -31,6 +31,7 @@ export async function createDeckCheckoutSession(deckId: string, userId?: string)
 
   const metadata: Record<string, string> = { deckId };
   if (userId) metadata.userId = userId;
+  if (orderId) metadata.orderId = orderId;
 
   const session = await stripe.checkout.sessions.create({
     mode: 'payment',

@@ -5,6 +5,7 @@ import {
   createSubscriptionCheckoutSession,
 } from '@/lib/stripe';
 import { getSessionFromRequest } from '@/lib/auth';
+import { createOrder } from '@/lib/supabase/orders';
 
 const checkoutSchema = z.union([
   // Legacy deck + deckId format
@@ -39,7 +40,17 @@ export async function POST(request: NextRequest) {
       ('priceType' in data && data.priceType === 'one-time')
     ) {
       const deckId = 'deckId' in data ? data.deckId : 'pending';
-      const session = await createDeckCheckoutSession(deckId, userId);
+
+      // Create a pending order in Supabase if user is authenticated
+      let orderId: string | undefined;
+      if (userId) {
+        const order = await createOrder(userId, deckId, 9900);
+        if (order) {
+          orderId = order.id;
+        }
+      }
+
+      const session = await createDeckCheckoutSession(deckId, userId, orderId);
       return NextResponse.json({ url: session.url });
     }
 
