@@ -145,6 +145,7 @@ create table if not exists public.assets (
   template_name   text,
   prompt          text,
   image_data      text,
+  brand_colors    jsonb not null default '[]'::jsonb,
   tokens_used     integer not null default 0,
   created_at      timestamptz not null default now()
 );
