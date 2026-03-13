@@ -1,5 +1,7 @@
 # pitchdeck.biz
 
+**DEPLOYED:** https://pitchdeck.biz (v1.0 — 2026-03-12)
+
 > AI-powered pitch deck generator and branding asset subscription platform that helps startups and established businesses create professional pitch decks, sell sheets, branding kits, and ongoing marketing assets — without hiring designers.
 
 ## Problem
