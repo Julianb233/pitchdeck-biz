@@ -1,4 +1,5 @@
 import { GoogleGenerativeAI } from "@google/generative-ai";
+import { generateMockupSVG } from "./mockup-svg-generator";
 
 // ---------------------------------------------------------------------------
 // Gemini Image Generation Service
@@ -38,6 +39,28 @@ function placeholderGradientSvg(
     ${escaped}
   </text>
 </svg>`;
+}
+
+// ---------------------------------------------------------------------------
+// Brand name extraction from prompts
+// ---------------------------------------------------------------------------
+
+function extractBrandName(prompt: string): string {
+  // Try to extract a brand name from common prompt patterns
+  const patterns = [
+    /(?:for|brand(?:ed)?|company|called|named)\s+["']?([A-Z][A-Za-z0-9\s]{1,20})["']?/i,
+    /^["']?([A-Z][A-Za-z0-9]{1,15})["']?\s/,
+  ];
+  for (const pattern of patterns) {
+    const match = prompt.match(pattern);
+    if (match) return match[1].trim();
+  }
+  // Fall back to first capitalized word
+  const words = prompt.split(/\s+/);
+  for (const word of words) {
+    if (/^[A-Z][a-z]/.test(word) && word.length > 2) return word;
+  }
+  return "Brand";
 }
 
 // ---------------------------------------------------------------------------
@@ -135,20 +158,29 @@ export async function generateBrandAsset(
   prompt: string,
   brandColors: { primary?: string; secondary?: string; accent?: string },
   referenceImages: string[] = [],
+  templateId?: string,
 ): Promise<string> {
   const primary = brandColors.primary ?? "#4F46E5";
   const secondary = brandColors.secondary ?? "#7C3AED";
 
   const dimensions: Record<string, [number, number]> = {
     social: [1200, 630],
-    mockup: [1024, 768],
+    mockup: [1200, 800],
     collateral: [800, 1100],
     identity: [800, 800],
   };
   const [w, h] = dimensions[type] ?? [800, 600];
 
+  // For mockup types, use dedicated SVG templates as the primary fallback
+  const mockupFallback = type === "mockup" && templateId
+    ? generateMockupSVG(templateId, brandColors, extractBrandName(prompt))
+    : null;
+
   const client = getClient();
   if (!client) {
+    if (mockupFallback) {
+      return `data:image/svg+xml;base64,${Buffer.from(mockupFallback).toString("base64")}`;
+    }
     return `data:image/svg+xml;base64,${Buffer.from(placeholderGradientSvg(w, h, primary, secondary, `${type}: ${prompt.slice(0, 40)}`)).toString("base64")}`;
   }
 
@@ -197,9 +229,16 @@ export async function generateBrandAsset(
     const text = result.response.text();
     if (text.startsWith("data:image")) return text;
 
+    // Gemini returned text instead of an image — use mockup SVG if available
+    if (mockupFallback) {
+      return `data:image/svg+xml;base64,${Buffer.from(mockupFallback).toString("base64")}`;
+    }
     return `data:image/svg+xml;base64,${Buffer.from(placeholderGradientSvg(w, h, primary, secondary, text.slice(0, 80))).toString("base64")}`;
   } catch (error) {
     console.error("[gemini-image] generateBrandAsset error:", error);
+    if (mockupFallback) {
+      return `data:image/svg+xml;base64,${Buffer.from(mockupFallback).toString("base64")}`;
+    }
     return `data:image/svg+xml;base64,${Buffer.from(placeholderGradientSvg(w, h, primary, secondary, "Generation failed")).toString("base64")}`;
   }
 }

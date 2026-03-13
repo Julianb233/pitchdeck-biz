@@ -24,7 +24,7 @@ const VALID_ASSET_TYPES = new Set<string>(Object.keys(ASSET_TOKEN_COSTS))
 type AssetRow = Database["public"]["Tables"]["assets"]["Row"]
 
 interface StoredAsset extends AssetRow {
-  // Extra fields for client display (not in DB schema, would be joined)
+  // Extra fields for client display (not persisted to DB)
   width: number
   height: number
   brand_colors: string[]
@@ -52,7 +52,7 @@ export async function GET(request: NextRequest) {
 
   // Filter by type if provided
   if (typeFilter && VALID_ASSET_TYPES.has(typeFilter)) {
-    assets = assets.filter((a) => a.type === typeFilter)
+    assets = assets.filter((a) => a.asset_type === typeFilter)
   }
 
   const total = assets.length
@@ -152,7 +152,7 @@ export async function POST(request: NextRequest) {
       primary: validatedColors[0],
       secondary: validatedColors[1],
       accent: validatedColors[2],
-    }, validReferenceImages)
+    }, validReferenceImages, templateId)
 
     // ── Store asset matching DB schema ─────────────────────────────────────
 
@@ -160,11 +160,11 @@ export async function POST(request: NextRequest) {
       id: crypto.randomUUID(),
       user_id: userId,
       subscription_id: null,
-      type: validAssetType,
-      template: templateId,
+      asset_type: validAssetType,
+      template_name: templateId,
       prompt: prompt.trim(),
-      image_url: imageUrl,
-      tokens_cost: cost,
+      image_data: imageUrl,
+      tokens_used: cost,
       created_at: new Date().toISOString(),
       // Extra display fields
       width: template.width,
