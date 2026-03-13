@@ -99,7 +99,8 @@ export async function GET(request: NextRequest) {
 
     if (error) throw error
 
-    const assets = (rows ?? []).map(toClientAsset)
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const assets = (rows ?? []).map((row: any) => toClientAsset(row))
 
     const balance = await getTokenBalance(userId)
 

@@ -107,11 +107,12 @@ export async function POST(request: NextRequest) {
 
         if (userId) {
           const now = new Date();
-          const periodStart = subscription.current_period_start
-            ? new Date(subscription.current_period_start * 1000).toISOString()
+          const subAny = subscription as any;
+          const periodStart = subAny.current_period_start
+            ? new Date(subAny.current_period_start * 1000).toISOString()
             : new Date(now.getFullYear(), now.getMonth(), 1).toISOString();
-          const periodEnd = subscription.current_period_end
-            ? new Date(subscription.current_period_end * 1000).toISOString()
+          const periodEnd = subAny.current_period_end
+            ? new Date(subAny.current_period_end * 1000).toISOString()
             : new Date(now.getFullYear(), now.getMonth() + 1, 1).toISOString();
 
           const { error } = await supabase.from('subscriptions').insert({
@@ -127,29 +128,10 @@ export async function POST(request: NextRequest) {
 
           if (error) {
             console.error('Error inserting subscription into Supabase:', error);
-            subscriptionsMemory.set(customerId, {
-              status: subscription.status,
-              subscriptionId: subscription.id,
-              customerId,
-            });
           } else {
             console.log(`Subscription persisted to Supabase for customer ${customerId}`);
           }
-        } else {
-          subscriptionsMemory.set(customerId, {
-            status: subscription.status,
-            subscriptionId: subscription.id,
-            customerId,
-          });
         }
-      } else {
-        subscriptionsMemory.set(customerId, {
-          status: subscription.status,
-          subscriptionId: subscription.id,
-          customerId,
-        });
-        // Allocate initial token balance for new subscriber (in-memory)
-        await resetMonthlyTokens(customerId);
       }
       console.log(`Subscription created for customer ${customerId}`);
       break;
@@ -163,11 +145,12 @@ export async function POST(request: NextRequest) {
           : subscription.customer.id;
 
       if (supabase) {
-        const periodStart = subscription.current_period_start
-          ? new Date(subscription.current_period_start * 1000).toISOString()
+        const subAny = subscription as any;
+        const periodStart = subAny.current_period_start
+          ? new Date(subAny.current_period_start * 1000).toISOString()
           : undefined;
-        const periodEnd = subscription.current_period_end
-          ? new Date(subscription.current_period_end * 1000).toISOString()
+        const periodEnd = subAny.current_period_end
+          ? new Date(subAny.current_period_end * 1000).toISOString()
           : undefined;
 
         const updateData: Record<string, unknown> = {
@@ -208,8 +191,6 @@ export async function POST(request: NextRequest) {
         }
       }
 
-      // Always clean up in-memory too
-      subscriptionsMemory.delete(customerId);
       console.log(`Subscription deleted for customer ${customerId}`);
       break;
     }

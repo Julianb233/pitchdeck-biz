@@ -3,6 +3,8 @@ import Anthropic from "@anthropic-ai/sdk";
 import type { BusinessAnalysis, DeckContent } from "@/lib/types";
 import { attachImagesToSlides } from "@/lib/ai/slide-image-generator";
 import { createClient } from "@/lib/supabase/server";
+import { updateDeckContent, updateDeckStatus } from "@/lib/supabase/decks";
+import type { Json } from "@/lib/supabase/types";
 
 export const runtime = "nodejs";
 export const maxDuration = 60;
@@ -132,10 +134,10 @@ export async function POST(request: NextRequest) {
 
       if (user) {
         const contentPayload = {
-          slides: deckContent.slides as unknown as Record<string, unknown>[],
-          sell_sheet: deckContent.sellSheet as unknown as Record<string, unknown>,
-          one_pager: deckContent.onePager as unknown as Record<string, unknown>,
-          brand_kit: deckContent.brandKit as unknown as Record<string, unknown>,
+          slides: deckContent.slides as unknown as Json,
+          sell_sheet: deckContent.sellSheet as unknown as Json,
+          one_pager: deckContent.onePager as unknown as Json,
+          brand_kit: deckContent.brandKit as unknown as Json,
         };
 
         if (existingDeckId) {

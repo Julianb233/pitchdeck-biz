@@ -2,7 +2,6 @@ import { createAdminClient } from './admin';
 import type { Database } from './types';
 
 type AssetRow = Database['public']['Tables']['assets']['Row'];
-type AssetInsert = Database['public']['Tables']['assets']['Insert'];
 
 /**
  * Save a generated asset to the Supabase assets table.
@@ -31,7 +30,7 @@ export async function saveAsset(
       image_data: imageData,
       brand_colors: brandColors,
       tokens_used: tokensCost,
-    } satisfies AssetInsert)
+    })
     .select()
     .single();
 
@@ -40,7 +39,7 @@ export async function saveAsset(
     return null;
   }
 
-  return data;
+  return data as AssetRow;
 }
 
 /**
@@ -65,7 +64,7 @@ export async function getUserAssets(
     return [];
   }
 
-  return data ?? [];
+  return (data ?? []) as AssetRow[];
 }
 
 /**
@@ -86,5 +85,5 @@ export async function getAsset(assetId: string): Promise<AssetRow | null> {
     return null;
   }
 
-  return data;
+  return data as AssetRow;
 }

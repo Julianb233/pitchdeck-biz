@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { validateApiKey, analyzeBusinessInfo, logger } from "@/lib/analysis";
 import { createClient } from "@/lib/supabase/server";
+import type { Json } from "@/lib/supabase/types";
 
 export const runtime = "nodejs";
 
@@ -83,8 +84,8 @@ export async function POST(request: NextRequest) {
           .insert({
             user_id: user.id,
             business_name: businessName,
-            analysis_data: analysis as unknown as Record<string, unknown>,
-            files_uploaded: [] as unknown as Record<string, unknown>[],
+            analysis_data: analysis as unknown as Json,
+            files_uploaded: [] as Json,
           })
           .select("id")
           .single();

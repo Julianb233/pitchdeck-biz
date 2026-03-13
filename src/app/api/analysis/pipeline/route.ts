@@ -9,6 +9,8 @@ import {
   logger,
 } from "@/lib/analysis";
 import { createClient } from "@/lib/supabase/server";
+import type { Json } from "@/lib/supabase/types";
+import { saveDeck } from "@/lib/supabase/decks";
 
 export const runtime = "nodejs";
 
@@ -153,8 +155,8 @@ export async function POST(request: NextRequest) {
           .insert({
             user_id: user.id,
             business_name: businessName,
-            analysis_data: analysis as unknown as Record<string, unknown>,
-            files_uploaded: processedFiles.map((f) => f.name) as unknown as Record<string, unknown>[],
+            analysis_data: analysis as unknown as Json,
+            files_uploaded: processedFiles.map((f) => f.name) as Json,
           })
           .select("id")
           .single();
@@ -191,8 +193,8 @@ export async function POST(request: NextRequest) {
           const deck = await saveDeck(
             deckUser.id,
             businessName,
-            analysis as unknown as Record<string, unknown>,
-            [] // empty slides until deck generation
+            analysis as unknown as Json,
+            [] as Json // empty slides until deck generation
           );
           if (deck) {
             deckId = deck.id;
