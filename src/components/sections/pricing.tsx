@@ -117,7 +117,7 @@ export function Pricing() {
 
               {/* CTA Button */}
               <a
-                href="#"
+                href="/create"
                 className={`w-full flex items-center justify-center px-8 py-4 rounded-full text-base font-medium transition-all relative overflow-hidden group mb-8 ${
                   plan.featured ? "text-white hover:shadow-2xl" : "hover:bg-zinc-100"
                 }`}
