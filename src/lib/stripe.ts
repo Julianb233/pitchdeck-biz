@@ -10,8 +10,9 @@ function getStripeClient() {
 }
 
 const stripe = new Proxy({} as Stripe, {
-  get(_, prop) {
-    return (getStripeClient() as any)[prop];
+  get(_, prop: string | symbol) {
+    const client = getStripeClient();
+    return client[prop as keyof typeof client];
   },
 });
 

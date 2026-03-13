@@ -36,7 +36,6 @@ export function Footer() {
                   key={social.label}
                   href={social.href}
                   className="p-2 rounded-full bg-secondary transition-colors hover:bg-opacity-10"
-                  style={{ ["--hover-bg" as any]: "#203eec20" }}
                   onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "#203eec20")}
                   onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "")}
                   aria-label={social.label}
@@ -82,7 +81,7 @@ export function Footer() {
                 type="email"
                 placeholder="Enter your email"
                 className="px-4 py-2.5 text-sm bg-secondary rounded-lg border-0 focus:ring-2 outline-none"
-                style={{ ["--tw-ring-color" as any]: "#203eec" }}
+                style={{ outlineColor: "#203eec" }}
               />
               <button
                 type="submit"

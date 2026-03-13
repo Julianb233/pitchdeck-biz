@@ -31,7 +31,7 @@ export function About() {
               Bridging AI Technology & Human-Centered Design
             </SectionTitle>
             <p className="mt-6 text-muted-foreground leading-relaxed">
-              I'm an AI Digital Product Designer specializing in vibe coding and generative design. I leverage
+              I&apos;m an AI Digital Product Designer specializing in vibe coding and generative design. I leverage
               cutting-edge AI tools like v0, Midjourney, and Claude to rapidly prototype and build production-ready
               experiences.
             </p>

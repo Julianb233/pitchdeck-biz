@@ -127,7 +127,7 @@ export function Testimonials() {
 
                 {/* Quote */}
                 <blockquote className="text-base leading-relaxed font-semibold text-foreground relative z-10">
-                  "{testimonial.quote}"
+                  &ldquo;{testimonial.quote}&rdquo;
                 </blockquote>
 
                 <div
@@ -170,7 +170,7 @@ export function Testimonials() {
 
                 {/* Quote */}
                 <blockquote className="text-base leading-relaxed font-semibold text-foreground relative z-10">
-                  "{testimonial.quote}"
+                  &ldquo;{testimonial.quote}&rdquo;
                 </blockquote>
 
                 <div
@@ -219,7 +219,7 @@ export function Testimonials() {
 
                 {/* Quote */}
                 <blockquote className="text-base leading-relaxed font-semibold text-foreground relative z-10">
-                  "{testimonial.quote}"
+                  &ldquo;{testimonial.quote}&rdquo;
                 </blockquote>
 
                 <div

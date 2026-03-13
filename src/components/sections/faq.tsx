@@ -60,7 +60,7 @@ export function FAQ() {
               Frequently asked questions
             </h2>
             <p className="mt-6 text-muted-foreground text-lg leading-relaxed max-w-md">
-              Everything you need to know about pitchdeck.biz. Can't find the answer you're looking for? Reach out to our team.
+              Everything you need to know about pitchdeck.biz. Can&apos;t find the answer you&apos;re looking for? Reach out to our team.
             </p>
             <a
               href="mailto:hello@pitchdeck.biz"

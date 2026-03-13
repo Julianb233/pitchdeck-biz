@@ -169,15 +169,12 @@ export function DeckPreview({ slides, className }: DeckPreviewProps) {
   const [isExpanded, setIsExpanded] = React.useState(false);
   const thumbsRef = React.useRef<HTMLDivElement>(null);
 
-  const activeSlide = slides[activeIndex];
-  if (!activeSlide) return null;
-
-  const goTo = (index: number) => {
+  const goTo = React.useCallback((index: number) => {
     setActiveIndex(Math.max(0, Math.min(index, slides.length - 1)));
-  };
+  }, [slides.length]);
 
-  const goPrev = () => goTo(activeIndex - 1);
-  const goNext = () => goTo(activeIndex + 1);
+  const goPrev = React.useCallback(() => goTo(activeIndex - 1), [activeIndex, goTo]);
+  const goNext = React.useCallback(() => goTo(activeIndex + 1), [activeIndex, goTo]);
 
   // Keyboard navigation
   React.useEffect(() => {
@@ -188,8 +185,7 @@ export function DeckPreview({ slides, className }: DeckPreviewProps) {
     };
     window.addEventListener("keydown", handler);
     return () => window.removeEventListener("keydown", handler);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [activeIndex]);
+  }, [goPrev, goNext]);
 
   // Scroll thumbnail into view
   React.useEffect(() => {
@@ -198,6 +194,9 @@ export function DeckPreview({ slides, className }: DeckPreviewProps) {
       thumb?.scrollIntoView({ behavior: "smooth", block: "nearest", inline: "center" });
     }
   }, [activeIndex]);
+
+  const activeSlide = slides[activeIndex];
+  if (!activeSlide) return null;
 
   return (
     <div className={cn("flex flex-col gap-4", className)}>
