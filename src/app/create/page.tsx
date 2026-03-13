@@ -1,6 +1,7 @@
 "use client"
 
 import { useCallback, useRef, useState } from "react"
+import { useRouter } from "next/navigation"
 import Link from "next/link"
 import {
   Upload,
@@ -37,6 +38,7 @@ const STEPS: { key: OnboardingStep; label: string }[] = [
 ]
 
 export default function CreatePage() {
+  const router = useRouter()
   const [step, setStep] = useState<OnboardingStep>("input")
   const [inputMethod, setInputMethod] = useState<OnboardingInputMethod | null>(
     null
@@ -48,6 +50,7 @@ export default function CreatePage() {
   const [error, setError] = useState<string | null>(null)
   const [isProcessing, setIsProcessing] = useState(false)
   const [isDragging, setIsDragging] = useState(false)
+  const [isGenerating, setIsGenerating] = useState(false)
 
   const fileInputRef = useRef<HTMLInputElement>(null)
 
@@ -192,6 +195,35 @@ export default function CreatePage() {
     },
     [extractedText, transcription]
   )
+
+  // ── Generate deck content ──────────────────────────────────────────────
+  const generateDeck = useCallback(async () => {
+    if (!analysis) return
+
+    setIsGenerating(true)
+    setError(null)
+
+    try {
+      const res = await fetch("/api/generate-deck", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ analysis }),
+      })
+
+      const data = await res.json()
+
+      if (!res.ok || !data.success || !data.deckContent) {
+        throw new Error(data.error || "Deck generation failed")
+      }
+
+      sessionStorage.setItem("pitchdeck-content", JSON.stringify(data.deckContent))
+      router.push("/create/preview")
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Deck generation failed")
+    } finally {
+      setIsGenerating(false)
+    }
+  }, [analysis, router])
 
   // ── Drag and drop handlers ──────────────────────────────────────────────
   const onDragOver = useCallback((e: React.DragEvent) => {
@@ -754,9 +786,20 @@ export default function CreatePage() {
                   boxShadow:
                     "0 4px 24px rgba(255,0,110,0.3), 0 0 48px rgba(139,92,246,0.15)",
                 }}
+                onClick={generateDeck}
+                disabled={isGenerating}
               >
-                Generate My Pitch Deck
-                <ArrowRight className="w-4 h-4 ml-2" />
+                {isGenerating ? (
+                  <>
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    Generating...
+                  </>
+                ) : (
+                  <>
+                    Generate My Pitch Deck
+                    <ArrowRight className="w-4 h-4 ml-2" />
+                  </>
+                )}
               </Button>
             </div>
           </div>
