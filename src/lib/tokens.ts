@@ -16,9 +16,7 @@ export const ASSET_TYPE_LABELS: Record<AssetType, string> = {
 
 export const MONTHLY_TOKEN_ALLOCATION = 500
 
-// ── Types matching Supabase schema ──────────────────────────────────────────
-
-type SubscriptionRow = Database["public"]["Tables"]["subscriptions"]["Row"]
+// ── Types matching Supabase subscriptions table schema ──────────────────────
 
 interface TokenRecord {
   id: string

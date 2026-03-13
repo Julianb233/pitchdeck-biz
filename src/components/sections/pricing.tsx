@@ -108,7 +108,7 @@ export function Pricing() {
               className={`relative rounded-3xl p-8 md:p-10 transition-all duration-300 ${
                 plan.featured
                   ? "border-2 border-[#203eec] shadow-2xl scale-[1.02] md:scale-105"
-                  : "border border-zinc-200 hover:border-zinc-300 hover:shadow-lg"
+                  : "border border-border hover:border-muted-foreground/30 hover:shadow-lg"
               }`}
               style={
                 plan.featured
