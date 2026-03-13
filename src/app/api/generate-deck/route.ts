@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import Anthropic from "@anthropic-ai/sdk";
 import type { BusinessAnalysis, DeckContent } from "@/lib/types";
 import { attachImagesToSlides } from "@/lib/ai/slide-image-generator";
+import { createClient } from "@/lib/supabase/server";
 
 export const runtime = "nodejs";
 export const maxDuration = 60;
@@ -70,6 +71,7 @@ export async function POST(request: NextRequest) {
 
     const body = await request.json();
     const analysis = body.analysis as BusinessAnalysis;
+    const analysisId = (body.analysis_id as string) || null;
 
     if (!analysis || !analysis.summary) {
       return NextResponse.json(
@@ -121,9 +123,47 @@ export async function POST(request: NextRequest) {
     const description = analysis.summary ?? analysis.brandEssence?.mission ?? "innovative business";
     deckContent.slides = attachImagesToSlides(deckContent.slides, industry, description);
 
+    // ── Persist to Supabase (if authenticated) ──────────────────────
+    let savedDeckId: string | null = null;
+    try {
+      const supabase = await createClient();
+      const { data: { user } } = await supabase.auth.getUser();
+
+      if (user) {
+        const title =
+          deckContent.slides[0]?.title ||
+          analysis.valueProposition?.headline ||
+          "Untitled Deck";
+
+        const { data: savedRow, error: insertError } = await supabase
+          .from("decks")
+          .insert({
+            user_id: user.id,
+            analysis_id: analysisId,
+            title,
+            slides: deckContent.slides as unknown as Record<string, unknown>[],
+            sell_sheet: deckContent.sellSheet as unknown as Record<string, unknown>,
+            one_pager: deckContent.onePager as unknown as Record<string, unknown>,
+            brand_kit: deckContent.brandKit as unknown as Record<string, unknown>,
+            status: "generated",
+          })
+          .select("id")
+          .single();
+
+        if (insertError) {
+          console.error("Failed to save deck to Supabase:", insertError.message);
+        } else {
+          savedDeckId = savedRow.id;
+        }
+      }
+    } catch (saveErr) {
+      console.error("Supabase deck save error (non-fatal):", saveErr);
+    }
+
     return NextResponse.json({
       success: true,
       deckContent,
+      deckId: savedDeckId,
     });
   } catch (error) {
     console.error("Generate deck failed:", error);

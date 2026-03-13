@@ -107,11 +107,11 @@ export default function AssetHistoryPage() {
     } finally {
       setIsLoading(false)
     }
-  }, [])
+  }, [userId])
 
   useEffect(() => {
-    loadAssets(1, typeFilter)
-  }, [loadAssets, typeFilter])
+    if (userId) loadAssets(1, typeFilter)
+  }, [loadAssets, typeFilter, userId])
 
   const handlePageChange = (newPage: number) => {
     if (newPage < 1 || newPage > pagination.totalPages) return

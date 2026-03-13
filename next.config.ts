@@ -7,6 +7,7 @@ const nextConfig: NextConfig = {
   images: {
     unoptimized: true,
   },
+  serverExternalPackages: ["@google/genai"],
 };
 
 export default nextConfig;

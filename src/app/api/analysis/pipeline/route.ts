@@ -8,6 +8,7 @@ import {
   analyzeBusinessInfo,
   logger,
 } from "@/lib/analysis";
+import { createClient } from "@/lib/supabase/server";
 
 export const runtime = "nodejs";
 
@@ -133,9 +134,50 @@ export async function POST(request: NextRequest) {
       filesProcessed: processedFiles.length,
     });
 
+    // ── Step 4: Persist to Supabase (if authenticated) ──────────────
+    let savedAnalysisId: string | null = null;
+    try {
+      const supabase = await createClient();
+      const { data: { user } } = await supabase.auth.getUser();
+
+      if (user) {
+        // Extract business name from analysis
+        const businessName =
+          analysis.valueProposition?.headline ||
+          analysis.brandEssence?.tagline ||
+          analysis.summary?.slice(0, 100) ||
+          "Untitled Business";
+
+        const { data: savedRow, error: insertError } = await supabase
+          .from("analyses")
+          .insert({
+            user_id: user.id,
+            business_name: businessName,
+            analysis_data: analysis as unknown as Record<string, unknown>,
+            files_uploaded: processedFiles.map((f) => f.name) as unknown as Record<string, unknown>[],
+          })
+          .select("id")
+          .single();
+
+        if (insertError) {
+          logger.error("Failed to save analysis to Supabase", {
+            error: insertError.message,
+          });
+        } else {
+          savedAnalysisId = savedRow.id;
+          logger.info("Analysis saved to Supabase", { id: savedAnalysisId });
+        }
+      }
+    } catch (saveErr) {
+      logger.error("Supabase save error (non-fatal)", {
+        error: saveErr instanceof Error ? saveErr.message : String(saveErr),
+      });
+    }
+
     return NextResponse.json({
       success: true,
       analysis,
+      analysisId: savedAnalysisId,
       meta: {
         filesProcessed: processedFiles,
         totalFiles: files.length,

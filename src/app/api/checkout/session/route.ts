@@ -4,6 +4,7 @@ import {
   createDeckCheckoutSession,
   createSubscriptionCheckoutSession,
 } from '@/lib/stripe';
+import { getSessionFromRequest } from '@/lib/auth';
 
 const checkoutSchema = z.union([
   // Legacy deck + deckId format
@@ -27,6 +28,10 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Get authenticated user to include in Stripe metadata
+    const user = await getSessionFromRequest(request);
+    const userId = user?.id;
+
     const data = parsed.data;
 
     if (
@@ -34,11 +39,11 @@ export async function POST(request: NextRequest) {
       ('priceType' in data && data.priceType === 'one-time')
     ) {
       const deckId = 'deckId' in data ? data.deckId : 'pending';
-      const session = await createDeckCheckoutSession(deckId);
+      const session = await createDeckCheckoutSession(deckId, userId);
       return NextResponse.json({ url: session.url });
     }
 
-    const session = await createSubscriptionCheckoutSession();
+    const session = await createSubscriptionCheckoutSession(userId);
     return NextResponse.json({ url: session.url });
   } catch (error) {
     console.error('Checkout session creation failed:', error);

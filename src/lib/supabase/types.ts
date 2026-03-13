@@ -9,6 +9,29 @@ export type Json =
 export interface Database {
   public: {
     Tables: {
+      users: {
+        Row: {
+          id: string;
+          email: string;
+          name: string | null;
+          created_at: string;
+          stripe_customer_id: string | null;
+        };
+        Insert: {
+          id?: string;
+          email: string;
+          name?: string | null;
+          created_at?: string;
+          stripe_customer_id?: string | null;
+        };
+        Update: {
+          id?: string;
+          email?: string;
+          name?: string | null;
+          created_at?: string;
+          stripe_customer_id?: string | null;
+        };
+      };
       analyses: {
         Row: {
           id: string;
