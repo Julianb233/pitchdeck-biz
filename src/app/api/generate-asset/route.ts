@@ -2,10 +2,18 @@ import { NextRequest, NextResponse } from "next/server"
 import {
   type AssetType,
   ASSET_TOKEN_COSTS,
-  ASSET_TYPE_LABELS,
   MONTHLY_TOKEN_ALLOCATION,
 } from "@/lib/tokens"
 import { getTemplateById } from "@/lib/branding/templates"
+import { generateBrandAsset } from "@/lib/ai/gemini-image"
+
+// Map API asset types to generateBrandAsset type parameter
+const ASSET_TYPE_TO_BRAND_TYPE: Record<AssetType, "social" | "mockup" | "collateral" | "identity"> = {
+  "social-media": "social",
+  "product-mockup": "mockup",
+  "marketing-collateral": "collateral",
+  "brand-identity": "identity",
+}
 
 // In-memory store for demo purposes
 // In production, this would use Supabase
@@ -74,14 +82,20 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // TODO: Integrate with Gemini API for actual image generation
-    // For now, generate a placeholder SVG
+    // Generate image via Gemini API (falls back to SVG placeholder when no API key)
+    const brandType = ASSET_TYPE_TO_BRAND_TYPE[assetType]
+    const imageUrl = await generateBrandAsset(brandType, prompt.trim(), {
+      primary: brandColors?.[0],
+      secondary: brandColors?.[1],
+      accent: brandColors?.[2],
+    })
+
     const asset: GeneratedAsset = {
       id: crypto.randomUUID(),
       assetType,
       templateId,
       prompt: prompt.trim(),
-      imageUrl: generatePlaceholderSvg(template.width, template.height, ASSET_TYPE_LABELS[assetType], brandColors),
+      imageUrl,
       width: template.width,
       height: template.height,
       createdAt: new Date().toISOString(),
@@ -103,27 +117,3 @@ export async function POST(request: NextRequest) {
   }
 }
 
-function generatePlaceholderSvg(
-  width: number,
-  height: number,
-  label: string,
-  colors: string[] = [],
-): string {
-  const c1 = colors[0] ?? "#8b5cf6"
-  const c2 = colors[1] ?? "#00d4ff"
-
-  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" viewBox="0 0 ${width} ${height}">
-    <defs>
-      <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
-        <stop offset="0%" style="stop-color:${c1};stop-opacity:0.2"/>
-        <stop offset="100%" style="stop-color:${c2};stop-opacity:0.2"/>
-      </linearGradient>
-    </defs>
-    <rect width="${width}" height="${height}" fill="#0f0a1a"/>
-    <rect width="${width}" height="${height}" fill="url(#bg)"/>
-    <text x="50%" y="45%" text-anchor="middle" fill="${c1}" font-family="sans-serif" font-size="${Math.min(width, height) * 0.06}" font-weight="bold">${label}</text>
-    <text x="50%" y="55%" text-anchor="middle" fill="#666" font-family="sans-serif" font-size="${Math.min(width, height) * 0.03}">${width}x${height} — AI Generated</text>
-  </svg>`
-
-  return `data:image/svg+xml;base64,${Buffer.from(svg).toString("base64")}`
-}
