@@ -1,12 +1,13 @@
 import { Header } from "@/components/layout/header"
 import { Footer } from "@/components/layout/footer"
 import { Hero } from "@/components/sections/hero"
-import { SelectedWorks } from "@/components/sections/selected-works"
-import { About } from "@/components/sections/about"
-import { ClientLogos } from "@/components/sections/client-logos"
+import { HowItWorks } from "@/components/sections/how-it-works"
+import { Deliverables } from "@/components/sections/deliverables"
+import { Benefits } from "@/components/sections/benefits"
+import { SubscriptionUpsell } from "@/components/sections/subscription-upsell"
 import { Testimonials } from "@/components/sections/testimonials"
-import { Awards } from "@/components/sections/awards"
-import { Insights } from "@/components/sections/insights"
+import { Pricing } from "@/components/sections/pricing"
+import { FAQ } from "@/components/sections/faq"
 import { FinalCTA } from "@/components/sections/final-cta"
 import { GradientBar } from "@/components/ui/gradient-bar"
 
@@ -16,12 +17,13 @@ export default function HomePage() {
       <Header />
       <main>
         <Hero />
-        <SelectedWorks />
-        <About />
-        <ClientLogos />
+        <HowItWorks />
+        <Deliverables />
+        <Benefits />
+        <SubscriptionUpsell />
         <Testimonials />
-        <Awards />
-        <Insights />
+        <Pricing />
+        <FAQ />
         <FinalCTA />
       </main>
       <Footer />

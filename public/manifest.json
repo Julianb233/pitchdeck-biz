@@ -1,0 +1,26 @@
+{
+  "name": "pitchdeck.biz — AI Pitch Deck Generator",
+  "short_name": "pitchdeck.biz",
+  "description": "Create a professional investor pitch deck in minutes with AI. Upload your business docs, get a complete pitch deck, sell sheet, one-pager, and branding kit.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0f0a1a",
+  "theme_color": "#7c3aed",
+  "icons": [
+    {
+      "src": "/favicon.svg",
+      "type": "image/svg+xml",
+      "sizes": "any"
+    },
+    {
+      "src": "/icon-dark-32x32.png",
+      "type": "image/png",
+      "sizes": "32x32"
+    },
+    {
+      "src": "/apple-icon.png",
+      "type": "image/png",
+      "sizes": "180x180"
+    }
+  ]
+}

@@ -4,18 +4,21 @@ import type React from "react"
 
 import { useState, useEffect } from "react"
 import Link from "next/link"
+import { useRouter } from "next/navigation"
 import { Menu, X } from "lucide-react"
+import { useAuth } from "@/hooks/use-auth"
 import { cn } from "@/lib/utils"
 
 const navItems = [
-  { href: "#works", label: "Selected work", number: "01" },
-  { href: "#about", label: "About", number: "02" },
-  { href: "#testimonials", label: "What clients say", number: "03" },
-  { href: "#awards", label: "Awards & Recognition", number: "04" },
-  { href: "#insights", label: "Insights", number: "05" },
+  { href: "#how-it-works", label: "How It Works" },
+  { href: "#deliverables", label: "Deliverables" },
+  { href: "#pricing", label: "Pricing" },
+  { href: "#faq", label: "FAQ" },
 ]
 
 export function Header() {
+  const { user, logout } = useAuth()
+  const router = useRouter()
   const [isScrolled, setIsScrolled] = useState(false)
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
 
@@ -31,7 +34,7 @@ export function Header() {
     e.preventDefault()
     const element = document.querySelector(href)
     if (element) {
-      const headerOffset = 80 // Height of fixed header
+      const headerOffset = 80
       const elementPosition = element.getBoundingClientRect().top
       const offsetPosition = elementPosition + window.pageYOffset - headerOffset
 
@@ -41,6 +44,12 @@ export function Header() {
       })
     }
     setIsMobileMenuOpen(false)
+  }
+
+  const handleLogout = async () => {
+    await logout()
+    router.push("/")
+    router.refresh()
   }
 
   return (
@@ -55,14 +64,16 @@ export function Header() {
           <nav className="flex items-center justify-between h-16 md:h-20">
             {/* Logo */}
             <Link
-              href="#"
-              onClick={(e) => {
-                e.preventDefault()
-                window.scrollTo({ top: 0, behavior: "smooth" })
+              href="/"
+              className="text-xl font-bold tracking-tight"
+              style={{
+                background: "linear-gradient(135deg, #ff006e 0%, #8b5cf6 50%, #00d4ff 100%)",
+                WebkitBackgroundClip: "text",
+                WebkitTextFillColor: "transparent",
+                backgroundClip: "text",
               }}
-              className="text-lg font-semibold tracking-tight"
             >
-              portfolio
+              pitchdeck.biz
             </Link>
 
             {/* Desktop Navigation */}
@@ -72,28 +83,58 @@ export function Header() {
                   key={item.href}
                   href={item.href}
                   onClick={(e) => handleNavClick(e, item.href)}
-                  className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+                  className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
                 >
                   {item.label}
-                  <span className="text-xs ml-1 opacity-50">({item.number})</span>
                 </Link>
               ))}
             </div>
 
-            {/* CTA Button */}
-            <div className="hidden md:block">
-              <Link
-                href="#contact"
-                className="inline-flex items-center justify-center px-5 py-2.5 text-sm font-medium rounded-full text-white transition-all hover:shadow-xl relative overflow-hidden group"
-                style={{
-                  background: "linear-gradient(135deg, #203eec 0%, #00d4ff 100%)",
-                  boxShadow: "0 4px 20px rgba(32, 62, 236, 0.3)",
-                }}
-              >
-                <span className="relative z-10">Let's Talk</span>
-                {/* Glow effect on hover */}
-                <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 blur-xl bg-gradient-to-r from-[#203eec] to-[#00d4ff]" />
-              </Link>
+            {/* Auth-aware CTA */}
+            <div className="hidden md:flex items-center gap-4">
+              {user ? (
+                <>
+                  <Link
+                    href="/create"
+                    className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
+                  >
+                    Create
+                  </Link>
+                  <Link
+                    href="/dashboard/overview"
+                    className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
+                  >
+                    Dashboard
+                  </Link>
+                  <span className="text-sm text-muted-foreground">{user.name}</span>
+                  <button
+                    onClick={handleLogout}
+                    className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
+                  >
+                    Log Out
+                  </button>
+                </>
+              ) : (
+                <>
+                  <Link
+                    href="/login"
+                    className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
+                  >
+                    Log In
+                  </Link>
+                  <Link
+                    href="/signup"
+                    className="inline-flex items-center justify-center px-6 py-2.5 text-sm font-semibold rounded-full text-white transition-all hover:scale-105 relative overflow-hidden group"
+                    style={{
+                      background: "linear-gradient(135deg, #ff006e 0%, #8b5cf6 50%, #203eec 100%)",
+                      boxShadow: "0 4px 20px rgba(255, 0, 110, 0.3)",
+                    }}
+                  >
+                    <span className="relative z-10">Create Your Deck</span>
+                    <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 blur-xl bg-gradient-to-r from-[#ff006e] via-[#8b5cf6] to-[#203eec]" />
+                  </Link>
+                </>
+              )}
             </div>
 
             {/* Mobile Menu Button */}
@@ -109,8 +150,17 @@ export function Header() {
         <div className="fixed inset-0 z-50 bg-background md:hidden">
           <div className="flex flex-col h-full p-6">
             <div className="flex items-center justify-between">
-              <Link href="/" className="text-lg font-semibold tracking-tight">
-                portfolio
+              <Link
+                href="/"
+                className="text-xl font-bold tracking-tight"
+                style={{
+                  background: "linear-gradient(135deg, #ff006e 0%, #8b5cf6 50%, #00d4ff 100%)",
+                  WebkitBackgroundClip: "text",
+                  WebkitTextFillColor: "transparent",
+                  backgroundClip: "text",
+                }}
+              >
+                pitchdeck.biz
               </Link>
               <button onClick={() => setIsMobileMenuOpen(false)} className="p-2 -mr-2" aria-label="Close menu">
                 <X className="w-5 h-5" />
@@ -128,20 +178,57 @@ export function Header() {
                 </Link>
               ))}
             </nav>
-            <div className="mt-auto">
-              <Link
-                href="#contact"
-                onClick={() => setIsMobileMenuOpen(false)}
-                className="inline-flex items-center justify-center w-full px-5 py-3 text-base font-medium rounded-full text-white transition-all hover:shadow-xl relative overflow-hidden group"
-                style={{
-                  background: "linear-gradient(135deg, #203eec 0%, #00d4ff 100%)",
-                  boxShadow: "0 4px 20px rgba(32, 62, 236, 0.3)",
-                }}
-              >
-                <span className="relative z-10">Let's Talk</span>
-                {/* Glow effect on hover */}
-                <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 blur-xl bg-gradient-to-r from-[#203eec] to-[#00d4ff]" />
-              </Link>
+            <div className="mt-auto space-y-3">
+              {user ? (
+                <>
+                  <Link
+                    href="/create"
+                    className="inline-flex items-center justify-center w-full px-5 py-3 text-base font-semibold rounded-full text-white transition-all hover:scale-105"
+                    style={{
+                      background: "linear-gradient(135deg, #ff006e 0%, #8b5cf6 50%, #203eec 100%)",
+                      boxShadow: "0 4px 20px rgba(255, 0, 110, 0.3)",
+                    }}
+                    onClick={() => setIsMobileMenuOpen(false)}
+                  >
+                    Create New Deck
+                  </Link>
+                  <Link
+                    href="/dashboard/overview"
+                    className="block w-full text-center px-5 py-3 text-base font-medium text-muted-foreground hover:text-foreground transition-colors"
+                    onClick={() => setIsMobileMenuOpen(false)}
+                  >
+                    Dashboard
+                  </Link>
+                  <button
+                    onClick={() => { handleLogout(); setIsMobileMenuOpen(false); }}
+                    className="w-full px-5 py-3 text-base font-medium text-muted-foreground hover:text-foreground transition-colors"
+                  >
+                    Log Out
+                  </button>
+                </>
+              ) : (
+                <>
+                  <Link
+                    href="/signup"
+                    onClick={() => setIsMobileMenuOpen(false)}
+                    className="inline-flex items-center justify-center w-full px-5 py-3 text-base font-semibold rounded-full text-white transition-all hover:scale-105 relative overflow-hidden group"
+                    style={{
+                      background: "linear-gradient(135deg, #ff006e 0%, #8b5cf6 50%, #203eec 100%)",
+                      boxShadow: "0 4px 20px rgba(255, 0, 110, 0.3)",
+                    }}
+                  >
+                    <span className="relative z-10">Create Your Deck</span>
+                    <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 blur-xl bg-gradient-to-r from-[#ff006e] via-[#8b5cf6] to-[#203eec]" />
+                  </Link>
+                  <Link
+                    href="/login"
+                    onClick={() => setIsMobileMenuOpen(false)}
+                    className="block w-full text-center px-5 py-3 text-base font-medium text-muted-foreground hover:text-foreground transition-colors"
+                  >
+                    Log In
+                  </Link>
+                </>
+              )}
             </div>
           </div>
         </div>

@@ -1,0 +1,38 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 630" fill="none">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0f0a1a"/>
+      <stop offset="50%" stop-color="#1a0f2e"/>
+      <stop offset="100%" stop-color="#0f0a1a"/>
+    </linearGradient>
+    <linearGradient id="accent" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#7c3aed"/>
+      <stop offset="50%" stop-color="#ec4899"/>
+      <stop offset="100%" stop-color="#f97316"/>
+    </linearGradient>
+    <linearGradient id="logo-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#7c3aed"/>
+      <stop offset="100%" stop-color="#3b82f6"/>
+    </linearGradient>
+  </defs>
+  <!-- Background -->
+  <rect width="1200" height="630" fill="url(#bg)"/>
+  <!-- Top accent line -->
+  <rect x="0" y="0" width="1200" height="4" fill="url(#accent)"/>
+  <!-- Bottom accent line -->
+  <rect x="0" y="626" width="1200" height="4" fill="url(#accent)"/>
+  <!-- Logo icon -->
+  <rect x="100" y="200" width="64" height="64" rx="16" fill="url(#logo-grad)"/>
+  <path d="M120 216h12c6.6 0 12 5.4 12 12s-5.4 12-12 12h-4v8h-8v-32zm8 16h4c2.2 0 4-1.8 4-4s-1.8-4-4-4h-4v8z" fill="white"/>
+  <!-- Title -->
+  <text x="180" y="248" font-family="system-ui, -apple-system, sans-serif" font-size="48" font-weight="700" fill="white">pitchdeck.biz</text>
+  <!-- Tagline -->
+  <text x="100" y="340" font-family="system-ui, -apple-system, sans-serif" font-size="32" fill="#a78bfa">AI Pitch Deck Generator</text>
+  <!-- Description -->
+  <text x="100" y="400" font-family="system-ui, -apple-system, sans-serif" font-size="22" fill="#9ca3af">Create a professional investor pitch deck in minutes with AI.</text>
+  <text x="100" y="435" font-family="system-ui, -apple-system, sans-serif" font-size="22" fill="#9ca3af">Upload your docs, get a complete deck, sell sheet, and branding kit.</text>
+  <!-- Decorative gradient orb -->
+  <circle cx="1000" cy="315" r="200" fill="#7c3aed" opacity="0.08"/>
+  <circle cx="1050" cy="280" r="120" fill="#ec4899" opacity="0.06"/>
+  <circle cx="950" cy="350" r="100" fill="#3b82f6" opacity="0.06"/>
+</svg>

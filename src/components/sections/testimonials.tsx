@@ -8,71 +8,71 @@ const testimonials = [
   {
     id: 1,
     quote:
-      "Their AI design expertise transformed our product. The vibe coding approach allowed us to iterate rapidly and ship features 3x faster than traditional methods.",
+      "We raised $2.5M in our seed round. The pitch deck from pitchdeck.biz was instrumental — investors said it was one of the most professional they'd seen.",
     author: "Sarah Chen",
-    role: "CEO at AI Startup",
+    role: "CEO, NeuralFlow",
     avatar: "/images/imgi_97_user77.webp",
-    company: "Neural Labs",
+    company: "NeuralFlow",
     blurColor: "bg-blue-500",
   },
   {
     id: 2,
     quote:
-      "Incredible work integrating GPT-4 into our interface. They understand both the technical AI capabilities and how to make them feel natural to users.",
+      "I needed to sell my business and had no idea how to present it. In 15 minutes I had a professional sell sheet that helped me close the deal.",
     author: "Marcus Johnson",
-    role: "Product Lead at OpenAI Partner",
+    role: "Former Owner, Pacific Grill",
     avatar: "/images/imgi_106_user86.webp",
-    company: "Synthetics",
+    company: "Pacific Grill",
     blurColor: "bg-purple-500",
   },
   {
     id: 3,
     quote:
-      "The prompt engineering skills are world-class. They built our entire design system using AI tools and it's production-ready and beautiful.",
+      "As a non-technical founder, I struggled to communicate my vision. The AI understood my business better than I could explain it myself.",
     author: "Emily Rodriguez",
-    role: "Founder at AI Design Tool",
+    role: "Founder, EcoTrack",
     avatar: "/images/imgi_105_user85.webp",
-    company: "DesignAI",
+    company: "EcoTrack",
     blurColor: "bg-pink-500",
   },
   {
     id: 4,
     quote:
-      "Working with an AI-native designer was eye-opening. They leveraged Midjourney and v0 to create concepts we never would have imagined.",
+      "We used to spend $8,000 per pitch deck with agencies. Now we generate them in minutes for a fraction of the cost.",
     author: "David Park",
-    role: "CTO at ML Platform",
+    role: "CTO, DataStack",
     avatar: "/images/imgi_102_user82.webp",
-    company: "Tensor",
+    company: "DataStack",
     blurColor: "bg-emerald-500",
   },
   {
     id: 5,
     quote:
-      "Their mastery of generative design tools allowed us to explore 100+ variations in days, not months. Game-changing for our design process.",
+      "The branding kit alone was worth it. We got logo concepts, color palettes, and a style guide that we still use today.",
     author: "Lisa Wang",
-    role: "VP Design at Enterprise AI",
+    role: "VP Marketing, GreenPath",
     avatar: "/images/imgi_100_user80.webp",
-    company: "Cognition",
+    company: "GreenPath",
     blurColor: "bg-orange-500",
   },
   {
     id: 6,
     quote:
-      "They don't just use AI tools—they think in AI. The conversational interfaces they designed feel genuinely intelligent and human.",
+      "I just recorded a voice memo about my business and got back a complete investor deck. The future is here.",
     author: "James Mitchell",
-    role: "Director at Voice AI",
+    role: "Founder, VoiceFirst",
     avatar: "/images/imgi_107_user87.webp",
-    company: "VoiceTech",
+    company: "VoiceFirst",
     blurColor: "bg-cyan-500",
   },
   {
     id: 7,
     quote:
-      "The combination of design skills and AI engineering knowledge is rare. They built our AI assistant from concept to production in record time.",
+      "The subscription plan saves us thousands monthly on design. Our marketing team loves the AI-generated social media assets.",
     author: "Nina Patel",
-    role: "CEO at Automation Platform",
+    role: "CEO, AutoScale",
     avatar: "/images/imgi_108_user88.webp",
-    company: "AutoFlow",
+    company: "AutoScale",
     blurColor: "bg-rose-500",
   },
 ]
@@ -108,7 +108,7 @@ export function Testimonials() {
             {duplicatedTestimonials.map((testimonial, index) => (
               <article
                 key={`${testimonial.id}-${index}`}
-                className="relative flex-shrink-0 w-[85vw] md:w-[400px] p-6 md:p-8 border bg-card hover:shadow-lg transition-shadow overflow-hidden border-zinc-100 md:px-6 md:py-6 rounded-3xl"
+                className="relative flex-shrink-0 w-[85vw] md:w-[400px] p-6 md:p-8 border bg-card hover:shadow-lg transition-shadow overflow-hidden border-border md:px-6 md:py-6 rounded-3xl"
               >
                 {/* Author Info */}
                 <div className="flex items-center gap-3 mb-4">
@@ -126,8 +126,8 @@ export function Testimonials() {
                 </div>
 
                 {/* Quote */}
-                <blockquote className="text-base leading-relaxed font-semibold text-zinc-950 relative z-10">
-                  "{testimonial.quote}"
+                <blockquote className="text-base leading-relaxed font-semibold text-foreground relative z-10">
+                  &ldquo;{testimonial.quote}&rdquo;
                 </blockquote>
 
                 <div
@@ -151,7 +151,7 @@ export function Testimonials() {
             {duplicatedTestimonialsReverse.map((testimonial, index) => (
               <article
                 key={`reverse-${testimonial.id}-${index}`}
-                className="relative flex-shrink-0 w-[85vw] md:w-[400px] p-6 md:p-8 border bg-card hover:shadow-lg transition-shadow overflow-hidden border-zinc-100 md:px-6 md:py-6 rounded-3xl"
+                className="relative flex-shrink-0 w-[85vw] md:w-[400px] p-6 md:p-8 border bg-card hover:shadow-lg transition-shadow overflow-hidden border-border md:px-6 md:py-6 rounded-3xl"
               >
                 {/* Author Info */}
                 <div className="flex items-center gap-3 mb-4">
@@ -169,8 +169,8 @@ export function Testimonials() {
                 </div>
 
                 {/* Quote */}
-                <blockquote className="text-base leading-relaxed font-semibold text-zinc-950 relative z-10">
-                  "{testimonial.quote}"
+                <blockquote className="text-base leading-relaxed font-semibold text-foreground relative z-10">
+                  &ldquo;{testimonial.quote}&rdquo;
                 </blockquote>
 
                 <div
@@ -201,7 +201,7 @@ export function Testimonials() {
                 zIndex: index + 1,
               }}
             >
-              <article className="relative p-6 md:p-8 border bg-card transition-shadow overflow-hidden border-zinc-100 rounded-3xl">
+              <article className="relative p-6 md:p-8 border bg-card transition-shadow overflow-hidden border-border rounded-3xl">
                 {/* Author Info */}
                 <div className="flex items-center gap-3 mb-4">
                   <Image
@@ -218,8 +218,8 @@ export function Testimonials() {
                 </div>
 
                 {/* Quote */}
-                <blockquote className="text-base leading-relaxed font-semibold text-zinc-950 relative z-10">
-                  "{testimonial.quote}"
+                <blockquote className="text-base leading-relaxed font-semibold text-foreground relative z-10">
+                  &ldquo;{testimonial.quote}&rdquo;
                 </blockquote>
 
                 <div
