@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { validateApiKey, analyzeBusinessInfo, logger } from "@/lib/analysis";
+import { createClient } from "@/lib/supabase/server";
 
 export const runtime = "nodejs";
 
@@ -64,9 +65,48 @@ export async function POST(request: NextRequest) {
       additionalContext,
     });
 
+    // Persist to Supabase (if authenticated)
+    let savedAnalysisId: string | null = null;
+    try {
+      const supabase = await createClient();
+      const { data: { user } } = await supabase.auth.getUser();
+
+      if (user) {
+        const businessName =
+          analysis.valueProposition?.headline ||
+          analysis.brandEssence?.tagline ||
+          analysis.summary?.slice(0, 100) ||
+          "Untitled Business";
+
+        const { data: savedRow, error: insertError } = await supabase
+          .from("analyses")
+          .insert({
+            user_id: user.id,
+            business_name: businessName,
+            analysis_data: analysis as unknown as Record<string, unknown>,
+            files_uploaded: [] as unknown as Record<string, unknown>[],
+          })
+          .select("id")
+          .single();
+
+        if (insertError) {
+          logger.error("Failed to save analysis to Supabase", {
+            error: insertError.message,
+          });
+        } else {
+          savedAnalysisId = savedRow.id;
+        }
+      }
+    } catch (saveErr) {
+      logger.error("Supabase save error (non-fatal)", {
+        error: saveErr instanceof Error ? saveErr.message : String(saveErr),
+      });
+    }
+
     return NextResponse.json({
       success: true,
       analysis,
+      analysisId: savedAnalysisId,
     });
   } catch (error) {
     logger.error("Analysis endpoint failed", {

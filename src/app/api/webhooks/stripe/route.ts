@@ -4,12 +4,6 @@ import { resetMonthlyTokens, MONTHLY_TOKEN_ALLOCATION } from '@/lib/tokens';
 import { createAdminClient } from '@/lib/supabase/admin';
 import type Stripe from 'stripe';
 
-// In-memory fallback stores — used when Supabase is not configured
-const paidDecksMemory = new Map<string, { paidAt: string; sessionId: string }>();
-const subscriptionsMemory = new Map<
-  string,
-  { status: string; subscriptionId: string; customerId: string }
->();
 
 export async function POST(request: NextRequest) {
   const body = await request.text();
@@ -38,51 +32,64 @@ export async function POST(request: NextRequest) {
   switch (event.type) {
     case 'checkout.session.completed': {
       const session = event.data.object as Stripe.Checkout.Session;
+
       if (session.mode === 'payment' && session.metadata?.deckId) {
+        // One-time deck purchase
         const deckId = session.metadata.deckId;
+        const userId = session.metadata?.userId;
 
-        if (supabase) {
-          // Persist payment to Supabase orders table
-          const userId = session.metadata?.userId;
-          if (userId) {
-            const { error } = await supabase.from('orders').insert({
-              user_id: userId,
-              deck_id: deckId,
-              stripe_session_id: session.id,
-              amount_cents: session.amount_total ?? 0,
-              status: 'paid',
-            });
-
-            if (error) {
-              console.error('Error inserting order into Supabase:', error);
-              // Fall through to in-memory
-              paidDecksMemory.set(deckId, {
-                paidAt: new Date().toISOString(),
-                sessionId: session.id,
-              });
-            } else {
-              // Also update deck status to paid
-              await supabase
-                .from('decks')
-                .update({ status: 'paid' })
-                .eq('id', deckId);
-              console.log(`Deck ${deckId} payment persisted to Supabase`);
-            }
-          } else {
-            // No userId in metadata, use in-memory fallback
-            paidDecksMemory.set(deckId, {
-              paidAt: new Date().toISOString(),
-              sessionId: session.id,
-            });
-          }
-        } else {
-          // In-memory fallback
-          paidDecksMemory.set(deckId, {
-            paidAt: new Date().toISOString(),
-            sessionId: session.id,
+        if (supabase && userId) {
+          const { error } = await supabase.from('orders').insert({
+            user_id: userId,
+            deck_id: deckId,
+            stripe_session_id: session.id,
+            amount_cents: session.amount_total ?? 0,
+            status: 'paid',
           });
+
+          if (error) {
+            console.error('Error inserting order into Supabase:', error);
+          } else {
+            await supabase
+              .from('decks')
+              .update({ status: 'paid' })
+              .eq('id', deckId);
+            console.log(`Deck ${deckId} payment persisted to Supabase`);
+          }
         }
         console.log(`Deck ${deckId} marked as paid`);
+      } else if (session.mode === 'subscription' && session.metadata?.userId) {
+        // Subscription checkout - insert subscription record
+        const userId = session.metadata.userId;
+        const subscriptionId = typeof session.subscription === 'string'
+          ? session.subscription
+          : (session.subscription as Stripe.Subscription | null)?.id;
+        const customerId = typeof session.customer === 'string'
+          ? session.customer
+          : (session.customer as Stripe.Customer | Stripe.DeletedCustomer | null)?.id;
+
+        if (supabase && subscriptionId && customerId) {
+          const now = new Date();
+          const periodStart = now.toISOString();
+          const periodEnd = new Date(now.getFullYear(), now.getMonth() + 1, now.getDate()).toISOString();
+
+          const { error } = await supabase.from('subscriptions').insert({
+            user_id: userId,
+            stripe_subscription_id: subscriptionId,
+            stripe_customer_id: customerId,
+            status: 'active',
+            token_balance: MONTHLY_TOKEN_ALLOCATION,
+            tokens_allocated: MONTHLY_TOKEN_ALLOCATION,
+            current_period_start: periodStart,
+            current_period_end: periodEnd,
+          });
+
+          if (error) {
+            console.error('Error inserting subscription from checkout:', error);
+          } else {
+            console.log(`Subscription ${subscriptionId} created from checkout for user ${userId}`);
+          }
+        }
       }
       break;
     }
@@ -148,6 +155,41 @@ export async function POST(request: NextRequest) {
       break;
     }
 
+    case 'customer.subscription.updated': {
+      const subscription = event.data.object as Stripe.Subscription;
+      const customerId =
+        typeof subscription.customer === 'string'
+          ? subscription.customer
+          : subscription.customer.id;
+
+      if (supabase) {
+        const periodStart = subscription.current_period_start
+          ? new Date(subscription.current_period_start * 1000).toISOString()
+          : undefined;
+        const periodEnd = subscription.current_period_end
+          ? new Date(subscription.current_period_end * 1000).toISOString()
+          : undefined;
+
+        const updateData: Record<string, unknown> = {
+          status: subscription.status,
+        };
+        if (periodStart) updateData.current_period_start = periodStart;
+        if (periodEnd) updateData.current_period_end = periodEnd;
+
+        const { error } = await supabase
+          .from('subscriptions')
+          .update(updateData)
+          .eq('stripe_subscription_id', subscription.id);
+
+        if (error) {
+          console.error('Error updating subscription in Supabase:', error);
+        } else {
+          console.log(`Subscription ${subscription.id} updated for customer ${customerId}`);
+        }
+      }
+      break;
+    }
+
     case 'customer.subscription.deleted': {
       const subscription = event.data.object as Stripe.Subscription;
       const customerId =
@@ -181,21 +223,40 @@ export async function POST(request: NextRequest) {
 
       if (customerId) {
         if (supabase) {
-          // Find user by stripe_customer_id via subscriptions table
+          // Find active subscription by stripe_customer_id
           const { data: sub } = await supabase
             .from('subscriptions')
-            .select('user_id')
+            .select('id, user_id, tokens_allocated')
             .eq('stripe_customer_id', customerId)
             .eq('status', 'active')
             .limit(1)
             .maybeSingle();
 
           if (sub) {
-            await resetMonthlyTokens(sub.user_id);
-            console.log(`Tokens reset in Supabase for user ${sub.user_id}`);
+            // Reset token balance and update period dates from invoice
+            const periodStart = invoice.period_start
+              ? new Date(invoice.period_start * 1000).toISOString()
+              : new Date().toISOString();
+            const periodEnd = invoice.period_end
+              ? new Date(invoice.period_end * 1000).toISOString()
+              : new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString();
+
+            const { error } = await supabase
+              .from('subscriptions')
+              .update({
+                token_balance: sub.tokens_allocated,
+                current_period_start: periodStart,
+                current_period_end: periodEnd,
+              })
+              .eq('id', sub.id);
+
+            if (error) {
+              console.error('Error resetting tokens in Supabase:', error);
+            } else {
+              console.log(`Tokens reset to ${sub.tokens_allocated} for user ${sub.user_id}`);
+            }
           }
         } else {
-          // In-memory fallback
           await resetMonthlyTokens(customerId);
         }
         console.log(`Invoice payment succeeded for customer ${customerId}`);

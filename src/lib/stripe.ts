@@ -15,7 +15,7 @@ const stripe = new Proxy({} as Stripe, {
   },
 });
 
-export async function createDeckCheckoutSession(deckId: string) {
+export async function createDeckCheckoutSession(deckId: string, userId?: string) {
   const priceId = process.env.STRIPE_PRICE_DECK;
 
   const lineItem: Stripe.Checkout.SessionCreateParams.LineItem = priceId
@@ -29,17 +29,20 @@ export async function createDeckCheckoutSession(deckId: string) {
         quantity: 1,
       };
 
+  const metadata: Record<string, string> = { deckId };
+  if (userId) metadata.userId = userId;
+
   const session = await stripe.checkout.sessions.create({
     mode: 'payment',
     line_items: [lineItem],
-    metadata: { deckId },
+    metadata,
     success_url: `${process.env.NEXT_PUBLIC_APP_URL}/checkout/success?session_id={CHECKOUT_SESSION_ID}`,
     cancel_url: `${process.env.NEXT_PUBLIC_APP_URL}/checkout/cancel`,
   });
   return session;
 }
 
-export async function createSubscriptionCheckoutSession() {
+export async function createSubscriptionCheckoutSession(userId?: string) {
   const priceId = process.env.STRIPE_PRICE_SUBSCRIPTION;
 
   const lineItem: Stripe.Checkout.SessionCreateParams.LineItem = priceId
@@ -54,9 +57,14 @@ export async function createSubscriptionCheckoutSession() {
         quantity: 1,
       };
 
+  const metadata: Record<string, string> = {};
+  if (userId) metadata.userId = userId;
+
   const session = await stripe.checkout.sessions.create({
     mode: 'subscription',
     line_items: [lineItem],
+    metadata,
+    subscription_data: userId ? { metadata: { userId } } : undefined,
     success_url: `${process.env.NEXT_PUBLIC_APP_URL}/checkout/success?session_id={CHECKOUT_SESSION_ID}`,
     cancel_url: `${process.env.NEXT_PUBLIC_APP_URL}/checkout/cancel`,
   });

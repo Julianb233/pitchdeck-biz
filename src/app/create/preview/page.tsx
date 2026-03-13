@@ -2,6 +2,7 @@
 
 import * as React from "react";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -232,7 +233,8 @@ const EXPORT_CONFIGS: Record<ExportType, ExportConfig> = {
 
 // ── Preview Page ───────────────────────────────────────────────────────────
 
-export default function PreviewPage() {
+function PreviewPageInner() {
+  const searchParams = useSearchParams();
   const [deckContent, setDeckContent] = React.useState<DeckContent | null>(null);
   const [isLoading, setIsLoading] = React.useState(true);
   const [error, setError] = React.useState<string | null>(null);
@@ -240,24 +242,57 @@ export default function PreviewPage() {
   const [downloading, setDownloading] = React.useState<ExportType | null>(null);
 
   React.useEffect(() => {
-    // Try to load generated content from sessionStorage
-    try {
-      const stored = sessionStorage.getItem("pitchdeck-content");
-      if (stored) {
-        const parsed = JSON.parse(stored) as DeckContent;
-        setDeckContent(parsed);
-        setIsMock(false);
-      } else {
-        // Use demo content
+    async function loadDeck() {
+      // Check for deckId in URL params or sessionStorage
+      const deckId =
+        searchParams.get("deckId") ||
+        sessionStorage.getItem("pitchdeck-deckId");
+
+      // Try loading from Supabase if we have a deckId
+      if (deckId) {
+        try {
+          const res = await fetch(`/api/decks/${deckId}`);
+          if (res.ok) {
+            const data = await res.json();
+            const deck = data.deck;
+            if (deck && deck.slides && Array.isArray(deck.slides) && deck.slides.length > 0) {
+              const content: DeckContent = {
+                slides: deck.slides as DeckContent["slides"],
+                sellSheet: deck.sell_sheet as DeckContent["sellSheet"],
+                onePager: deck.one_pager as DeckContent["onePager"],
+                brandKit: deck.brand_kit as DeckContent["brandKit"],
+              };
+              setDeckContent(content);
+              setIsMock(false);
+              setIsLoading(false);
+              return;
+            }
+          }
+        } catch (err) {
+          console.error("[preview] Failed to load deck from Supabase:", err);
+        }
+      }
+
+      // Fall back to sessionStorage
+      try {
+        const stored = sessionStorage.getItem("pitchdeck-content");
+        if (stored) {
+          const parsed = JSON.parse(stored) as DeckContent;
+          setDeckContent(parsed);
+          setIsMock(false);
+        } else {
+          setDeckContent(DEMO_DECK);
+          setIsMock(true);
+        }
+      } catch {
         setDeckContent(DEMO_DECK);
         setIsMock(true);
       }
-    } catch {
-      setDeckContent(DEMO_DECK);
-      setIsMock(true);
+      setIsLoading(false);
     }
-    setIsLoading(false);
-  }, []);
+
+    loadDeck();
+  }, [searchParams]);
 
   async function handleDownload(type: ExportType) {
     if (!deckContent || downloading) return;

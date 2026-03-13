@@ -31,6 +31,7 @@ export interface Database {
           created_at?: string;
           stripe_customer_id?: string | null;
         };
+        Relationships: [];
       };
       analyses: {
         Row: {
@@ -57,6 +58,15 @@ export interface Database {
           files_uploaded?: Json;
           created_at?: string;
         };
+        Relationships: [
+          {
+            foreignKeyName: "analyses_user_id_fkey";
+            columns: ["user_id"];
+            isOneToOne: false;
+            referencedRelation: "users";
+            referencedColumns: ["id"];
+          },
+        ];
       };
       decks: {
         Row: {
@@ -95,6 +105,22 @@ export interface Database {
           status?: string;
           created_at?: string;
         };
+        Relationships: [
+          {
+            foreignKeyName: "decks_user_id_fkey";
+            columns: ["user_id"];
+            isOneToOne: false;
+            referencedRelation: "users";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "decks_analysis_id_fkey";
+            columns: ["analysis_id"];
+            isOneToOne: false;
+            referencedRelation: "analyses";
+            referencedColumns: ["id"];
+          },
+        ];
       };
       orders: {
         Row: {
@@ -124,6 +150,22 @@ export interface Database {
           status?: string;
           created_at?: string;
         };
+        Relationships: [
+          {
+            foreignKeyName: "orders_user_id_fkey";
+            columns: ["user_id"];
+            isOneToOne: false;
+            referencedRelation: "users";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "orders_deck_id_fkey";
+            columns: ["deck_id"];
+            isOneToOne: false;
+            referencedRelation: "decks";
+            referencedColumns: ["id"];
+          },
+        ];
       };
       subscriptions: {
         Row: {
@@ -162,6 +204,15 @@ export interface Database {
           current_period_end?: string;
           created_at?: string;
         };
+        Relationships: [
+          {
+            foreignKeyName: "subscriptions_user_id_fkey";
+            columns: ["user_id"];
+            isOneToOne: false;
+            referencedRelation: "users";
+            referencedColumns: ["id"];
+          },
+        ];
       };
       assets: {
         Row: {
@@ -200,6 +251,22 @@ export interface Database {
           tokens_used?: number;
           created_at?: string;
         };
+        Relationships: [
+          {
+            foreignKeyName: "assets_user_id_fkey";
+            columns: ["user_id"];
+            isOneToOne: false;
+            referencedRelation: "users";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "assets_subscription_id_fkey";
+            columns: ["subscription_id"];
+            isOneToOne: false;
+            referencedRelation: "subscriptions";
+            referencedColumns: ["id"];
+          },
+        ];
       };
       token_usage: {
         Row: {
@@ -229,6 +296,29 @@ export interface Database {
           action?: string;
           created_at?: string;
         };
+        Relationships: [
+          {
+            foreignKeyName: "token_usage_user_id_fkey";
+            columns: ["user_id"];
+            isOneToOne: false;
+            referencedRelation: "users";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "token_usage_subscription_id_fkey";
+            columns: ["subscription_id"];
+            isOneToOne: false;
+            referencedRelation: "subscriptions";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "token_usage_asset_id_fkey";
+            columns: ["asset_id"];
+            isOneToOne: false;
+            referencedRelation: "assets";
+            referencedColumns: ["id"];
+          },
+        ];
       };
     };
     Views: {

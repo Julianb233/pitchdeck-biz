@@ -47,6 +47,7 @@ export default function CreatePage() {
   const [extractedText, setExtractedText] = useState<string | null>(null)
   const [transcription, setTranscription] = useState<string | null>(null)
   const [analysis, setAnalysis] = useState<BusinessAnalysis | null>(null)
+  const [analysisId, setAnalysisId] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [isProcessing, setIsProcessing] = useState(false)
   const [isDragging, setIsDragging] = useState(false)
@@ -178,13 +179,16 @@ export default function CreatePage() {
           body: JSON.stringify(body),
         })
 
-        const data: AnalyzeApiResponse = await res.json()
+        const data = await res.json() as AnalyzeApiResponse & { analysisId?: string }
 
         if (!res.ok || !data.success || !data.analysis) {
           throw new Error(data.error || "Analysis failed")
         }
 
         setAnalysis(data.analysis)
+        if (data.analysisId) {
+          setAnalysisId(data.analysisId)
+        }
         setStep("review")
       } catch (err) {
         setError(err instanceof Error ? err.message : "Analysis failed")
@@ -207,7 +211,7 @@ export default function CreatePage() {
       const res = await fetch("/api/generate-deck", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ analysis }),
+        body: JSON.stringify({ analysis, analysis_id: analysisId }),
       })
 
       const data = await res.json()
@@ -217,13 +221,19 @@ export default function CreatePage() {
       }
 
       sessionStorage.setItem("pitchdeck-content", JSON.stringify(data.deckContent))
-      router.push("/create/preview")
+
+      // Build preview URL with deck_id if available
+      const params = new URLSearchParams()
+      if (data.deckId) params.set("deck_id", data.deckId)
+      if (analysisId) params.set("analysis_id", analysisId)
+      const qs = params.toString()
+      router.push(`/create/preview${qs ? `?${qs}` : ""}`)
     } catch (err) {
       setError(err instanceof Error ? err.message : "Deck generation failed")
     } finally {
       setIsGenerating(false)
     }
-  }, [analysis, router])
+  }, [analysis, analysisId, router])
 
   // ── Drag and drop handlers ──────────────────────────────────────────────
   const onDragOver = useCallback((e: React.DragEvent) => {

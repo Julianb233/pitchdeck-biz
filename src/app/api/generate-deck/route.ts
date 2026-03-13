@@ -72,6 +72,7 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const analysis = body.analysis as BusinessAnalysis;
     const analysisId = (body.analysis_id as string) || null;
+    const existingDeckId = (body.deckId as string) || null;
 
     if (!analysis || !analysis.summary) {
       return NextResponse.json(
@@ -124,36 +125,51 @@ export async function POST(request: NextRequest) {
     deckContent.slides = attachImagesToSlides(deckContent.slides, industry, description);
 
     // ── Persist to Supabase (if authenticated) ──────────────────────
-    let savedDeckId: string | null = null;
+    let savedDeckId: string | null = existingDeckId;
     try {
       const supabase = await createClient();
       const { data: { user } } = await supabase.auth.getUser();
 
       if (user) {
-        const title =
-          deckContent.slides[0]?.title ||
-          analysis.valueProposition?.headline ||
-          "Untitled Deck";
+        const contentPayload = {
+          slides: deckContent.slides as unknown as Record<string, unknown>[],
+          sell_sheet: deckContent.sellSheet as unknown as Record<string, unknown>,
+          one_pager: deckContent.onePager as unknown as Record<string, unknown>,
+          brand_kit: deckContent.brandKit as unknown as Record<string, unknown>,
+        };
 
-        const { data: savedRow, error: insertError } = await supabase
-          .from("decks")
-          .insert({
-            user_id: user.id,
-            analysis_id: analysisId,
-            title,
-            slides: deckContent.slides as unknown as Record<string, unknown>[],
-            sell_sheet: deckContent.sellSheet as unknown as Record<string, unknown>,
-            one_pager: deckContent.onePager as unknown as Record<string, unknown>,
-            brand_kit: deckContent.brandKit as unknown as Record<string, unknown>,
-            status: "generated",
-          })
-          .select("id")
-          .single();
-
-        if (insertError) {
-          console.error("Failed to save deck to Supabase:", insertError.message);
+        if (existingDeckId) {
+          // Update existing deck record created during analysis
+          const updated = await updateDeckContent(existingDeckId, contentPayload);
+          if (updated) {
+            await updateDeckStatus(existingDeckId, "content_generated");
+          } else {
+            console.error("Failed to update existing deck:", existingDeckId);
+          }
         } else {
-          savedDeckId = savedRow.id;
+          // No existing deck — create a new one
+          const title =
+            deckContent.slides[0]?.title ||
+            analysis.valueProposition?.headline ||
+            "Untitled Deck";
+
+          const { data: savedRow, error: insertError } = await supabase
+            .from("decks")
+            .insert({
+              user_id: user.id,
+              analysis_id: analysisId,
+              title,
+              ...contentPayload,
+              status: "content_generated",
+            })
+            .select("id")
+            .single();
+
+          if (insertError) {
+            console.error("Failed to save deck to Supabase:", insertError.message);
+          } else {
+            savedDeckId = savedRow.id;
+          }
         }
       }
     } catch (saveErr) {

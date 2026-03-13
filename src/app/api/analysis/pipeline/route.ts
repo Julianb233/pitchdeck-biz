@@ -174,10 +174,43 @@ export async function POST(request: NextRequest) {
       });
     }
 
+    // ── Step 5: Create deck record (if authenticated) ──────────────
+    let deckId: string | null = null;
+    if (savedAnalysisId) {
+      try {
+        const businessName =
+          analysis.valueProposition?.headline ||
+          analysis.brandEssence?.tagline ||
+          analysis.summary?.slice(0, 100) ||
+          "Untitled Deck";
+
+        const supabase2 = await createClient();
+        const { data: { user: deckUser } } = await supabase2.auth.getUser();
+
+        if (deckUser) {
+          const deck = await saveDeck(
+            deckUser.id,
+            businessName,
+            analysis as unknown as Record<string, unknown>,
+            [] // empty slides until deck generation
+          );
+          if (deck) {
+            deckId = deck.id;
+            logger.info("Deck record created", { deckId });
+          }
+        }
+      } catch (deckErr) {
+        logger.error("Deck creation error (non-fatal)", {
+          error: deckErr instanceof Error ? deckErr.message : String(deckErr),
+        });
+      }
+    }
+
     return NextResponse.json({
       success: true,
       analysis,
       analysisId: savedAnalysisId,
+      deckId,
       meta: {
         filesProcessed: processedFiles,
         totalFiles: files.length,
