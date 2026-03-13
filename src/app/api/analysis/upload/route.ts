@@ -66,7 +66,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({
       success: true,
-      files: results.map(({ imageData: _, ...rest }) => rest),
+      files: results.map(({ imageData: _imageData, ...rest }) => rest),
       _internal: results, // Full data including imageData for pipeline use
     });
   } catch (error) {

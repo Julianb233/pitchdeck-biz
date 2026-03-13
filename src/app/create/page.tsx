@@ -126,6 +126,7 @@ export default function CreatePage() {
       setError(err instanceof Error ? err.message : "Upload failed")
       setIsProcessing(false)
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   // ── Audio recording handler ─────────────────────────────────────────────
@@ -158,6 +159,7 @@ export default function CreatePage() {
       setIsProcessing(false)
       setStep("input")
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   // ── AI analysis ─────────────────────────────────────────────────────────

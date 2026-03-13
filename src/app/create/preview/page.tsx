@@ -237,7 +237,7 @@ function PreviewPageInner() {
   const searchParams = useSearchParams();
   const [deckContent, setDeckContent] = React.useState<DeckContent | null>(null);
   const [isLoading, setIsLoading] = React.useState(true);
-  const [error, setError] = React.useState<string | null>(null);
+  const [error] = React.useState<string | null>(null);
   const [isMock, setIsMock] = React.useState(false);
   const [downloading, setDownloading] = React.useState<ExportType | null>(null);
 

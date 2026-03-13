@@ -29,7 +29,6 @@ async function generateWithImagen(prompt: string): Promise<string | null> {
 
   try {
     // Dynamic import — skipped silently when @google/genai is not installed
-    // eslint-disable-next-line @typescript-eslint/no-require-imports
     const genaiModule = await (Function('return import("@google/genai")')() as Promise<{
       GoogleGenAI: new (opts: { apiKey: string }) => {
         models: {

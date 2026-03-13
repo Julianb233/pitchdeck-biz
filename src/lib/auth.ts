@@ -94,7 +94,7 @@ export async function getSessionFromCookies(): Promise<SafeUser | null> {
   return safeUser;
 }
 
-export async function getSessionFromRequest(_request: Request): Promise<SafeUser | null> {
+export async function getSessionFromRequest(_req?: Request): Promise<SafeUser | null> {
   // With Supabase SSR, session is managed via cookies handled by the server client.
   // The request parameter is kept for API compatibility but not used directly.
   return getSessionFromCookies();

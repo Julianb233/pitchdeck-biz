@@ -7,7 +7,6 @@
 
 import {
   generateBarChart,
-  generateLineChart,
   generatePieChart,
   generateGrowthArrow,
   type ChartDataPoint,
