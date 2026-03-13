@@ -117,7 +117,7 @@ export function Header() {
                     Log In
                   </Link>
                   <Link
-                    href="/register"
+                    href="/signup"
                     className="inline-flex items-center justify-center px-6 py-2.5 text-sm font-semibold rounded-full text-white transition-all hover:scale-105 relative overflow-hidden group"
                     style={{
                       background: "linear-gradient(135deg, #ff006e 0%, #8b5cf6 50%, #203eec 100%)",
@@ -196,7 +196,7 @@ export function Header() {
               ) : (
                 <>
                   <Link
-                    href="/register"
+                    href="/signup"
                     onClick={() => setIsMobileMenuOpen(false)}
                     className="inline-flex items-center justify-center w-full px-5 py-3 text-base font-semibold rounded-full text-white transition-all hover:scale-105 relative overflow-hidden group"
                     style={{
