@@ -4,8 +4,9 @@ import type React from "react"
 
 import { useState, useEffect } from "react"
 import Link from "next/link"
+import { useRouter } from "next/navigation"
 import { Menu, X } from "lucide-react"
-import { useSession, signOut } from "next-auth/react"
+import { useAuth } from "@/hooks/use-auth"
 import { cn } from "@/lib/utils"
 
 const navItems = [
