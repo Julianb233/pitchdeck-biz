@@ -134,7 +134,7 @@ export default function AssetsPage() {
           templateId: selectedTemplate.id,
           prompt: prompt.trim(),
           brandColors,
-          userId: "demo-user",
+          userId: userId ?? "anonymous",
           referenceImages: referenceImageDataUris,
         }),
       })
