@@ -101,11 +101,11 @@ export default function AssetsPage() {
     } catch {
       // silent fail on load
     }
-  }, [])
+  }, [userId])
 
   useEffect(() => {
-    loadAssets()
-  }, [loadAssets])
+    if (userId) loadAssets()
+  }, [loadAssets, userId])
 
   const handleGenerate = async () => {
     if (!selectedTemplate || !prompt.trim()) return
