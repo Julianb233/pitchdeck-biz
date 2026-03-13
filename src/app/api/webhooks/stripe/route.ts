@@ -38,18 +38,36 @@ export async function POST(request: NextRequest) {
         // One-time deck purchase
         const deckId = session.metadata.deckId;
         const userId = session.metadata?.userId;
+        const orderId = session.metadata?.orderId;
 
         if (supabase && userId) {
-          const { error } = await supabase.from('orders').insert({
-            user_id: userId,
-            deck_id: deckId,
-            stripe_session_id: session.id,
-            amount_cents: session.amount_total ?? 0,
-            status: 'paid',
-          });
+          let orderError: { message: string } | null = null;
 
-          if (error) {
-            console.error('Error inserting order into Supabase:', error);
+          if (orderId) {
+            // Update existing pending order created during checkout
+            const { error } = await supabase
+              .from('orders')
+              .update({
+                stripe_session_id: session.id,
+                amount_cents: session.amount_total ?? 0,
+                status: 'paid',
+              })
+              .eq('id', orderId);
+            orderError = error;
+          } else {
+            // No pending order — insert directly (legacy flow)
+            const { error } = await supabase.from('orders').insert({
+              user_id: userId,
+              deck_id: deckId,
+              stripe_session_id: session.id,
+              amount_cents: session.amount_total ?? 0,
+              status: 'paid',
+            });
+            orderError = error;
+          }
+
+          if (orderError) {
+            console.error('Error persisting order to Supabase:', orderError);
           } else {
             await supabase
               .from('decks')
@@ -145,7 +163,11 @@ export async function POST(request: NextRequest) {
 
       if (supabase) {
         const item = subscription.items?.data?.[0];
-        const updateData: Record<string, unknown> = {
+        const updateData: {
+          status: string;
+          current_period_start?: string;
+          current_period_end?: string;
+        } = {
           status: subscription.status,
         };
         if (item?.current_period_start) {
