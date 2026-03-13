@@ -77,7 +77,7 @@ export function Footer() {
           <div>
             <h4 className="text-sm font-semibold mb-4">Stay Updated</h4>
             <p className="text-sm text-muted-foreground mb-4">Get product updates and AI tips directly to your inbox.</p>
-            <form className="flex flex-col gap-3">
+            <form className="flex flex-col gap-3" onSubmit={(e) => e.preventDefault()}>
               <input
                 type="email"
                 placeholder="Enter your email"
