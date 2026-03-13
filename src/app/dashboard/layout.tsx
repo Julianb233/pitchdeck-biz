@@ -4,6 +4,8 @@ import { redirect } from "next/navigation"
 import { createClient } from "@/lib/supabase/server"
 import { LogoutButton } from "@/components/dashboard/logout-button"
 
+export const dynamic = "force-dynamic";
+
 const NAV_ITEMS = [
   { href: "/dashboard/overview", label: "Overview", icon: "home" },
   { href: "/dashboard/assets", label: "Branding Assets", icon: "palette" },
