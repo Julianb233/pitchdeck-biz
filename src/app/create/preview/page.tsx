@@ -2,6 +2,7 @@
 
 import * as React from "react";
 import Link from "next/link";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
@@ -191,6 +192,44 @@ const DEMO_DECK: DeckContent = {
   },
 };
 
+// ── Download helper ────────────────────────────────────────────────────────
+
+type ExportType = "pptx" | "sell-sheet" | "one-pager" | "brand-kit" | "bundle";
+
+interface ExportConfig {
+  endpoint: string;
+  body: (deck: DeckContent) => object;
+  filename: string;
+}
+
+const EXPORT_CONFIGS: Record<ExportType, ExportConfig> = {
+  pptx: {
+    endpoint: "/api/export/pptx",
+    body: (deck) => ({ deck }),
+    filename: "pitch-deck.pptx",
+  },
+  "sell-sheet": {
+    endpoint: "/api/export/pdf",
+    body: (deck) => ({ deck, type: "sell-sheet" }),
+    filename: "sell-sheet.pdf",
+  },
+  "one-pager": {
+    endpoint: "/api/export/pdf",
+    body: (deck) => ({ deck, type: "one-pager" }),
+    filename: "one-pager.pdf",
+  },
+  "brand-kit": {
+    endpoint: "/api/export/pdf",
+    body: (deck) => ({ deck, type: "brand-kit" }),
+    filename: "brand-kit.pdf",
+  },
+  bundle: {
+    endpoint: "/api/export/bundle",
+    body: (deck) => ({ deck }),
+    filename: "pitchdeck-bundle.zip",
+  },
+};
+
 // ── Preview Page ───────────────────────────────────────────────────────────
 
 export default function PreviewPage() {
@@ -198,6 +237,7 @@ export default function PreviewPage() {
   const [isLoading, setIsLoading] = React.useState(true);
   const [error, setError] = React.useState<string | null>(null);
   const [isMock, setIsMock] = React.useState(false);
+  const [downloading, setDownloading] = React.useState<ExportType | null>(null);
 
   React.useEffect(() => {
     // Try to load generated content from sessionStorage
@@ -218,6 +258,47 @@ export default function PreviewPage() {
     }
     setIsLoading(false);
   }, []);
+
+  async function handleDownload(type: ExportType) {
+    if (!deckContent || downloading) return;
+
+    const config = EXPORT_CONFIGS[type];
+    setDownloading(type);
+
+    try {
+      const response = await fetch(config.endpoint, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(config.body(deckContent)),
+      });
+
+      if (!response.ok) {
+        const err = await response.json().catch(() => ({}));
+        throw new Error(
+          (err as { error?: string }).error ?? `Download failed (${response.status})`
+        );
+      }
+
+      const blob = await response.blob();
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = config.filename;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+
+      toast.success(`${config.filename} downloaded`);
+    } catch (error) {
+      console.error(`[download] ${type} failed:`, error);
+      toast.error(
+        error instanceof Error ? error.message : "Download failed. Please try again."
+      );
+    } finally {
+      setDownloading(null);
+    }
+  }
 
   if (isLoading) {
     return (
@@ -249,6 +330,8 @@ export default function PreviewPage() {
     );
   }
 
+  const isDownloading = downloading !== null;
+
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
@@ -270,9 +353,18 @@ export default function PreviewPage() {
           </div>
 
           <div className="flex items-center gap-2">
-            <Button variant="outline" size="sm" disabled>
-              <Download className="mr-1 h-4 w-4" />
-              Download All
+            <Button
+              variant="outline"
+              size="sm"
+              disabled={isDownloading}
+              onClick={() => handleDownload("bundle")}
+            >
+              {downloading === "bundle" ? (
+                <Loader2 className="mr-1 h-4 w-4 animate-spin" />
+              ) : (
+                <Download className="mr-1 h-4 w-4" />
+              )}
+              {downloading === "bundle" ? "Generating..." : "Download All"}
             </Button>
           </div>
         </div>
@@ -313,9 +405,18 @@ export default function PreviewPage() {
                   {deckContent.slides.length} slides - Use arrow keys to navigate
                 </p>
               </div>
-              <Button variant="outline" size="sm" disabled>
-                <Download className="mr-1 h-4 w-4" />
-                PPTX
+              <Button
+                variant="outline"
+                size="sm"
+                disabled={isDownloading}
+                onClick={() => handleDownload("pptx")}
+              >
+                {downloading === "pptx" ? (
+                  <Loader2 className="mr-1 h-4 w-4 animate-spin" />
+                ) : (
+                  <Download className="mr-1 h-4 w-4" />
+                )}
+                {downloading === "pptx" ? "Generating..." : "PPTX"}
               </Button>
             </div>
             <DeckPreview slides={deckContent.slides} />
@@ -330,9 +431,18 @@ export default function PreviewPage() {
                   One-page sales document for prospects
                 </p>
               </div>
-              <Button variant="outline" size="sm" disabled>
-                <Download className="mr-1 h-4 w-4" />
-                PDF
+              <Button
+                variant="outline"
+                size="sm"
+                disabled={isDownloading}
+                onClick={() => handleDownload("sell-sheet")}
+              >
+                {downloading === "sell-sheet" ? (
+                  <Loader2 className="mr-1 h-4 w-4 animate-spin" />
+                ) : (
+                  <Download className="mr-1 h-4 w-4" />
+                )}
+                {downloading === "sell-sheet" ? "Generating..." : "PDF"}
               </Button>
             </div>
             <SellSheetPreview sellSheet={deckContent.sellSheet} />
@@ -347,9 +457,18 @@ export default function PreviewPage() {
                   Concise overview for investors and partners
                 </p>
               </div>
-              <Button variant="outline" size="sm" disabled>
-                <Download className="mr-1 h-4 w-4" />
-                PDF
+              <Button
+                variant="outline"
+                size="sm"
+                disabled={isDownloading}
+                onClick={() => handleDownload("one-pager")}
+              >
+                {downloading === "one-pager" ? (
+                  <Loader2 className="mr-1 h-4 w-4 animate-spin" />
+                ) : (
+                  <Download className="mr-1 h-4 w-4" />
+                )}
+                {downloading === "one-pager" ? "Generating..." : "PDF"}
               </Button>
             </div>
             <OnePagerPreview onePager={deckContent.onePager} />
@@ -364,9 +483,18 @@ export default function PreviewPage() {
                   Colors, typography, voice, and logo direction
                 </p>
               </div>
-              <Button variant="outline" size="sm" disabled>
-                <Download className="mr-1 h-4 w-4" />
-                PDF
+              <Button
+                variant="outline"
+                size="sm"
+                disabled={isDownloading}
+                onClick={() => handleDownload("brand-kit")}
+              >
+                {downloading === "brand-kit" ? (
+                  <Loader2 className="mr-1 h-4 w-4 animate-spin" />
+                ) : (
+                  <Download className="mr-1 h-4 w-4" />
+                )}
+                {downloading === "brand-kit" ? "Generating..." : "PDF"}
               </Button>
             </div>
             <BrandKitPreview brandKit={deckContent.brandKit} />

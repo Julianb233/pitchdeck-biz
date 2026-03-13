@@ -3,6 +3,7 @@ import type { Metadata, Viewport } from "next"
 import { Inter_Tight } from "next/font/google"
 import { Analytics } from "@vercel/analytics/next"
 import { MagneticCursor } from "@/components/ui/magnetic-cursor"
+import { Toaster } from "@/components/ui/sonner"
 import "./globals.css"
 
 const interTight = Inter_Tight({
@@ -55,6 +56,7 @@ export default function RootLayout({
       <body className={`${interTight.className} font-sans antialiased`}>
         <MagneticCursor />
         {children}
+        <Toaster />
         <Analytics />
       </body>
     </html>

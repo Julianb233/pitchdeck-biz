@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Spinner } from "@/components/ui/spinner";
 import type { DeckContent } from "@/lib/types";
 import type { BrandColors } from "@/lib/export/pptx-generator";
+import { toast } from "sonner";
 import {
   Download,
   FileText,
@@ -110,6 +111,9 @@ export function DownloadButtons({
       URL.revokeObjectURL(url);
     } catch (error) {
       console.error(`[download] ${type} failed:`, error);
+      toast.error(
+        error instanceof Error ? error.message : "Download failed. Please try again."
+      );
     } finally {
       setLoading(null);
     }
