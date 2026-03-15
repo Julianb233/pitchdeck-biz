@@ -10,12 +10,7 @@ export default function ErrorBoundary({
   reset: () => void;
 }) {
   useEffect(() => {
-    // Dynamically import Sentry to avoid build errors when not installed
-    import("@sentry/nextjs")
-      .then((Sentry) => Sentry.captureException(error))
-      .catch(() => {
-        // Sentry not installed, silently skip
-      });
+    console.error("[error-boundary]", error);
   }, [error]);
 
   return (
