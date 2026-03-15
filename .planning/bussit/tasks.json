@@ -13,6 +13,13 @@
     "completedAt": "2026-03-15T23:40:00Z",
     "summary": "Added @sentry/nextjs with safe DSN guards: sentry.client.config.ts, sentry.server.config.ts, sentry.edge.config.ts all check for DSN before init. Instrumentation hook in src/instrumentation.ts loads configs per runtime. global-error.tsx reports to Sentry when DSN set. Does NOT use withSentryConfig() wrapper (learned from a-startup-biz crash). .env.example updated with SENTRY_ORG/SENTRY_PROJECT placeholders."
   },
+  "v11-02-build": {
+    "task": "Add email verification flow",
+    "worker": "agent-5",
+    "status": "completed",
+    "completedAt": "2026-03-15T23:55:00Z",
+    "summary": "Email verification flow was mostly implemented by prior commits. Added: users table with email_verified column and auth.users sync trigger to schema.sql, POST handler to verify-email API route for client-side AJAX verification, updated verify-email page to show 'check your email' message post-signup. Dashboard banner for unverified users was already in place. Build passes with zero new type errors."
+  },
   "v11-03-build": {
     "task": "Add password reset flow",
     "worker": "agent-6",
