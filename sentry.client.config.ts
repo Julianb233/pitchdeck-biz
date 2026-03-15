@@ -1,4 +1,4 @@
-import * as Sentry from "@sentry/react";
+import * as Sentry from "@sentry/nextjs";
 
 const dsn = process.env.NEXT_PUBLIC_SENTRY_DSN;
 
@@ -6,7 +6,8 @@ if (dsn) {
   Sentry.init({
     dsn,
     tracesSampleRate: 0.1,
-    environment: process.env.NODE_ENV,
-    enabled: process.env.NODE_ENV === "production",
+    replaysSessionSampleRate: 0,
+    replaysOnErrorSampleRate: 1.0,
+    debug: false,
   });
 }
