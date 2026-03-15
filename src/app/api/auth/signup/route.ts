@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { signUp } from "@/lib/auth";
-import { authLimiter, getClientIp, applyRateLimit } from "@/lib/rate-limit";
+import { authLimiter } from "@/lib/rate-limit";
 
 const SignupSchema = z.object({
   email: z.string().email("Invalid email address"),
@@ -10,8 +10,7 @@ const SignupSchema = z.object({
 });
 
 export async function POST(request: NextRequest) {
-  const ip = getClientIp(request);
-  const limited = await applyRateLimit(authLimiter, ip, "Too many signup attempts. Please try again later.");
+  const limited = authLimiter.check(request);
   if (limited) return limited;
 
   try {
