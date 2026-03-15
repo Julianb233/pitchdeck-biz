@@ -1,0 +1,1 @@
+{"taskId": "linear-AI-2502", "status": "completed", "summary": "Replaced all 7 broken avatar images (referencing nonexistent /images/imgi_*_user*.webp files) with gradient circle initials avatars in src/components/sections/testimonials.tsx. Removed next/image import dependency. Each avatar shows the user's initials on a unique gradient background."}

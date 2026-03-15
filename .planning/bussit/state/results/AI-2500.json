@@ -1,0 +1,1 @@
+{"taskId": "linear-AI-2500", "status": "completed", "summary": "Verified /create route is already auth-protected in src/lib/supabase/middleware.ts line 39 — middleware redirects unauthenticated users to /login for both /dashboard and /create routes."}

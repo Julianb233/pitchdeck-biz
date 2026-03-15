@@ -1,0 +1,1 @@
+{"taskId": "linear-AI-2501", "status": "completed", "summary": "Fixed hero headline font — replaced font-mono font-normal with font-sans font-semibold on all 8 hero word spans in src/components/sections/hero.tsx. Headline now renders in Inter Tight (brand font) instead of monospace."}
