@@ -213,3 +213,33 @@ create index if not exists idx_verification_tokens_user_id on public.verificatio
 alter table public.verification_tokens enable row level security;
 
 -- Verification tokens are managed by service role only (no user-facing RLS needed)
+
+-- =============================================================================
+-- 8. webhook_events — idempotency log for processed Stripe webhook events
+-- =============================================================================
+create table if not exists public.webhook_events (
+  id          uuid primary key default uuid_generate_v4(),
+  event_id    text not null unique,
+  event_type  text not null,
+  processed_at timestamptz not null default now()
+);
+
+create index if not exists idx_webhook_events_event_id on public.webhook_events(event_id);
+
+-- No RLS needed — only accessed by service role in webhook handlers
+
+-- =============================================================================
+-- 9. rate_limits — persistent cross-instance rate limit tracking
+-- =============================================================================
+create table if not exists public.rate_limits (
+  id          uuid primary key default uuid_generate_v4(),
+  key         text not null,
+  limiter     text not null,
+  count       integer not null default 1,
+  reset_at    timestamptz not null,
+  created_at  timestamptz not null default now()
+);
+
+create unique index if not exists idx_rate_limits_key_limiter on public.rate_limits(key, limiter);
+
+-- No RLS needed — only accessed by service role in API middleware

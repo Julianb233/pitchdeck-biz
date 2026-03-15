@@ -189,35 +189,21 @@ function svgToDataUri(svg: string): string {
 }
 
 // ---------------------------------------------------------------------------
-// Rate limiter (simple in-memory token bucket)
+// Rate limiter -- delegates to shared rate-limit module (Supabase-backed)
 // ---------------------------------------------------------------------------
 
-interface RateBucket {
-  tokens: number;
-  lastRefill: number;
-}
+import { generateImageLimiter, createRateLimiter } from "@/lib/rate-limit";
 
-const buckets = new Map<string, RateBucket>();
-const MAX_TOKENS = 10;
-const REFILL_INTERVAL_MS = 60_000; // 1 minute
+const colorSchemeInternalLimiter = createRateLimiter("gemini-color-scheme", {
+  maxRequests: 10,
+  windowMs: 60_000,
+});
 
 function checkRateLimit(key: string): boolean {
-  const now = Date.now();
-  let bucket = buckets.get(key);
-  if (!bucket) {
-    bucket = { tokens: MAX_TOKENS, lastRefill: now };
-    buckets.set(key, bucket);
+  if (key === "color-scheme") {
+    return colorSchemeInternalLimiter.check(key);
   }
-
-  const elapsed = now - bucket.lastRefill;
-  if (elapsed > REFILL_INTERVAL_MS) {
-    bucket.tokens = MAX_TOKENS;
-    bucket.lastRefill = now;
-  }
-
-  if (bucket.tokens <= 0) return false;
-  bucket.tokens -= 1;
-  return true;
+  return generateImageLimiter.check(key);
 }
 
 // ---------------------------------------------------------------------------
