@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { createClient } from "@/lib/supabase/server";
+import { authLimiter, getClientIp, applyRateLimit } from "@/lib/rate-limit";
 
 const ResetPasswordSchema = z.object({
   password: z.string().min(8, "Password must be at least 8 characters"),
@@ -8,6 +9,11 @@ const ResetPasswordSchema = z.object({
 
 export async function POST(request: Request) {
   try {
+    // Rate limiting — 10 req/min per IP
+    const ip = getClientIp(request);
+    const limited = applyRateLimit(authLimiter, ip, "Too many attempts. Please try again later.");
+    if (limited) return limited;
+
     const body = await request.json();
     const parsed = ResetPasswordSchema.safeParse(body);
 
