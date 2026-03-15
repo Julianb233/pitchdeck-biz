@@ -4,7 +4,7 @@ import { useCallback, useRef, useState } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
 import {
-  Upload,
+  CloudUpload,
   Mic,
   FileText,
   Sparkles,
@@ -378,7 +378,7 @@ export default function CreatePage() {
                         "linear-gradient(135deg, rgba(255,0,110,0.1), rgba(139,92,246,0.1))",
                     }}
                   >
-                    <Upload className="w-6 h-6 text-primary" />
+                    <CloudUpload className="w-6 h-6 text-primary" />
                   </div>
                   <h3 className="text-lg font-semibold mb-1">
                     Upload Documents
@@ -453,7 +453,7 @@ export default function CreatePage() {
                         "linear-gradient(135deg, rgba(255,0,110,0.1), rgba(139,92,246,0.1))",
                     }}
                   >
-                    <Upload className="w-8 h-8 text-primary" />
+                    <CloudUpload className="w-8 h-8 text-primary" />
                   </div>
                   <p className="font-semibold text-lg mb-1">
                     {isDragging ? "Drop files here" : "Drop files or click to browse"}
