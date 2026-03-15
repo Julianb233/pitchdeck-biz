@@ -21,13 +21,13 @@ export default function VerifyEmailPage() {
 function VerifyEmailContent() {
   const searchParams = useSearchParams();
   const token = searchParams.get("token");
-  const [status, setStatus] = useState<"loading" | "success" | "error">("loading");
+  const [status, setStatus] = useState<"loading" | "success" | "error" | "pending">(
+    token ? "loading" : "pending"
+  );
   const [message, setMessage] = useState("");
 
   useEffect(() => {
     if (!token) {
-      setStatus("error");
-      setMessage("No verification token provided.");
       return;
     }
 
@@ -74,6 +74,37 @@ function VerifyEmailContent() {
         >
           pitchdeck.biz
         </Link>
+
+        {status === "pending" && (
+          <div className="space-y-4">
+            <div className="w-16 h-16 rounded-full bg-blue-500/10 border border-blue-500/20 flex items-center justify-center mx-auto">
+              <svg
+                className="w-8 h-8 text-blue-400"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
+                />
+              </svg>
+            </div>
+            <h1 className="text-2xl font-bold">Check your email</h1>
+            <p className="text-muted-foreground">
+              We sent a verification link to your email address.
+              Please check your inbox and click the link to verify your account.
+            </p>
+            <p className="text-xs text-muted-foreground">
+              Didn&apos;t receive the email? Check your spam folder or{" "}
+              <Link href="/signup" className="text-primary hover:underline">
+                try signing up again
+              </Link>.
+            </p>
+          </div>
+        )}
 
         {status === "loading" && (
           <div className="space-y-4">

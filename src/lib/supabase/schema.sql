@@ -9,6 +9,52 @@
 create extension if not exists "uuid-ossp";
 
 -- =============================================================================
+-- 0. users — public profile table synced from auth.users
+-- =============================================================================
+create table if not exists public.users (
+  id                 uuid primary key references auth.users(id) on delete cascade,
+  email              text not null,
+  name               text,
+  email_verified     boolean not null default false,
+  stripe_customer_id text,
+  created_at         timestamptz not null default now()
+);
+
+create index if not exists idx_users_email on public.users(email);
+
+alter table public.users enable row level security;
+
+create policy "Users can view own profile"
+  on public.users for select
+  using (auth.uid() = id);
+
+create policy "Users can update own profile"
+  on public.users for update
+  using (auth.uid() = id);
+
+-- Auto-sync new auth.users to public.users
+create or replace function public.handle_new_user()
+returns trigger as $$
+begin
+  insert into public.users (id, email, name, email_verified)
+  values (
+    new.id,
+    new.email,
+    coalesce(new.raw_user_meta_data->>'name', ''),
+    coalesce((new.email_confirmed_at is not null), false)
+  )
+  on conflict (id) do update set
+    email = excluded.email,
+    email_verified = coalesce((new.email_confirmed_at is not null), false);
+  return new;
+end;
+$$ language plpgsql security definer;
+
+create or replace trigger on_auth_user_created
+  after insert or update on auth.users
+  for each row execute procedure public.handle_new_user();
+
+-- =============================================================================
 -- 1. analyses — stores business analysis results from the AI pipeline
 -- =============================================================================
 create table if not exists public.analyses (
