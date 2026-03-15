@@ -1,8 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { signUp } from "@/lib/auth";
-import { generateToken } from "@/lib/auth/tokens";
-import { authLimiter, getClientIp, applyRateLimit } from "@/lib/rate-limit";
+import { authLimiter } from "@/lib/rate-limit";
 
 const SignupSchema = z.object({
   email: z.string().email("Invalid email address"),
@@ -11,12 +10,10 @@ const SignupSchema = z.object({
 });
 
 export async function POST(request: NextRequest) {
-  try {
-    // Rate limiting — 10 req/min per IP
-    const ip = getClientIp(request);
-    const limited = applyRateLimit(authLimiter, ip, "Too many signup attempts. Please try again later.");
-    if (limited) return limited;
+  const limited = authLimiter.check(request);
+  if (limited) return limited;
 
+  try {
     const body = await request.json();
     const parsed = SignupSchema.safeParse(body);
 
@@ -44,17 +41,6 @@ export async function POST(request: NextRequest) {
     }
 
     const user = data.user;
-
-    // Generate email verification token
-    if (user?.id) {
-      const token = await generateToken(user.id, "email_verification");
-      if (token) {
-        // TODO: Send verification email once email provider is configured
-        console.log(`[signup] Email verification token for ${email}: ${token}`);
-        console.log(`[signup] Verification URL: /verify-email?token=${token}`);
-      }
-    }
-
     return NextResponse.json(
       {
         user: {
