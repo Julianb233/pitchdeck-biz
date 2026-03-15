@@ -1,8 +1,40 @@
 "use client"
 
 import { useState } from "react"
-import Image from "next/image"
 import { SectionTitle } from "@/components/ui/section-title"
+
+const gradients = [
+  "linear-gradient(135deg, #ff006e, #ff5c8a)",
+  "linear-gradient(135deg, #8b5cf6, #a78bfa)",
+  "linear-gradient(135deg, #203eec, #6366f1)",
+  "linear-gradient(135deg, #00d4ff, #38bdf8)",
+  "linear-gradient(135deg, #f97316, #fdba74)",
+  "linear-gradient(135deg, #10b981, #6ee7b7)",
+  "linear-gradient(135deg, #ec4899, #f9a8d4)",
+]
+
+function getInitials(name: string) {
+  return name
+    .split(" ")
+    .map((n) => n[0])
+    .join("")
+    .toUpperCase()
+    .slice(0, 2)
+}
+
+function Avatar({ name, index }: { name: string; index: number }) {
+  const initials = getInitials(name)
+  const gradient = gradients[index % gradients.length]
+  return (
+    <div
+      className="w-12 h-12 rounded-full flex items-center justify-center flex-shrink-0 text-white font-semibold text-sm"
+      style={{ background: gradient }}
+      aria-hidden="true"
+    >
+      {initials}
+    </div>
+  )
+}
 
 const testimonials = [
   {
@@ -11,7 +43,6 @@ const testimonials = [
       "We raised $2.5M in our seed round. The pitch deck from pitchdeck.biz was instrumental — investors said it was one of the most professional they'd seen.",
     author: "Sarah Chen",
     role: "CEO, NeuralFlow",
-    avatar: "/images/imgi_97_user77.webp",
     company: "NeuralFlow",
     blurColor: "bg-blue-500",
   },
@@ -21,7 +52,6 @@ const testimonials = [
       "I needed to sell my business and had no idea how to present it. In 15 minutes I had a professional sell sheet that helped me close the deal.",
     author: "Marcus Johnson",
     role: "Former Owner, Pacific Grill",
-    avatar: "/images/imgi_106_user86.webp",
     company: "Pacific Grill",
     blurColor: "bg-purple-500",
   },
@@ -31,7 +61,6 @@ const testimonials = [
       "As a non-technical founder, I struggled to communicate my vision. The AI understood my business better than I could explain it myself.",
     author: "Emily Rodriguez",
     role: "Founder, EcoTrack",
-    avatar: "/images/imgi_105_user85.webp",
     company: "EcoTrack",
     blurColor: "bg-pink-500",
   },
@@ -41,7 +70,6 @@ const testimonials = [
       "We used to spend $8,000 per pitch deck with agencies. Now we generate them in minutes for a fraction of the cost.",
     author: "David Park",
     role: "CTO, DataStack",
-    avatar: "/images/imgi_102_user82.webp",
     company: "DataStack",
     blurColor: "bg-emerald-500",
   },
@@ -51,7 +79,6 @@ const testimonials = [
       "The branding kit alone was worth it. We got logo concepts, color palettes, and a style guide that we still use today.",
     author: "Lisa Wang",
     role: "VP Marketing, GreenPath",
-    avatar: "/images/imgi_100_user80.webp",
     company: "GreenPath",
     blurColor: "bg-orange-500",
   },
@@ -61,7 +88,6 @@ const testimonials = [
       "I just recorded a voice memo about my business and got back a complete investor deck. The future is here.",
     author: "James Mitchell",
     role: "Founder, VoiceFirst",
-    avatar: "/images/imgi_107_user87.webp",
     company: "VoiceFirst",
     blurColor: "bg-cyan-500",
   },
@@ -71,7 +97,6 @@ const testimonials = [
       "The subscription plan saves us thousands monthly on design. Our marketing team loves the AI-generated social media assets.",
     author: "Nina Patel",
     role: "CEO, AutoScale",
-    avatar: "/images/imgi_108_user88.webp",
     company: "AutoScale",
     blurColor: "bg-rose-500",
   },
@@ -112,13 +137,7 @@ export function Testimonials() {
               >
                 {/* Author Info */}
                 <div className="flex items-center gap-3 mb-4">
-                  <Image
-                    src={testimonial.avatar || "/placeholder.svg"}
-                    alt={testimonial.author}
-                    width={48}
-                    height={48}
-                    className="rounded-full"
-                  />
+                  <Avatar name={testimonial.author} index={testimonial.id - 1} />
                   <div>
                     <div className="font-semibold">{testimonial.author}</div>
                     <div className="text-sm text-muted-foreground">{testimonial.role}</div>
@@ -155,13 +174,7 @@ export function Testimonials() {
               >
                 {/* Author Info */}
                 <div className="flex items-center gap-3 mb-4">
-                  <Image
-                    src={testimonial.avatar || "/placeholder.svg"}
-                    alt={testimonial.author}
-                    width={48}
-                    height={48}
-                    className="rounded-full"
-                  />
+                  <Avatar name={testimonial.author} index={testimonial.id - 1} />
                   <div>
                     <div className="font-semibold">{testimonial.author}</div>
                     <div className="text-sm text-muted-foreground">{testimonial.role}</div>
@@ -204,13 +217,7 @@ export function Testimonials() {
               <article className="relative p-6 md:p-8 border bg-card transition-shadow overflow-hidden border-border rounded-3xl">
                 {/* Author Info */}
                 <div className="flex items-center gap-3 mb-4">
-                  <Image
-                    src={testimonial.avatar || "/placeholder.svg"}
-                    alt={testimonial.author}
-                    width={48}
-                    height={48}
-                    className="rounded-full"
-                  />
+                  <Avatar name={testimonial.author} index={testimonial.id - 1} />
                   <div>
                     <div className="font-semibold">{testimonial.author}</div>
                     <div className="text-sm text-muted-foreground">{testimonial.role}</div>
