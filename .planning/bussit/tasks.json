@@ -6,6 +6,13 @@
     "completedAt": "2026-03-15T12:00:00Z",
     "summary": "Added Supabase persistence to rate limiter, replaced inline Maps in gemini-image.ts with shared module, added webhook_events and rate_limits tables to schema and types. All data stores already used Supabase."
   },
+  "v11-05-build": {
+    "task": "Add error tracking with Sentry",
+    "worker": "agent-4",
+    "status": "completed",
+    "completedAt": "2026-03-15T23:40:00Z",
+    "summary": "Added @sentry/nextjs with safe DSN guards: sentry.client.config.ts, sentry.server.config.ts, sentry.edge.config.ts all check for DSN before init. Instrumentation hook in src/instrumentation.ts loads configs per runtime. global-error.tsx reports to Sentry when DSN set. Does NOT use withSentryConfig() wrapper (learned from a-startup-biz crash). .env.example updated with SENTRY_ORG/SENTRY_PROJECT placeholders."
+  },
   "v11-03-build": {
     "task": "Add password reset flow",
     "worker": "agent-6",
