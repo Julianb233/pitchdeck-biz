@@ -1,0 +1,9 @@
+{
+  "v11-01-build": {
+    "task": "Replace in-memory stores with Supabase queries",
+    "worker": "agent-2",
+    "status": "completed",
+    "completedAt": "2026-03-15T12:00:00Z",
+    "summary": "Added Supabase persistence to rate limiter, replaced inline Maps in gemini-image.ts with shared module, added webhook_events and rate_limits tables to schema and types. All data stores already used Supabase."
+  }
+}
