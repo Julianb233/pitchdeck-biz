@@ -6,7 +6,7 @@ import type { Database } from './types';
  * This bypasses RLS and should only be used in server-side contexts
  * like webhook handlers where there is no user session.
  *
- * Returns null if env vars are not configured (allows in-memory fallback).
+ * Returns null with a warning if env vars are not configured.
  */
 export function createAdminClient() {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -18,6 +18,7 @@ export function createAdminClient() {
     url === 'https://your-project.supabase.co' ||
     serviceRoleKey === 'your-service-role-key'
   ) {
+    console.error('[supabase/admin] SUPABASE_SERVICE_ROLE_KEY or NEXT_PUBLIC_SUPABASE_URL not configured');
     return null;
   }
 

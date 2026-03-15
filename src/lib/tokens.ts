@@ -22,7 +22,7 @@ export const MONTHLY_TOKEN_ALLOCATION = 500
 
 /**
  * Get the current token balance for a user from the subscriptions table.
- * Returns default values (500 balance, 0 used) if no subscription exists.
+ * Returns free-tier defaults if no active subscription exists in the database.
  */
 export async function getTokenBalance(userId: string): Promise<{
   token_balance: number
@@ -31,41 +31,40 @@ export async function getTokenBalance(userId: string): Promise<{
 }> {
   const supabase = createAdminClient();
 
-  if (supabase) {
-    const { data, error } = await supabase
-      .from('subscriptions')
-      .select('token_balance, tokens_allocated, current_period_end')
-      .eq('user_id', userId)
-      .eq('status', 'active')
-      .order('created_at', { ascending: false })
-      .limit(1)
-      .maybeSingle();
-
-    if (!error && data) {
-      return {
-        token_balance: data.token_balance,
-        tokens_used: data.tokens_allocated - data.token_balance,
-        current_period_end: data.current_period_end,
-      };
-    }
-
-    if (error) {
-      console.error('Error fetching token balance:', error);
-    }
+  if (!supabase) {
+    console.warn('[tokens] Supabase admin client not configured — returning default token balance');
+    return freeTierDefaults();
   }
 
-  // No subscription found — return defaults
-  const now = new Date();
-  return {
-    token_balance: MONTHLY_TOKEN_ALLOCATION,
-    tokens_used: 0,
-    current_period_end: new Date(now.getFullYear(), now.getMonth() + 1, 1).toISOString(),
-  };
+  const { data, error } = await supabase
+    .from('subscriptions')
+    .select('token_balance, tokens_allocated, current_period_end')
+    .eq('user_id', userId)
+    .eq('status', 'active')
+    .order('created_at', { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  if (error) {
+    console.error('[tokens] Error fetching token balance:', error);
+  }
+
+  if (data) {
+    return {
+      token_balance: data.token_balance,
+      tokens_used: data.tokens_allocated - data.token_balance,
+      current_period_end: data.current_period_end,
+    };
+  }
+
+  // No active subscription found — return free-tier defaults
+  return freeTierDefaults();
 }
 
 /**
- * Deduct tokens from a user's balance in the subscriptions table.
- * Returns the updated balance or null if insufficient tokens.
+ * Deduct tokens from a user's active subscription balance.
+ * Reads the subscription, checks balance, updates, and logs usage.
+ * Returns the updated balance or null if insufficient tokens or no subscription.
  */
 export async function deductTokens(
   userId: string,
@@ -73,69 +72,56 @@ export async function deductTokens(
 ): Promise<{ token_balance: number; tokens_used: number } | null> {
   const supabase = createAdminClient();
 
-  if (supabase) {
-    const { data: sub, error: fetchError } = await supabase
-      .from('subscriptions')
-      .select('id, token_balance, tokens_allocated')
-      .eq('user_id', userId)
-      .eq('status', 'active')
-      .order('created_at', { ascending: false })
-      .limit(1)
-      .maybeSingle();
-
-    if (fetchError) {
-      console.error('Error fetching subscription for deduction:', fetchError);
-      // No subscription — allow with default balance for free-tier users
-      if (MONTHLY_TOKEN_ALLOCATION < cost) return null;
-      return {
-        token_balance: MONTHLY_TOKEN_ALLOCATION - cost,
-        tokens_used: cost,
-      };
-    }
-
-    if (!sub) {
-      // No subscription — allow with default balance for free-tier users
-      if (MONTHLY_TOKEN_ALLOCATION < cost) return null;
-      return {
-        token_balance: MONTHLY_TOKEN_ALLOCATION - cost,
-        tokens_used: cost,
-      };
-    }
-
-    if (sub.token_balance < cost) {
-      return null;
-    }
-
-    const newBalance = sub.token_balance - cost;
-    const { error: updateError } = await supabase
-      .from('subscriptions')
-      .update({ token_balance: newBalance })
-      .eq('id', sub.id);
-
-    if (updateError) {
-      console.error('Error updating token balance:', updateError);
-      return null;
-    }
-
-    // Log token usage
-    await supabase.from('token_usage').insert({
-      user_id: userId,
-      subscription_id: sub.id,
-      tokens_used: cost,
-      action: 'asset_generation',
-    });
-
-    return {
-      token_balance: newBalance,
-      tokens_used: sub.tokens_allocated - newBalance,
-    };
+  if (!supabase) {
+    console.warn('[tokens] Supabase admin client not configured — cannot deduct tokens');
+    return null;
   }
 
-  // Supabase not configured — allow with default balance
-  if (MONTHLY_TOKEN_ALLOCATION < cost) return null;
-  return {
-    token_balance: MONTHLY_TOKEN_ALLOCATION - cost,
+  const { data: sub, error: fetchError } = await supabase
+    .from('subscriptions')
+    .select('id, token_balance, tokens_allocated')
+    .eq('user_id', userId)
+    .eq('status', 'active')
+    .order('created_at', { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  if (fetchError) {
+    console.error('[tokens] Error fetching subscription for deduction:', fetchError);
+    return null;
+  }
+
+  if (!sub) {
+    // No active subscription — cannot deduct tokens
+    return null;
+  }
+
+  if (sub.token_balance < cost) {
+    return null;
+  }
+
+  const newBalance = sub.token_balance - cost;
+  const { error: updateError } = await supabase
+    .from('subscriptions')
+    .update({ token_balance: newBalance })
+    .eq('id', sub.id);
+
+  if (updateError) {
+    console.error('[tokens] Error updating token balance:', updateError);
+    return null;
+  }
+
+  // Log token usage
+  await supabase.from('token_usage').insert({
+    user_id: userId,
+    subscription_id: sub.id,
     tokens_used: cost,
+    action: 'asset_generation',
+  });
+
+  return {
+    token_balance: newBalance,
+    tokens_used: sub.tokens_allocated - newBalance,
   };
 }
 
@@ -145,7 +131,10 @@ export async function deductTokens(
  */
 export async function resetMonthlyTokens(userId: string): Promise<void> {
   const supabase = createAdminClient();
-  if (!supabase) return;
+  if (!supabase) {
+    console.warn('[tokens] Supabase admin client not configured — cannot reset tokens');
+    return;
+  }
 
   const now = new Date();
   const periodStart = new Date(now.getFullYear(), now.getMonth(), 1).toISOString();
@@ -163,6 +152,17 @@ export async function resetMonthlyTokens(userId: string): Promise<void> {
     .eq('status', 'active');
 
   if (error) {
-    console.error('Error resetting monthly tokens:', error);
+    console.error('[tokens] Error resetting monthly tokens:', error);
   }
+}
+
+// ── Helpers ──────────────────────────────────────────────────────────────────
+
+function freeTierDefaults() {
+  const now = new Date();
+  return {
+    token_balance: MONTHLY_TOKEN_ALLOCATION,
+    tokens_used: 0,
+    current_period_end: new Date(now.getFullYear(), now.getMonth() + 1, 1).toISOString(),
+  };
 }
