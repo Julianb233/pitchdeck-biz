@@ -46,23 +46,23 @@ export function Hero() {
 
           {/* Main headline */}
           <h1 className="text-5xl sm:text-6xl lg:text-[80px] font-semibold tracking-tight leading-[1.05] text-balance">
-            <span className="hero-word font-mono font-normal text-5xl md:text-7xl py-2" style={{ animationDelay: "0s", marginRight: "0.25em" }}>
+            <span className="hero-word font-sans font-semibold text-5xl md:text-7xl py-2" style={{ animationDelay: "0s", marginRight: "0.25em" }}>
               Turn
             </span>
-            <span className="hero-word font-mono font-normal text-5xl md:text-7xl py-2" style={{ animationDelay: "0.1s", marginRight: "0.25em" }}>
+            <span className="hero-word font-sans font-semibold text-5xl md:text-7xl py-2" style={{ animationDelay: "0.1s", marginRight: "0.25em" }}>
               Your
             </span>
-            <span className="hero-word font-mono font-normal text-5xl md:text-7xl py-2" style={{ animationDelay: "0.2s", marginRight: "0.25em" }}>
+            <span className="hero-word font-sans font-semibold text-5xl md:text-7xl py-2" style={{ animationDelay: "0.2s", marginRight: "0.25em" }}>
               Vision
             </span>
-            <span className="hero-word font-mono font-normal text-5xl md:text-7xl py-2" style={{ animationDelay: "0.3s", marginRight: "0.25em" }}>
+            <span className="hero-word font-sans font-semibold text-5xl md:text-7xl py-2" style={{ animationDelay: "0.3s", marginRight: "0.25em" }}>
               Into
             </span>
-            <span className="hero-word font-mono font-normal text-5xl md:text-7xl py-2" style={{ animationDelay: "0.4s", marginRight: "0.25em" }}>
+            <span className="hero-word font-sans font-semibold text-5xl md:text-7xl py-2" style={{ animationDelay: "0.4s", marginRight: "0.25em" }}>
               a
             </span>
             <span
-              className="hero-word ai-gradient-word font-mono font-normal text-5xl md:text-7xl py-2"
+              className="hero-word ai-gradient-word font-sans font-semibold text-5xl md:text-7xl py-2"
               style={{
                 animationDelay: "0.5s",
                 marginRight: "0.25em",
@@ -75,10 +75,10 @@ export function Hero() {
             >
               Winning
             </span>
-            <span className="hero-word font-mono font-normal text-5xl md:text-7xl py-2" style={{ animationDelay: "0.6s", marginRight: "0.25em" }}>
+            <span className="hero-word font-sans font-semibold text-5xl md:text-7xl py-2" style={{ animationDelay: "0.6s", marginRight: "0.25em" }}>
               Pitch
             </span>
-            <span className="hero-word font-mono font-normal text-5xl md:text-7xl py-2" style={{ animationDelay: "0.7s" }}>
+            <span className="hero-word font-sans font-semibold text-5xl md:text-7xl py-2" style={{ animationDelay: "0.7s" }}>
               Deck
             </span>
           </h1>
