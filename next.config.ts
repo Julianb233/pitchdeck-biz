@@ -10,7 +10,7 @@ const nextConfig: NextConfig = {
   images: {
     unoptimized: true,
   },
-  serverExternalPackages: ["@google/genai", "@sentry/nextjs", "@sentry/node"],
+  serverExternalPackages: ["@google/genai"],
   async redirects() {
     return [
       {

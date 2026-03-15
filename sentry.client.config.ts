@@ -1,13 +1,15 @@
-import * as Sentry from "@sentry/nextjs";
-
+// Sentry client — only initializes if DSN is set
+// Using dynamic import to avoid triggering @sentry/nextjs Pages Router plugin
 const dsn = process.env.NEXT_PUBLIC_SENTRY_DSN;
 
 if (dsn) {
-  Sentry.init({
-    dsn,
-    tracesSampleRate: 0.1,
-    replaysSessionSampleRate: 0,
-    replaysOnErrorSampleRate: 1.0,
-    debug: false,
+  import("@sentry/nextjs").then((Sentry) => {
+    Sentry.init({
+      dsn,
+      tracesSampleRate: 0.1,
+      replaysSessionSampleRate: 0,
+      replaysOnErrorSampleRate: 1.0,
+      debug: false,
+    });
   });
 }
