@@ -16,6 +16,7 @@ export interface Database {
           name: string | null;
           created_at: string;
           stripe_customer_id: string | null;
+          email_verified: boolean;
         };
         Insert: {
           id?: string;
@@ -23,6 +24,7 @@ export interface Database {
           name?: string | null;
           created_at?: string;
           stripe_customer_id?: string | null;
+          email_verified?: boolean;
         };
         Update: {
           id?: string;
@@ -30,8 +32,47 @@ export interface Database {
           name?: string | null;
           created_at?: string;
           stripe_customer_id?: string | null;
+          email_verified?: boolean;
         };
         Relationships: [];
+      };
+      verification_tokens: {
+        Row: {
+          id: string;
+          user_id: string;
+          token: string;
+          type: string;
+          expires_at: string;
+          used_at: string | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          token: string;
+          type: string;
+          expires_at: string;
+          used_at?: string | null;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          user_id?: string;
+          token?: string;
+          type?: string;
+          expires_at?: string;
+          used_at?: string | null;
+          created_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "verification_tokens_user_id_fkey";
+            columns: ["user_id"];
+            isOneToOne: false;
+            referencedRelation: "users";
+            referencedColumns: ["id"];
+          },
+        ];
       };
       analyses: {
         Row: {

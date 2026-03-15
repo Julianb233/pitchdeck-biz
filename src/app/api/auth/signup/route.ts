@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { signUp } from "@/lib/auth";
+import { generateToken } from "@/lib/auth/tokens";
 
 const SignupSchema = z.object({
   email: z.string().email("Invalid email address"),
@@ -37,6 +38,17 @@ export async function POST(request: NextRequest) {
     }
 
     const user = data.user;
+
+    // Generate email verification token
+    if (user?.id) {
+      const token = await generateToken(user.id, "email_verification");
+      if (token) {
+        // TODO: Send verification email once email provider is configured
+        console.log(`[signup] Email verification token for ${email}: ${token}`);
+        console.log(`[signup] Verification URL: /verify-email?token=${token}`);
+      }
+    }
+
     return NextResponse.json(
       {
         user: {
@@ -44,6 +56,7 @@ export async function POST(request: NextRequest) {
           email: user?.email,
           name,
         },
+        message: "Account created. Please check your email to verify your account.",
       },
       { status: 201 },
     );
