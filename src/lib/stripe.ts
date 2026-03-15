@@ -16,19 +16,17 @@ const stripe = new Proxy({} as Stripe, {
   },
 });
 
-export async function createDeckCheckoutSession(deckId: string, userId?: string, orderId?: string) {
-  const priceId = process.env.STRIPE_PRICE_DECK;
+// Real Stripe price IDs (test mode) — created via API
+const DEFAULT_PRICE_DECK = 'price_1TAOrDE8iqjFMOfSsnqdaKx9';
+const DEFAULT_PRICE_SUBSCRIPTION = 'price_1TAOrME8iqjFMOfS8HPpsTTQ';
 
-  const lineItem: Stripe.Checkout.SessionCreateParams.LineItem = priceId
-    ? { price: priceId, quantity: 1 }
-    : {
-        price_data: {
-          currency: 'usd',
-          product_data: { name: 'Pitch Deck – Pay Per Deck' },
-          unit_amount: 9900,
-        },
-        quantity: 1,
-      };
+export async function createDeckCheckoutSession(deckId: string, userId?: string, orderId?: string) {
+  const priceId = process.env.STRIPE_PRICE_DECK || DEFAULT_PRICE_DECK;
+
+  const lineItem: Stripe.Checkout.SessionCreateParams.LineItem = {
+    price: priceId,
+    quantity: 1,
+  };
 
   const metadata: Record<string, string> = { deckId };
   if (userId) metadata.userId = userId;
@@ -45,19 +43,12 @@ export async function createDeckCheckoutSession(deckId: string, userId?: string,
 }
 
 export async function createSubscriptionCheckoutSession(userId?: string) {
-  const priceId = process.env.STRIPE_PRICE_SUBSCRIPTION;
+  const priceId = process.env.STRIPE_PRICE_SUBSCRIPTION || DEFAULT_PRICE_SUBSCRIPTION;
 
-  const lineItem: Stripe.Checkout.SessionCreateParams.LineItem = priceId
-    ? { price: priceId, quantity: 1 }
-    : {
-        price_data: {
-          currency: 'usd',
-          product_data: { name: 'Pitch Deck – Monthly Subscription' },
-          unit_amount: 4900,
-          recurring: { interval: 'month' },
-        },
-        quantity: 1,
-      };
+  const lineItem: Stripe.Checkout.SessionCreateParams.LineItem = {
+    price: priceId,
+    quantity: 1,
+  };
 
   const metadata: Record<string, string> = {};
   if (userId) metadata.userId = userId;
