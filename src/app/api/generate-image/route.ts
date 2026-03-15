@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { generateDeckGraphic, generateBrandAsset, generateColorScheme } from "@/lib/ai/gemini-image";
+import { createRateLimiter, getClientIp } from "@/lib/rate-limit";
 
 // ---------------------------------------------------------------------------
 // POST /api/generate-image
@@ -7,30 +8,17 @@ import { generateDeckGraphic, generateBrandAsset, generateColorScheme } from "@/
 // Returns: { image?: string, colors?: object, error?: string }
 // ---------------------------------------------------------------------------
 
-// Simple per-IP rate limiter
-const ipBuckets = new Map<string, { count: number; resetAt: number }>();
-const MAX_REQUESTS = 10;
-const WINDOW_MS = 60_000;
-
-function rateLimit(ip: string): boolean {
-  const now = Date.now();
-  const bucket = ipBuckets.get(ip);
-
-  if (!bucket || now > bucket.resetAt) {
-    ipBuckets.set(ip, { count: 1, resetAt: now + WINDOW_MS });
-    return true;
-  }
-
-  if (bucket.count >= MAX_REQUESTS) return false;
-  bucket.count += 1;
-  return true;
-}
+/** Image generation: 10 requests per 60 seconds per IP. */
+const imageLimiter = createRateLimiter("generate-image", {
+  maxRequests: 10,
+  windowMs: 60_000,
+});
 
 export async function POST(request: NextRequest) {
   try {
-    const ip = request.headers.get("x-forwarded-for") ?? request.headers.get("x-real-ip") ?? "anonymous";
+    const ip = getClientIp(request);
 
-    if (!rateLimit(ip)) {
+    if (!imageLimiter.check(ip)) {
       return NextResponse.json(
         { error: "Rate limit exceeded. Please wait a moment and try again." },
         { status: 429 },
