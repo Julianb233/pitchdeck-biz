@@ -11,6 +11,20 @@ const nextConfig: NextConfig = {
     unoptimized: true,
   },
   serverExternalPackages: ["@google/genai"],
+  async redirects() {
+    return [
+      {
+        source: "/about",
+        destination: "/",
+        permanent: false,
+      },
+      {
+        source: "/work",
+        destination: "/",
+        permanent: false,
+      },
+    ];
+  },
 };
 
 export default nextConfig;

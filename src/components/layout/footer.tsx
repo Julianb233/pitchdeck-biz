@@ -1,8 +1,6 @@
 "use client"
 
-import { useState } from "react"
 import Link from "next/link"
-import { toast } from "sonner"
 
 const footerLinks = [
   { href: "/", label: "Home" },
@@ -12,51 +10,6 @@ const footerLinks = [
   { href: "#faq", label: "FAQ" },
   { href: "mailto:hello@pitchdeck.biz", label: "Contact" },
 ]
-
-function NewsletterForm() {
-  const [email, setEmail] = useState("")
-  const [submitted, setSubmitted] = useState(false)
-
-  function handleSubmit(e: React.FormEvent) {
-    e.preventDefault()
-    if (!email) return
-    setSubmitted(true)
-    setEmail("")
-    toast.success("You're on the list! We'll keep you posted.")
-  }
-
-  return (
-    <form className="flex flex-col gap-3" onSubmit={handleSubmit}>
-      <input
-        type="email"
-        placeholder="Enter your email"
-        value={email}
-        onChange={(e) => setEmail(e.target.value)}
-        required
-        disabled={submitted}
-        className="px-4 py-2.5 text-sm bg-secondary rounded-lg border-0 focus:ring-2 outline-none disabled:opacity-50"
-        style={{ outlineColor: "#203eec" }}
-      />
-      <button
-        type="submit"
-        disabled={submitted}
-        className="px-4 py-2.5 text-sm font-medium text-white rounded-lg transition-all relative overflow-hidden disabled:opacity-50"
-        style={{
-          background: "linear-gradient(135deg, #203eec 0%, #00d4ff 100%)",
-          boxShadow: "0 4px 20px rgba(32, 62, 236, 0.3)",
-        }}
-        onMouseEnter={(e) => {
-          e.currentTarget.style.boxShadow = "0 8px 30px rgba(32, 62, 236, 0.5), 0 0 40px rgba(0, 212, 255, 0.3)"
-        }}
-        onMouseLeave={(e) => {
-          e.currentTarget.style.boxShadow = "0 4px 20px rgba(32, 62, 236, 0.3)"
-        }}
-      >
-        {submitted ? "Subscribed!" : "Subscribe"}
-      </button>
-    </form>
-  )
-}
 
 export function Footer() {
   return (
@@ -103,7 +56,16 @@ export function Footer() {
           <div>
             <h4 className="text-sm font-semibold mb-4">Stay Updated</h4>
             <p className="text-sm text-muted-foreground mb-4">Get product updates and AI tips directly to your inbox.</p>
-            <NewsletterForm />
+            <Link
+              href="mailto:hello@pitchdeck.biz?subject=Subscribe%20to%20pitchdeck.biz%20updates"
+              className="inline-flex items-center justify-center px-4 py-2.5 text-sm font-medium text-white rounded-lg transition-all"
+              style={{
+                background: "linear-gradient(135deg, #203eec 0%, #00d4ff 100%)",
+                boxShadow: "0 4px 20px rgba(32, 62, 236, 0.3)",
+              }}
+            >
+              Subscribe via Email
+            </Link>
           </div>
         </div>
 
