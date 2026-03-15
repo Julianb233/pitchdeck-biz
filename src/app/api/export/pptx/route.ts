@@ -3,7 +3,6 @@ import { generatePptx } from "@/lib/export/pptx-generator";
 import { exportLimiter, getClientIp, applyRateLimit } from "@/lib/rate-limit";
 import type { DeckContent } from "@/lib/types";
 import type { BrandColors } from "@/lib/export/pptx-generator";
-import { exportLimiter, getClientIp, applyRateLimit } from "@/lib/rate-limit";
 
 export async function POST(request: NextRequest) {
   const ip = getClientIp(request);

@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
-import { createAdminClient } from "@/lib/supabase/admin";
-import { generateToken } from "@/lib/auth/tokens";
+import { createClient } from "@/lib/supabase/server";
 
 const ForgotPasswordSchema = z.object({
   email: z.string().email("Invalid email address"),
@@ -19,38 +18,26 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const { email } = parsed.data;
+    const supabase = await createClient();
+    const appUrl =
+      process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
+
+    const { error } = await supabase.auth.resetPasswordForEmail(
+      parsed.data.email,
+      {
+        redirectTo: `${appUrl}/auth/callback?next=/reset-password`,
+      },
+    );
+
+    if (error) {
+      console.error("Password reset email error:", error);
+    }
 
     // Always return success to prevent email enumeration
-    const successResponse = NextResponse.json({
-      message: "If an account with that email exists, a password reset link has been sent.",
+    return NextResponse.json({
+      message:
+        "If an account with that email exists, a password reset link has been sent.",
     });
-
-    const supabase = createAdminClient();
-    if (!supabase) {
-      return successResponse;
-    }
-
-    // Look up user by email
-    const { data: user } = await supabase
-      .from("users")
-      .select("id")
-      .eq("email", email)
-      .maybeSingle();
-
-    if (!user) {
-      // Don't reveal that the user doesn't exist
-      return successResponse;
-    }
-
-    const token = await generateToken(user.id, "password_reset");
-    if (token) {
-      // TODO: Send password reset email once email provider is configured
-      console.log(`[forgot-password] Reset token for ${email}: ${token}`);
-      console.log(`[forgot-password] Reset URL: /reset-password?token=${token}`);
-    }
-
-    return successResponse;
   } catch {
     return NextResponse.json(
       { error: "Internal server error" },

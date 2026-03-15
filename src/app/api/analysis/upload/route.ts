@@ -7,6 +7,7 @@ import {
   imageToBase64,
   logger,
 } from "@/lib/analysis";
+import { analysisLimiter, getClientIp, applyRateLimit } from "@/lib/rate-limit";
 
 export const runtime = "nodejs";
 
@@ -14,6 +15,11 @@ export async function POST(request: NextRequest) {
   // Auth check
   const authError = validateApiKey(request);
   if (authError) return authError;
+
+  // Rate limiting — 5 req/min per IP
+  const ip = getClientIp(request);
+  const limited = applyRateLimit(analysisLimiter, ip, "Too many upload requests. Please try again later.");
+  if (limited) return limited;
 
   try {
     const formData = await request.formData();

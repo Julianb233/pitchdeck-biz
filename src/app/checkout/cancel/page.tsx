@@ -1,5 +1,14 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { ArrowLeft, Home } from "lucide-react";
+import { createPageMetadata } from "@/lib/metadata";
+
+export const metadata: Metadata = createPageMetadata({
+  title: "Checkout Cancelled",
+  description: "Your checkout was cancelled. No charges were made. Return anytime to create your AI-generated pitch deck.",
+  path: "/checkout/cancel",
+  noIndex: true,
+});
 
 export default function CheckoutCancelPage() {
 

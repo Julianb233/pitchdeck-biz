@@ -11,7 +11,7 @@ import {
 import { createClient } from "@/lib/supabase/server";
 import type { Json } from "@/lib/supabase/types";
 import { saveDeck } from "@/lib/supabase/decks";
-import { generationLimiter, getClientIp, applyRateLimit } from "@/lib/rate-limit";
+import { analysisLimiter, getClientIp, applyRateLimit } from "@/lib/rate-limit";
 
 export const runtime = "nodejs";
 
@@ -29,7 +29,7 @@ export const runtime = "nodejs";
 export async function POST(request: NextRequest) {
   // Rate limiting — 10 requests per minute per IP
   const ip = getClientIp(request);
-  const limited = applyRateLimit(generationLimiter, ip, "Too many analysis requests. Please try again later.");
+  const limited = applyRateLimit(analysisLimiter, ip, "Too many analysis requests. Please try again later.");
   if (limited) return limited;
 
   // Auth check

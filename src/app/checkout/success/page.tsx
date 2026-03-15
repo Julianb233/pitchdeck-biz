@@ -1,5 +1,14 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { CheckCircle, ArrowRight, Home } from "lucide-react";
+import { createPageMetadata } from "@/lib/metadata";
+
+export const metadata: Metadata = createPageMetadata({
+  title: "Payment Successful",
+  description: "Your payment is confirmed. Access your AI-generated pitch deck from the dashboard.",
+  path: "/checkout/success",
+  noIndex: true,
+});
 
 export const dynamic = "force-dynamic";
 

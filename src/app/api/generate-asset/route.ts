@@ -9,6 +9,7 @@ import { getTemplateById } from "@/lib/branding/templates"
 import { generateBrandAsset } from "@/lib/ai/gemini-image"
 import { createClient } from "@/lib/supabase/server"
 import { saveAsset } from "@/lib/supabase/assets"
+import { generateAssetLimiter, getClientIp, applyRateLimit } from "@/lib/rate-limit"
 
 // Map API asset types to generateBrandAsset type parameter
 const ASSET_TYPE_TO_BRAND_TYPE: Record<AssetType, "social" | "mockup" | "collateral" | "identity"> = {

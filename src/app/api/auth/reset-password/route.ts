@@ -1,14 +1,12 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 import { z } from "zod";
-import { validateToken } from "@/lib/auth/tokens";
-import { createAdminClient } from "@/lib/supabase/admin";
+import { createClient } from "@/lib/supabase/server";
 
 const ResetPasswordSchema = z.object({
-  token: z.string().uuid("Invalid reset token"),
   password: z.string().min(8, "Password must be at least 8 characters"),
 });
 
-export async function POST(request: NextRequest) {
+export async function POST(request: Request) {
   try {
     const body = await request.json();
     const parsed = ResetPasswordSchema.safeParse(body);
@@ -20,36 +18,34 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const { token, password } = parsed.data;
+    const supabase = await createClient();
 
-    const result = await validateToken(token, "password_reset");
-    if ("error" in result) {
-      return NextResponse.json({ error: result.error }, { status: 400 });
-    }
+    // The user must have followed the reset link, which sets a session
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
 
-    // Update password via Supabase Admin API
-    const supabase = createAdminClient();
-    if (!supabase) {
+    if (!user) {
       return NextResponse.json(
-        { error: "Service unavailable" },
-        { status: 503 },
+        {
+          error:
+            "Invalid or expired reset link. Please request a new password reset.",
+        },
+        { status: 401 },
       );
     }
 
-    const { error: updateError } = await supabase.auth.admin.updateUserById(
-      result.userId,
-      { password }
-    );
+    const { error } = await supabase.auth.updateUser({
+      password: parsed.data.password,
+    });
 
-    if (updateError) {
-      console.error("[reset-password] Failed to update password:", updateError.message);
-      return NextResponse.json(
-        { error: "Failed to reset password" },
-        { status: 500 },
-      );
+    if (error) {
+      return NextResponse.json({ error: error.message }, { status: 400 });
     }
 
-    return NextResponse.json({ message: "Password reset successfully" });
+    return NextResponse.json({
+      message: "Password updated successfully.",
+    });
   } catch {
     return NextResponse.json(
       { error: "Internal server error" },
