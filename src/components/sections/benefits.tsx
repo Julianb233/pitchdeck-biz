@@ -41,7 +41,7 @@ const stats = [
 const comparisons = [
   {
     oldWay: "$5,000 - $15,000 for a designer",
-    newWay: "Starting at $497 per deck",
+    newWay: "Starting at $99 per deck",
   },
   {
     oldWay: "2-4 weeks turnaround",
