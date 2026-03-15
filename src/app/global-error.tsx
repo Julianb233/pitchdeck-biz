@@ -1,5 +1,6 @@
 "use client";
 
+import * as Sentry from "@sentry/nextjs";
 import { useEffect } from "react";
 
 export default function GlobalError({
@@ -11,6 +12,9 @@ export default function GlobalError({
 }) {
   useEffect(() => {
     console.error("[global-error]", error);
+    if (process.env.NEXT_PUBLIC_SENTRY_DSN) {
+      Sentry.captureException(error);
+    }
   }, [error]);
 
   return (
@@ -37,6 +41,7 @@ export default function GlobalError({
             </p>
             <button
               onClick={() => reset()}
+              type="button"
               style={{
                 padding: "0.625rem 1.5rem",
                 borderRadius: "9999px",

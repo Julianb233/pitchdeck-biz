@@ -5,5 +5,12 @@
     "status": "completed",
     "completedAt": "2026-03-15T12:00:00Z",
     "summary": "Added Supabase persistence to rate limiter, replaced inline Maps in gemini-image.ts with shared module, added webhook_events and rate_limits tables to schema and types. All data stores already used Supabase."
+  },
+  "v11-03-build": {
+    "task": "Add password reset flow",
+    "worker": "agent-6",
+    "status": "completed",
+    "completedAt": "2026-03-15T17:00:00Z",
+    "summary": "Password reset flow was already fully implemented: forgot-password API route (Supabase resetPasswordForEmail), reset-password API route (updateUser), auth/callback handler (code exchange with recovery detection), frontend pages for forgot-password and reset-password, and Forgot password? link on login page. Added: password_reset_tokens table to schema.sql, success/error banners on login page for verified/resetSuccess/urlError states, fixed pre-existing Sentry import build error in global-error.tsx."
   }
 }
