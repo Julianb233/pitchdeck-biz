@@ -1,0 +1,1 @@
+{"taskId": "linear-AI-2509", "status": "completed", "summary": "Fixed upload zone icon on /create page. Replaced FileText icon (which rendered as a black circle) with the Upload icon from lucide-react in the drag-and-drop upload area."}

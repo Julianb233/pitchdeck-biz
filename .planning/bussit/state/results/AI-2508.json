@@ -1,0 +1,1 @@
+{"taskId": "linear-AI-2508", "status": "completed", "summary": "Removed dead social media icon links (Twitter, LinkedIn with # hrefs) from footer. Updated Privacy Policy and Terms of Service links from # to /privacy and /terms. Created basic Privacy Policy page at src/app/privacy/page.tsx and Terms of Service page at src/app/terms/page.tsx."}

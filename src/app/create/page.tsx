@@ -453,7 +453,7 @@ export default function CreatePage() {
                         "linear-gradient(135deg, rgba(255,0,110,0.1), rgba(139,92,246,0.1))",
                     }}
                   >
-                    <FileText className="w-8 h-8 text-primary" />
+                    <Upload className="w-8 h-8 text-primary" />
                   </div>
                   <p className="font-semibold text-lg mb-1">
                     {isDragging ? "Drop files here" : "Drop files or click to browse"}

@@ -1,0 +1,1 @@
+{"taskId": "linear-AI-2504", "status": "completed", "summary": "Searched all .tsx files in src/ for double hyphens used as dashes. No instances of ' -- ' found — all user-visible text already uses proper em dashes (—). No changes needed."}
