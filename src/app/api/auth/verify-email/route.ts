@@ -12,7 +12,7 @@ export async function GET(request: NextRequest) {
     );
   }
 
-  const result = validateVerificationToken(token);
+  const result = await validateVerificationToken(token);
 
   if (!result) {
     return NextResponse.json(

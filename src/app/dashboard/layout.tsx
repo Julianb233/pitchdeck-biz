@@ -62,9 +62,19 @@ export default async function DashboardLayout({ children }: { children: React.Re
   }
 
   const displayName = user.user_metadata?.name || user.email || "User";
+  const emailVerified = !!(user.email_confirmed_at || user.confirmed_at);
 
   return (
     <div className="min-h-screen bg-zinc-950 text-white">
+      {/* Email verification banner - shown when email is not yet verified */}
+      {!emailVerified && (
+        <div className="bg-amber-500/10 border-b border-amber-500/20 px-4 py-2.5 text-center">
+          <p className="text-sm text-amber-200">
+            <span className="font-medium">Verify your email address.</span>{" "}
+            Please check your inbox for a verification link to unlock all features.
+          </p>
+        </div>
+      )}
       {/* Dashboard Header */}
       <header className="border-b border-zinc-800 bg-zinc-950/80 backdrop-blur-md sticky top-0 z-50">
         <div className="max-w-[1400px] mx-auto px-6 md:px-12 flex items-center justify-between h-16">
