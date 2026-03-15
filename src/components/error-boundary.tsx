@@ -1,6 +1,5 @@
 "use client";
 
-import * as Sentry from "@sentry/nextjs";
 import { useEffect } from "react";
 
 export default function ErrorBoundary({
@@ -11,7 +10,12 @@ export default function ErrorBoundary({
   reset: () => void;
 }) {
   useEffect(() => {
-    Sentry.captureException(error);
+    // Dynamically import Sentry to avoid build errors when not installed
+    import("@sentry/nextjs")
+      .then((Sentry) => Sentry.captureException(error))
+      .catch(() => {
+        // Sentry not installed, silently skip
+      });
   }, [error]);
 
   return (
