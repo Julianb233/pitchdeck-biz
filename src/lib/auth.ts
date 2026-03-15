@@ -7,6 +7,7 @@ export interface SafeUser {
   email: string;
   name: string;
   subscriptionStatus: "free" | "pro";
+  emailVerified: boolean;
   createdAt: Date;
 }
 
@@ -19,6 +20,7 @@ export async function signUp(email: string, password: string, name: string) {
     password,
     options: {
       data: { name },
+      emailRedirectTo: `${process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}/auth/callback?type=signup`,
     },
   });
 
@@ -63,12 +65,13 @@ export async function getUser() {
 
 // ── Session helpers (used by API routes and server components) ──────────────
 
-function toSafeUser(user: { id: string; email?: string; user_metadata?: Record<string, unknown>; created_at?: string }): SafeUser {
+function toSafeUser(user: { id: string; email?: string; email_confirmed_at?: string | null; confirmed_at?: string | null; user_metadata?: Record<string, unknown>; created_at?: string }): SafeUser {
   return {
     id: user.id,
     email: user.email ?? "",
     name: (user.user_metadata?.name as string) ?? "",
     subscriptionStatus: "free",
+    emailVerified: !!(user.email_confirmed_at || user.confirmed_at),
     createdAt: user.created_at ? new Date(user.created_at) : new Date(),
   };
 }

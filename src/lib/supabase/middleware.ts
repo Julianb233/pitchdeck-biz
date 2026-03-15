@@ -36,10 +36,19 @@ export async function updateSession(request: NextRequest) {
 
   // Protect dashboard and create routes — redirect to login if not authenticated
   const { pathname } = request.nextUrl;
-  if ((pathname.startsWith('/dashboard') || pathname.startsWith('/create')) && !user) {
+  const isProtectedRoute = pathname.startsWith('/dashboard') || pathname.startsWith('/create');
+
+  if (isProtectedRoute && !user) {
     const loginUrl = new URL('/login', request.url);
     loginUrl.searchParams.set('next', pathname);
     return NextResponse.redirect(loginUrl);
+  }
+
+  // Gate unverified users — redirect to a verification notice
+  if (isProtectedRoute && user && !user.email_confirmed_at) {
+    const verifyUrl = new URL('/signup', request.url);
+    verifyUrl.searchParams.set('verify', 'pending');
+    return NextResponse.redirect(verifyUrl);
   }
 
   return supabaseResponse;

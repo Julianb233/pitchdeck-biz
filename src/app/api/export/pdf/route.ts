@@ -6,6 +6,7 @@ import {
 } from "@/lib/export/pdf-generator";
 import type { DeckContent } from "@/lib/types";
 import type { BrandColors } from "@/lib/export/pptx-generator";
+import { exportLimiter, getClientIp, applyRateLimit } from "@/lib/rate-limit";
 
 type PdfType = "sell-sheet" | "one-pager" | "brand-kit";
 
@@ -25,6 +26,10 @@ const FILENAMES: Record<PdfType, string> = {
 };
 
 export async function POST(request: NextRequest) {
+  const ip = getClientIp(request);
+  const limited = applyRateLimit(exportLimiter, ip, "Too many export requests. Please try again later.");
+  if (limited) return limited;
+
   try {
     const body = await request.json();
     const { deck, brandColors, type } = body as {
@@ -38,7 +43,7 @@ export async function POST(request: NextRequest) {
     if (!GENERATORS[pdfType]) {
       return NextResponse.json(
         {
-          error: `Invalid PDF type: ${pdfType}. Must be one of: sell-sheet, one-pager, brand-kit`,
+          error: "Invalid PDF type. Must be one of: sell-sheet, one-pager, brand-kit",
         },
         { status: 400 }
       );
@@ -59,7 +64,7 @@ export async function POST(request: NextRequest) {
       status: 200,
       headers: {
         "Content-Type": "application/pdf",
-        "Content-Disposition": `attachment; filename="${filename}"`,
+        "Content-Disposition": "attachment; filename=\"" + filename + "\"",
         "Content-Length": String(buffer.length),
       },
     });

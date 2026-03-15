@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
-import { createBrowserClient } from "@supabase/ssr";
-import { authLimiter, getClientIp } from "@/lib/rate-limit";
+import { createAdminClient } from "@/lib/supabase/admin";
+import { generateToken } from "@/lib/auth/tokens";
 
 const ForgotPasswordSchema = z.object({
   email: z.string().email("Invalid email address"),
@@ -9,15 +9,6 @@ const ForgotPasswordSchema = z.object({
 
 export async function POST(request: NextRequest) {
   try {
-    // Rate limiting
-    const ip = getClientIp(request);
-    if (!authLimiter.check(ip)) {
-      return NextResponse.json(
-        { error: "Too many attempts. Please try again later." },
-        { status: 429 },
-      );
-    }
-
     const body = await request.json();
     const parsed = ForgotPasswordSchema.safeParse(body);
 
@@ -28,27 +19,38 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const supabase = createBrowserClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    );
-
-    const { error } = await supabase.auth.resetPasswordForEmail(
-      parsed.data.email,
-      {
-        redirectTo: `${process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}/auth/reset-password`,
-      },
-    );
-
-    if (error) {
-      console.error("Password reset email error:", error);
-    }
+    const { email } = parsed.data;
 
     // Always return success to prevent email enumeration
-    return NextResponse.json({
-      message:
-        "If an account with that email exists, a password reset link has been sent.",
+    const successResponse = NextResponse.json({
+      message: "If an account with that email exists, a password reset link has been sent.",
     });
+
+    const supabase = createAdminClient();
+    if (!supabase) {
+      return successResponse;
+    }
+
+    // Look up user by email
+    const { data: user } = await supabase
+      .from("users")
+      .select("id")
+      .eq("email", email)
+      .maybeSingle();
+
+    if (!user) {
+      // Don't reveal that the user doesn't exist
+      return successResponse;
+    }
+
+    const token = await generateToken(user.id, "password_reset");
+    if (token) {
+      // TODO: Send password reset email once email provider is configured
+      console.log(`[forgot-password] Reset token for ${email}: ${token}`);
+      console.log(`[forgot-password] Reset URL: /reset-password?token=${token}`);
+    }
+
+    return successResponse;
   } catch {
     return NextResponse.json(
       { error: "Internal server error" },

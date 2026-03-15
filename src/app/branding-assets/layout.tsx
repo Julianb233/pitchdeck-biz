@@ -1,4 +1,13 @@
+import type React from "react"
+import type { Metadata } from "next"
 import Link from "next/link"
+import { createPageMetadata } from "@/lib/metadata"
+
+export const metadata: Metadata = createPageMetadata({
+  title: "Branding Assets",
+  description: "Generate professional social media graphics, product mockups, marketing collateral, and brand identity assets powered by AI.",
+  path: "/branding-assets",
+})
 
 const assetNav = [
   { href: "/branding-assets/social-media", label: "Social Media" },

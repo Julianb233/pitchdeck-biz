@@ -2,8 +2,13 @@ import { NextRequest, NextResponse } from "next/server";
 import { generateBundle } from "@/lib/export/zip-bundler";
 import type { DeckContent } from "@/lib/types";
 import type { BrandColors } from "@/lib/export/pptx-generator";
+import { exportLimiter, getClientIp, applyRateLimit } from "@/lib/rate-limit";
 
 export async function POST(request: NextRequest) {
+  const ip = getClientIp(request);
+  const limited = applyRateLimit(exportLimiter, ip, "Too many export requests. Please try again later.");
+  if (limited) return limited;
+
   try {
     const body = await request.json();
     const { deck, brandColors } = body as {

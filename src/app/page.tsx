@@ -1,3 +1,4 @@
+import { getHomepageJsonLd } from "@/lib/metadata"
 import { Header } from "@/components/layout/header"
 import { Footer } from "@/components/layout/footer"
 import { Hero } from "@/components/sections/hero"
@@ -14,6 +15,10 @@ import { GradientBar } from "@/components/ui/gradient-bar"
 export default function HomePage() {
   return (
     <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(getHomepageJsonLd()) }}
+      />
       <Header />
       <main>
         <Hero />

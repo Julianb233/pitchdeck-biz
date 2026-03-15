@@ -1,9 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
-import { createServerClient } from "@supabase/ssr";
-import { cookies } from "next/headers";
+import { validateToken } from "@/lib/auth/tokens";
+import { createAdminClient } from "@/lib/supabase/admin";
 
 const ResetPasswordSchema = z.object({
+  token: z.string().uuid("Invalid reset token"),
   password: z.string().min(8, "Password must be at least 8 characters"),
 });
 
@@ -19,50 +20,36 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const cookieStore = await cookies();
-    const supabase = createServerClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-      {
-        cookies: {
-          getAll() {
-            return cookieStore.getAll();
-          },
-          setAll(cookiesToSet) {
-            cookiesToSet.forEach(({ name, value, options }) =>
-              cookieStore.set(name, value, options),
-            );
-          },
-        },
-      },
-    );
+    const { token, password } = parsed.data;
 
-    // The user must have followed the reset link, which sets a session
-    const {
-      data: { session },
-    } = await supabase.auth.getSession();
+    const result = await validateToken(token, "password_reset");
+    if ("error" in result) {
+      return NextResponse.json({ error: result.error }, { status: 400 });
+    }
 
-    if (!session) {
+    // Update password via Supabase Admin API
+    const supabase = createAdminClient();
+    if (!supabase) {
       return NextResponse.json(
-        {
-          error:
-            "Invalid or expired reset link. Please request a new password reset.",
-        },
-        { status: 401 },
+        { error: "Service unavailable" },
+        { status: 503 },
       );
     }
 
-    const { error } = await supabase.auth.updateUser({
-      password: parsed.data.password,
-    });
+    const { error: updateError } = await supabase.auth.admin.updateUserById(
+      result.userId,
+      { password }
+    );
 
-    if (error) {
-      return NextResponse.json({ error: error.message }, { status: 400 });
+    if (updateError) {
+      console.error("[reset-password] Failed to update password:", updateError.message);
+      return NextResponse.json(
+        { error: "Failed to reset password" },
+        { status: 500 },
+      );
     }
 
-    return NextResponse.json({
-      message: "Password updated successfully.",
-    });
+    return NextResponse.json({ message: "Password reset successfully" });
   } catch {
     return NextResponse.json(
       { error: "Internal server error" },
