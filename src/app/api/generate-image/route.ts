@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { generateDeckGraphic, generateBrandAsset, generateColorScheme } from "@/lib/ai/gemini-image";
-import { generateImageLimiter, getClientIp, applyRateLimit } from "@/lib/rate-limit";
+import { generateLimiter } from "@/lib/rate-limit";
 
 // ---------------------------------------------------------------------------
 // POST /api/generate-image
@@ -10,9 +10,7 @@ import { generateImageLimiter, getClientIp, applyRateLimit } from "@/lib/rate-li
 
 export async function POST(request: NextRequest) {
   try {
-    // Rate limiting — 5 req/min per IP
-    const ip = getClientIp(request);
-    const limited = applyRateLimit(generateImageLimiter, ip, "Rate limit exceeded. Please wait a moment and try again.");
+    const limited = generateLimiter.check(request);
     if (limited) return limited;
 
     const body = await request.json();

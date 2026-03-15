@@ -21,6 +21,10 @@ function LoginForm() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
+  const verified = searchParams.get("verified") === "true";
+  const resetSuccess = searchParams.get("reset") === "true";
+  const urlError = searchParams.get("error");
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError("");

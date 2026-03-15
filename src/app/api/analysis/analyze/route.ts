@@ -3,6 +3,7 @@ import { z } from "zod";
 import { validateApiKey, analyzeBusinessInfo, logger } from "@/lib/analysis";
 import { createClient } from "@/lib/supabase/server";
 import type { Json } from "@/lib/supabase/types";
+import { analysisLimiter, getClientIp, applyRateLimit } from "@/lib/rate-limit";
 
 export const runtime = "nodejs";
 
