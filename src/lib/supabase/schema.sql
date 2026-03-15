@@ -210,3 +210,5 @@ create index if not exists idx_verification_tokens_token on public.verification_
 create index if not exists idx_verification_tokens_user_id on public.verification_tokens(user_id);
 
 alter table public.verification_tokens enable row level security;
+
+-- Verification tokens are managed by service role only (no user-facing RLS needed)
