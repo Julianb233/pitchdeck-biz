@@ -34,9 +34,9 @@ export async function updateSession(request: NextRequest) {
   // Refresh the auth token
   const { data: { user } } = await supabase.auth.getUser();
 
-  // Protect dashboard routes — redirect to login if not authenticated
+  // Protect dashboard and create routes — redirect to login if not authenticated
   const { pathname } = request.nextUrl;
-  if (pathname.startsWith('/dashboard') && !user) {
+  if ((pathname.startsWith('/dashboard') || pathname.startsWith('/create')) && !user) {
     const loginUrl = new URL('/login', request.url);
     loginUrl.searchParams.set('next', pathname);
     return NextResponse.redirect(loginUrl);
