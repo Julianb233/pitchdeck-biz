@@ -192,3 +192,21 @@ create policy "Users can view own token usage"
 create policy "Users can insert own token usage"
   on public.token_usage for insert
   with check (auth.uid() = user_id);
+
+-- =============================================================================
+-- 7. verification_tokens — email verification and password reset tokens
+-- =============================================================================
+create table if not exists public.verification_tokens (
+  id         uuid primary key default uuid_generate_v4(),
+  user_id    uuid not null references auth.users(id) on delete cascade,
+  token      text not null unique,
+  type       text not null default 'email_verification',
+  expires_at timestamptz not null,
+  used_at    timestamptz,
+  created_at timestamptz not null default now()
+);
+
+create index if not exists idx_verification_tokens_token on public.verification_tokens(token);
+create index if not exists idx_verification_tokens_user_id on public.verification_tokens(user_id);
+
+alter table public.verification_tokens enable row level security;

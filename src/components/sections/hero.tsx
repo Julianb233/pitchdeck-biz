@@ -49,7 +49,11 @@ export function Hero() {
             </div>
 
             {/* Main headline */}
+<<<<<<< HEAD
             <h1 className="text-5xl sm:text-6xl lg:text-[80px] font-sans font-semibold tracking-tight leading-[1.05] text-balance">
+=======
+            <h1 className="text-5xl sm:text-6xl lg:text-[80px] font-semibold tracking-tight leading-[1.05] text-balance">
+>>>>>>> worktree-agent-a7f89d27
               <span className="hero-word font-sans font-semibold text-5xl md:text-7xl py-2" style={{ animationDelay: "0s", marginRight: "0.25em" }}>
                 Turn
               </span>

@@ -1,8 +1,17 @@
 import type React from "react"
+import type { Metadata } from "next"
 import Link from "next/link"
 import { redirect } from "next/navigation"
 import { createClient } from "@/lib/supabase/server"
 import { LogoutButton } from "@/components/dashboard/logout-button"
+import { createPageMetadata } from "@/lib/metadata"
+
+export const metadata: Metadata = createPageMetadata({
+  title: "Dashboard",
+  description: "Manage your AI-generated pitch decks, branding assets, and account settings.",
+  path: "/dashboard",
+  noIndex: true,
+})
 
 export const dynamic = "force-dynamic";
 

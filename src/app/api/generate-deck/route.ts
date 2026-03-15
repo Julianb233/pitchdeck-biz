@@ -5,6 +5,7 @@ import { attachImagesToSlides } from "@/lib/ai/slide-image-generator";
 import { createClient } from "@/lib/supabase/server";
 import { updateDeckContent, updateDeckStatus } from "@/lib/supabase/decks";
 import type { Json } from "@/lib/supabase/types";
+import { generationLimiter, getClientIp, applyRateLimit } from "@/lib/rate-limit";
 
 export const runtime = "nodejs";
 export const maxDuration = 60;
@@ -62,6 +63,11 @@ Return ONLY the JSON object matching the schema. No markdown, no code fences, no
 }
 
 export async function POST(request: NextRequest) {
+  // Rate limiting — 10 requests per minute per IP
+  const ip = getClientIp(request);
+  const limited = applyRateLimit(generationLimiter, ip, "Too many deck generation requests. Please try again later.");
+  if (limited) return limited;
+
   try {
     const apiKey = process.env.ANTHROPIC_API_KEY;
     if (!apiKey) {

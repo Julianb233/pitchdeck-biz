@@ -19,12 +19,6 @@ interface RateLimiterOptions {
   windowMs: number;
 }
 
-interface CheckResult {
-  allowed: boolean;
-  remaining: number;
-  retryAfterMs: number;
-}
-
 const stores = new Map<string, Map<string, Bucket>>();
 
 // Periodic cleanup to prevent unbounded memory growth
@@ -54,32 +48,27 @@ export function createRateLimiter(name: string, options: RateLimiterOptions) {
   const store = getStore(name);
 
   return {
-    /** Returns `true` if the request is allowed, `false` if rate-limited. */
+    /** Returns true if the request is allowed, false if rate-limited. */
     check(key: string): boolean {
-      return this.checkDetailed(key).allowed;
-    },
-
-    /** Returns detailed rate-limit info including remaining count and retry-after. */
-    checkDetailed(key: string): CheckResult {
       const now = Date.now();
       const bucket = store.get(key);
 
       if (!bucket || now > bucket.resetAt) {
         store.set(key, { count: 1, resetAt: now + windowMs });
-        return { allowed: true, remaining: maxRequests - 1, retryAfterMs: 0 };
+        return true;
       }
 
-      if (bucket.count >= maxRequests) {
-        const retryAfterMs = Math.max(0, bucket.resetAt - now);
-        return { allowed: false, remaining: 0, retryAfterMs };
-      }
-
+      if (bucket.count >= maxRequests) return false;
       bucket.count += 1;
-      return {
-        allowed: true,
-        remaining: maxRequests - bucket.count,
-        retryAfterMs: 0,
-      };
+      return true;
+    },
+
+    /** Returns seconds until the rate limit resets for the given key. */
+    retryAfterSec(key: string): number {
+      const now = Date.now();
+      const bucket = store.get(key);
+      if (!bucket || now > bucket.resetAt) return 0;
+      return Math.ceil(Math.max(0, bucket.resetAt - now) / 1000);
     },
 
     /** Returns remaining requests for the given key. */
@@ -92,7 +81,7 @@ export function createRateLimiter(name: string, options: RateLimiterOptions) {
   };
 }
 
-// ── Presets ─────────────────────────────────────────────────────────────────
+// -- Presets ------------------------------------------------------------------
 
 /** Auth endpoints: 10 attempts per 60 seconds per IP. */
 export const authLimiter = createRateLimiter("auth", {
@@ -142,7 +131,7 @@ export const apiLimiter = createRateLimiter("api", {
   windowMs: 60_000,
 });
 
-// ── Helpers ─────────────────────────────────────────────────────────────────
+// -- Helpers ------------------------------------------------------------------
 
 export function getClientIp(request: Request | NextRequest): string {
   const headers = request.headers;
@@ -155,17 +144,16 @@ export function getClientIp(request: Request | NextRequest): string {
 
 /**
  * Apply rate limiting and return a 429 response if exceeded.
- * Returns `null` if the request is allowed.
+ * Returns null if the request is allowed.
  */
 export function applyRateLimit(
   limiter: ReturnType<typeof createRateLimiter>,
   key: string,
   message = "Too many requests. Please try again later.",
 ): NextResponse | null {
-  const result = limiter.checkDetailed(key);
-  if (result.allowed) return null;
+  if (limiter.check(key)) return null;
 
-  const retryAfterSec = Math.ceil(result.retryAfterMs / 1000);
+  const retryAfterSec = limiter.retryAfterSec(key);
   return NextResponse.json(
     { error: message },
     {

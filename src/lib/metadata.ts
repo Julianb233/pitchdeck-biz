@@ -21,3 +21,20 @@ export function createPageMetadata(
     },
   };
 }
+
+/**
+ * Returns JSON-LD structured data for the homepage.
+ */
+export function getHomepageJsonLd() {
+  return {
+    "@context": "https://schema.org",
+    "@type": "WebSite",
+    name: SITE_NAME,
+    url: process.env.NEXT_PUBLIC_APP_URL || "https://pitchdeck.biz",
+    description: DEFAULT_DESCRIPTION,
+    publisher: {
+      "@type": "Organization",
+      name: SITE_NAME,
+    },
+  };
+}
