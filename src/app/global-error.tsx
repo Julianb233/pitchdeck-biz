@@ -10,10 +10,7 @@ export default function GlobalError({
   reset: () => void;
 }) {
   useEffect(() => {
-    // Dynamically import Sentry to avoid bundling issues
-    import("@sentry/nextjs")
-      .then((Sentry) => Sentry.captureException(error))
-      .catch(() => {});
+    console.error("[global-error]", error);
   }, [error]);
 
   return (

@@ -1,2 +1,3 @@
-// Sentry server config — placeholder until @sentry/nextjs is installed
-export {};
+// Sentry server config — requires @sentry/nextjs to be installed
+// Install with: npm install @sentry/nextjs
+// Then uncomment the instrumentation.ts imports

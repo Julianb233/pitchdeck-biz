@@ -1,4 +1,5 @@
-import * as Sentry from "@sentry/nextjs";
+// Edge runtime — use @sentry/react since @sentry/node is not available
+import * as Sentry from "@sentry/react";
 
 const dsn = process.env.SENTRY_DSN || process.env.NEXT_PUBLIC_SENTRY_DSN;
 

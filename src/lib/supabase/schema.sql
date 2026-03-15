@@ -201,6 +201,7 @@ create table if not exists public.verification_tokens (
   user_id    uuid not null references auth.users(id) on delete cascade,
   token      text not null unique,
   type       text not null default 'email_verification',
+  email      text,
   expires_at timestamptz not null,
   used_at    timestamptz,
   created_at timestamptz not null default now()

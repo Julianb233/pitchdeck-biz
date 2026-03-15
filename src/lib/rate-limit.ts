@@ -110,11 +110,17 @@ export function createRateLimiter(nameOrOptions: string | RateLimiterOptions, ma
 
     if (!bucket || now > bucket.resetAt) {
       buckets.set(key, { count: 1, resetAt: now + windowMs });
+      if (isPersistent) {
+        persistentCheck(limiterName, key, maxRequests, windowMs).catch(() => {});
+      }
       return true;
     }
 
     if (bucket.count >= maxRequests) return false;
     bucket.count += 1;
+    if (isPersistent) {
+      persistentCheck(limiterName, key, maxRequests, windowMs).catch(() => {});
+    }
     return true;
   }
 
@@ -139,8 +145,8 @@ export function createRateLimiter(nameOrOptions: string | RateLimiterOptions, ma
 
 // -- Presets ------------------------------------------------------------------
 
-/** Auth endpoints: 10 req/min per IP. */
-export const authLimiter = createRateLimiter({ maxRequests: 10, windowMs: 60_000 });
+/** Auth endpoints: 10 req/min per IP. Persisted to Supabase for cross-instance enforcement. */
+export const authLimiter = createRateLimiter("auth", { maxRequests: 10, windowMs: 60_000, persistent: true });
 
 /** Analysis endpoints: 5 req/min per user. */
 export const analysisLimiter = createRateLimiter({ maxRequests: 5, windowMs: 60_000 });
