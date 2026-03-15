@@ -1,12 +1,8 @@
 "use client"
 
+import { useState } from "react"
 import Link from "next/link"
-import { Twitter, Linkedin } from "lucide-react"
-
-const socialLinks = [
-  { href: "#", icon: Twitter, label: "Twitter" },
-  { href: "#", icon: Linkedin, label: "LinkedIn" },
-]
+import { toast } from "sonner"
 
 const footerLinks = [
   { href: "/", label: "Home" },
@@ -16,6 +12,51 @@ const footerLinks = [
   { href: "#faq", label: "FAQ" },
   { href: "mailto:hello@pitchdeck.biz", label: "Contact" },
 ]
+
+function NewsletterForm() {
+  const [email, setEmail] = useState("")
+  const [submitted, setSubmitted] = useState(false)
+
+  function handleSubmit(e: React.FormEvent) {
+    e.preventDefault()
+    if (!email) return
+    setSubmitted(true)
+    setEmail("")
+    toast.success("You're on the list! We'll keep you posted.")
+  }
+
+  return (
+    <form className="flex flex-col gap-3" onSubmit={handleSubmit}>
+      <input
+        type="email"
+        placeholder="Enter your email"
+        value={email}
+        onChange={(e) => setEmail(e.target.value)}
+        required
+        disabled={submitted}
+        className="px-4 py-2.5 text-sm bg-secondary rounded-lg border-0 focus:ring-2 outline-none disabled:opacity-50"
+        style={{ outlineColor: "#203eec" }}
+      />
+      <button
+        type="submit"
+        disabled={submitted}
+        className="px-4 py-2.5 text-sm font-medium text-white rounded-lg transition-all relative overflow-hidden disabled:opacity-50"
+        style={{
+          background: "linear-gradient(135deg, #203eec 0%, #00d4ff 100%)",
+          boxShadow: "0 4px 20px rgba(32, 62, 236, 0.3)",
+        }}
+        onMouseEnter={(e) => {
+          e.currentTarget.style.boxShadow = "0 8px 30px rgba(32, 62, 236, 0.5), 0 0 40px rgba(0, 212, 255, 0.3)"
+        }}
+        onMouseLeave={(e) => {
+          e.currentTarget.style.boxShadow = "0 4px 20px rgba(32, 62, 236, 0.3)"
+        }}
+      >
+        {submitted ? "Subscribed!" : "Subscribe"}
+      </button>
+    </form>
+  )
+}
 
 export function Footer() {
   return (
@@ -30,21 +71,7 @@ export function Footer() {
             <p className="mt-4 text-muted-foreground text-sm max-w-xs leading-relaxed">
               AI-powered pitch deck generator. Upload your business info, get a professional investor deck, sell sheet, and branding kit in minutes.
             </p>
-            <div className="flex items-center gap-4 mt-6">
-              {socialLinks.map((social) => (
-                <Link
-                  key={social.label}
-                  href={social.href}
-                  className="p-2 rounded-full bg-secondary transition-colors hover:bg-opacity-10"
-                  onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "#203eec20")}
-                  onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "")}
-                  aria-label={social.label}
-                >
-                  <social.icon className="w-4 h-4" style={{ color: "#203eec" }} />
-                </Link>
-              ))}
-            </div>
-            <div className="mt-4">
+            <div className="mt-6">
               <Link
                 href="mailto:hello@pitchdeck.biz"
                 className="text-sm transition-colors hover:underline"
@@ -76,30 +103,7 @@ export function Footer() {
           <div>
             <h4 className="text-sm font-semibold mb-4">Stay Updated</h4>
             <p className="text-sm text-muted-foreground mb-4">Get product updates and AI tips directly to your inbox.</p>
-            <form className="flex flex-col gap-3" onSubmit={(e) => e.preventDefault()}>
-              <input
-                type="email"
-                placeholder="Enter your email"
-                className="px-4 py-2.5 text-sm bg-secondary rounded-lg border-0 focus:ring-2 outline-none"
-                style={{ outlineColor: "#203eec" }}
-              />
-              <button
-                type="submit"
-                className="px-4 py-2.5 text-sm font-medium text-white rounded-lg transition-all relative overflow-hidden"
-                style={{
-                  background: "linear-gradient(135deg, #203eec 0%, #00d4ff 100%)",
-                  boxShadow: "0 4px 20px rgba(32, 62, 236, 0.3)",
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.boxShadow = "0 8px 30px rgba(32, 62, 236, 0.5), 0 0 40px rgba(0, 212, 255, 0.3)"
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.boxShadow = "0 4px 20px rgba(32, 62, 236, 0.3)"
-                }}
-              >
-                Subscribe
-              </button>
-            </form>
+            <NewsletterForm />
           </div>
         </div>
 
@@ -107,10 +111,10 @@ export function Footer() {
         <div className="flex flex-col md:flex-row items-center justify-between gap-4 mt-16 pt-8 border-t border-border">
           <p className="text-xs text-muted-foreground">&copy; {new Date().getFullYear()} pitchdeck.biz. All rights reserved.</p>
           <div className="flex items-center gap-6">
-            <Link href="#" className="text-xs text-muted-foreground hover:text-foreground transition-colors">
+            <Link href="/privacy" className="text-xs text-muted-foreground hover:text-foreground transition-colors">
               Privacy Policy
             </Link>
-            <Link href="#" className="text-xs text-muted-foreground hover:text-foreground transition-colors">
+            <Link href="/terms" className="text-xs text-muted-foreground hover:text-foreground transition-colors">
               Terms of Service
             </Link>
           </div>
