@@ -3,12 +3,12 @@ import type { Metadata } from "next"
 import { createPageMetadata } from "@/lib/metadata"
 
 export const metadata: Metadata = createPageMetadata({
-  title: "Forgot Password",
-  description: "Reset your pitchdeck.biz account password.",
-  path: "/forgot-password",
+  title: "Reset Password",
+  description: "Set a new password for your pitchdeck.biz account.",
+  path: "/reset-password",
   noIndex: true,
 })
 
-export default function ForgotPasswordLayout({ children }: { children: React.ReactNode }) {
+export default function ResetPasswordLayout({ children }: { children: React.ReactNode }) {
   return <>{children}</>
 }
