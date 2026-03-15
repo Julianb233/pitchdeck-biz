@@ -215,6 +215,27 @@ alter table public.verification_tokens enable row level security;
 -- Verification tokens are managed by service role only (no user-facing RLS needed)
 
 -- =============================================================================
+-- 7b. password_reset_tokens — dedicated table for password reset tokens
+-- =============================================================================
+-- Note: Supabase Auth handles password reset natively via resetPasswordForEmail().
+-- This table exists as an explicit audit trail and for custom reset flows if needed.
+create table if not exists public.password_reset_tokens (
+  id         uuid primary key default uuid_generate_v4(),
+  user_id    uuid not null references auth.users(id) on delete cascade,
+  token      text not null unique,
+  expires_at timestamptz not null,
+  used       boolean not null default false,
+  created_at timestamptz not null default now()
+);
+
+create index if not exists idx_password_reset_tokens_token on public.password_reset_tokens(token);
+create index if not exists idx_password_reset_tokens_user_id on public.password_reset_tokens(user_id);
+
+alter table public.password_reset_tokens enable row level security;
+
+-- Password reset tokens are managed by service role only (no user-facing RLS needed)
+
+-- =============================================================================
 -- 8. webhook_events — idempotency log for processed Stripe webhook events
 -- =============================================================================
 create table if not exists public.webhook_events (

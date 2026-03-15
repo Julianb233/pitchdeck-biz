@@ -78,6 +78,28 @@ function LoginForm() {
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-6">
+          {verified && (
+            <div className="rounded-lg bg-green-500/10 border border-green-500/20 px-4 py-3 text-sm text-green-600 dark:text-green-400">
+              Email verified successfully. You can now sign in.
+            </div>
+          )}
+
+          {resetSuccess && (
+            <div className="rounded-lg bg-green-500/10 border border-green-500/20 px-4 py-3 text-sm text-green-600 dark:text-green-400">
+              Password updated successfully. Sign in with your new password.
+            </div>
+          )}
+
+          {urlError && !error && (
+            <div className="rounded-lg bg-destructive/10 border border-destructive/20 px-4 py-3 text-sm text-destructive">
+              {urlError === "invalid_verification_link"
+                ? "Invalid verification link. Please try again."
+                : urlError === "verification_failed"
+                  ? "Verification failed. Please request a new link."
+                  : decodeURIComponent(urlError)}
+            </div>
+          )}
+
           {error && (
             <div className="rounded-lg bg-destructive/10 border border-destructive/20 px-4 py-3 text-sm text-destructive">
               {error}
