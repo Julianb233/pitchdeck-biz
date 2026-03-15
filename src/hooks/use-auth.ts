@@ -8,6 +8,7 @@ interface AuthUser {
   email: string;
   name: string;
   subscriptionStatus: "free" | "pro";
+  emailVerified: boolean;
   createdAt: string;
 }
 
@@ -43,6 +44,7 @@ export function useAuth(): UseAuthReturn {
           email: supaUser.email ?? "",
           name: supaUser.user_metadata?.name ?? supaUser.email ?? "",
           subscriptionStatus: sub ? "pro" : "free",
+          emailVerified: !!(supaUser.email_confirmed_at || supaUser.confirmed_at),
           createdAt: supaUser.created_at,
         });
       } else {

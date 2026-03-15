@@ -6,6 +6,7 @@ import {
 } from '@/lib/stripe';
 import { getSessionFromRequest } from '@/lib/auth';
 import { createOrder } from '@/lib/supabase/orders';
+import { checkoutLimiter, getClientIp, applyRateLimit } from '@/lib/rate-limit';
 
 const checkoutSchema = z.union([
   // Legacy deck + deckId format
@@ -18,6 +19,11 @@ const checkoutSchema = z.union([
 ]);
 
 export async function POST(request: NextRequest) {
+  // Rate limiting — 5 req/min per IP
+  const ip = getClientIp(request);
+  const limited = applyRateLimit(checkoutLimiter, ip, "Too many checkout requests. Please try again later.");
+  if (limited) return limited;
+
   try {
     const body = await request.json();
     const parsed = checkoutSchema.safeParse(body);

@@ -62,7 +62,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={`${interTight.className} font-sans antialiased`}>
+      <body className={`${interTight.variable} ${interTight.className} font-sans antialiased`}>
         <SessionProvider>
           <MagneticCursor />
           {children}
