@@ -8,25 +8,102 @@
 
 Transform any business idea into investor-ready materials through an AI-powered full-service consultation experience — not just a generator tool, but a strategic partner.
 
-## Current Milestone: v2.0 — Full-Service Consultation Platform + Gemini API Overhaul
+## Current Milestone: v2.0 — Funding Launch Platform + Gemini API Overhaul
 
-**Goal:** Evolve from a deck generation tool into a full-service AI consultation platform with modern Gemini APIs, premium Stitch-designed UI/UX, and consultation features that justify $500-2000 pricing.
+**Goal:** Evolve from a deck generation tool into a full-service AI funding launch platform. Users self-sign-up, pay, go through an AI-guided audio discovery session, and receive everything they need to raise money — from pitch deck to business plan to data room setup.
 
-**Target features:**
+### Pricing Model (Research-Backed — SaaS Pricing Science)
+
+**Methodology:** Good-Better-Best framework with decoy effect. Middle tier designed to capture 60-70% of customers. Price anchored against agency rates ($3K-$15K). Annual discount at 25% ("3 months free").
+
+| | Starter | **Pro** (Target) | Founder Suite | Enterprise |
+|--|---------|-------------------|---------------|------------|
+| **Monthly** | $29/mo | **$79/mo** | $199/mo | Custom |
+| **Annual** | $19/mo ($228/yr) | **$59/mo ($708/yr)** | $149/mo ($1,788/yr) | Custom |
+| **Positioning** | Try it out | Best value | Serious founders | Accelerators/VCs |
+
+**Value anchor:** "Agency-quality pitch decks start at $5,000. Get unlimited AI-generated decks for $79/month."
+
+#### Starter ($29/mo) — Get Your First Deck
+- AI-guided discovery session (voice + text + upload)
+- 1 pitch deck per month (10-15 slides)
+- Sell sheet + one-pager + brand kit
+- PPTX + PDF export
+- 3 AI image generations per deck
+
+#### Pro ($79/mo) — Full Funding Toolkit (TARGET TIER)
+- Everything in Starter
+- **Unlimited decks** per month
+- **Promotional materials**: social media kit, email templates, ad creatives, press kit
+- **Business documents**: executive summary, investor update template, board deck template
+- Nano Banana Pro branded visuals (consistent style, text accuracy)
+- Imagen 4 hero/stock imagery
+- Google Slides export
+- 2 revision cycles per deck
+- 50 AI image credits/month
+
+#### Founder Suite ($199/mo) — Launch Ready
+- Everything in Pro
+- **Full business plan** document (20-30 pages, AI-generated)
+- **Financial model** template (revenue projections, unit economics)
+- **Cap table** template
+- **Term sheet guide** + negotiation framework
+- **Due diligence checklist** (what investors will ask for)
+- **Investor outreach templates** (CRM-ready email sequences)
+- **Data room setup guide** (what to prepare, how to organize)
+- Unlimited AI image credits
+- Unlimited revision cycles
+- Priority generation queue
+- 1 AI pitch coaching session/month (Gemini Live)
+
+#### Premium Add-ons (any tier)
+- **Pitch Coach** — $49/session: Gemini Live API real-time pitch practice with AI scoring
+- **Video Deck** — $149 one-time: Veo 2/3 animated slide export with motion backgrounds
+- **Monthly Branding** — $49/mo: 500 tokens for ongoing social graphics, mockups, collateral
+
+### AI Discovery Session (Core Onboarding Experience)
+
+The heart of the product. Users choose voice, text, or file upload. AI guides them through:
+
+1. **"Tell me about your business"** — Business model, product, market, stage
+2. **"What are your goals?"** — Raise money, sell business, find partners, get a loan
+3. **"Who are your investors?"** — Angel, VC, bank, crowdfund, SBA, family office
+4. **"What's your ideal outcome?"** — Amount raising, timeline, use of funds
+5. **"Where are you raising from?"** — Platform, network, geography, industry focus
+6. **"What stage are you at?"** — Idea/MVP/Revenue/Growth, team size, traction
+
+AI summarizes back, confirms understanding, then generates everything.
+
+### Upsell Architecture
+
+**Promotional Materials** (Pro + Founder Suite):
+- Website one-pager, social media kit, email templates, ad creatives, press kit, trade show materials
+
+**Business Documents** (Pro + Founder Suite):
+- Executive summary, sell sheet, investor update template, board deck, company overview
+
+**Launch Infrastructure** (Founder Suite only):
+- Full business plan, financial model, cap table, term sheet guide, due diligence checklist, investor CRM templates, data room setup guide
+
+### Target features:
 - Gemini 2.5 Flash/Pro replacing deprecated 2.0 Flash (mandatory — 2.0 dies June 1, 2026)
 - Nano Banana Pro for consistent branded slide visuals with text accuracy
 - Imagen 4 Ultra for hero/stock imagery
 - Native Gemini document understanding replacing pdf-parse/mammoth
-- Consultation intake questionnaire + AI strategy session
+- AI-guided audio discovery session (6-step onboarding)
+- Investor-type-tailored deck framing (VC vs angel vs bank vs crowdfund)
 - Market research reports + investor readiness scoring
-- Veo 2/3 animated video deck export (premium)
-- Gemini Live API voice coach for pitch practice (premium)
+- Promotional materials generator (social kit, press kit, ad creatives)
+- Business document generator (executive summary, board deck, investor updates)
+- Launch infrastructure generator (business plan, financial model, cap table, DD checklist)
+- Veo 2/3 animated video deck export (premium add-on)
+- Gemini Live API voice coach for pitch practice (premium add-on)
 - Google Slides export format
 - Revision workflow with client feedback loop
+- 3-tier Stripe pricing (Starter/Pro/Founder Suite) + annual billing
 - Stitch-designed pages: landing, create flow, dashboard, preview/editor
 - Client portal with deliverables hub
 - Portfolio / case studies pages
-- Booking/scheduling for human consultation calls
 
 ## Problem
 
@@ -132,60 +209,96 @@ Full-service AI-powered consultation including:
 - [ ] Implement structured output mode (Zod schemas) on all Gemini calls
 - [ ] Update @google/generative-ai SDK to latest (@google/genai)
 
-**Tier 2: Consultation Service Layer**
-- [ ] Consultation intake questionnaire (multi-step discovery form)
-- [ ] AI strategy session module (business positioning, narrative arc)
-- [ ] Market research report generation (competitive landscape, sizing, trends)
-- [ ] Investor readiness score (gap analysis + recommendations)
-- [ ] Revision workflow (client feedback comments → AI re-generation)
-- [ ] Booking/scheduling integration (Cal.com or Calendly)
+**Tier 2: AI Discovery Session (Core Experience)**
+- [ ] 6-step AI-guided onboarding with voice/text/upload per step
+- [ ] Step 1: Business description extraction (model, product, market)
+- [ ] Step 2: Goals identification (raise money, sell, partner, loan)
+- [ ] Step 3: Investor type targeting (angel, VC, bank, crowdfund, SBA, family office)
+- [ ] Step 4: Ideal outcome capture (amount, timeline, use of funds)
+- [ ] Step 5: Fundraising source context (platform, network, geography)
+- [ ] Step 6: Stage assessment (idea/MVP/revenue/growth, team, traction)
+- [ ] AI summary + confirmation step before generation
+- [ ] Investor-type-tailored deck framing (different slides/language per investor type)
 
-**Tier 3: Premium Features**
+**Tier 3: Pricing & Stripe Overhaul**
+- [ ] 3-tier pricing: Starter $29/mo, Pro $79/mo, Founder Suite $199/mo
+- [ ] Annual billing at 25% discount ($19/$59/$149 per month)
+- [ ] Feature-gating per tier (deck limits, materials access, image credits)
+- [ ] Stripe Products + Prices for 6 plans (3 monthly + 3 annual)
+- [ ] Upgrade/downgrade flow
+- [ ] Premium add-on checkout: Pitch Coach $49, Video Deck $149, Monthly Branding $49/mo
+
+**Tier 4: Promotional Materials Generator (Pro+)**
+- [ ] Social media kit generator (profile images, banners, post templates)
+- [ ] Email templates generator (investor outreach, follow-up, update sequences)
+- [ ] Ad creatives generator (Facebook, LinkedIn, Google display)
+- [ ] Press kit generator (company fact sheet, founder bios, logos)
+- [ ] Website one-pager generator (branded landing page content)
+- [ ] Trade show / event materials
+
+**Tier 5: Business Documents Generator (Pro+)**
+- [ ] Executive summary (2-page investor brief)
+- [ ] Investor update template (monthly/quarterly)
+- [ ] Board deck template
+- [ ] Company overview document
+- [ ] Revision workflow (client feedback → AI re-generation)
+
+**Tier 6: Launch Infrastructure (Founder Suite)**
+- [ ] Full business plan document (20-30 pages, AI-generated from discovery)
+- [ ] Financial model template (revenue projections, unit economics)
+- [ ] Cap table template (ownership structure)
+- [ ] Term sheet guide + negotiation framework
+- [ ] Due diligence checklist
+- [ ] Investor outreach email sequences (CRM-ready)
+- [ ] Data room setup guide
+
+**Tier 7: Premium Add-ons**
 - [ ] Veo 2/3 video deck export (animated slides, motion backgrounds)
-- [ ] Gemini Live API voice coach (real-time pitch practice with AI feedback)
+- [ ] Gemini Live API voice coach (real-time pitch practice with AI scoring)
 - [ ] Google Slides export format (native GSlides via API)
-- [ ] Portfolio / case studies page (showcase anonymized past decks)
 
-**Tier 4: Stitch UI/UX Overhaul**
+**Tier 8: Stitch UI/UX Overhaul**
 - [ ] Synthesize DESIGN.md from current brand
-- [ ] Stitch: Landing page redesign (bold, conversion-optimized)
-- [ ] Stitch: Create flow redesign (guided consultation wizard UX)
+- [ ] Stitch: Landing page redesign (bold, conversion-optimized, pricing science)
+- [ ] Stitch: Create flow redesign (6-step AI discovery wizard)
 - [ ] Stitch: Dashboard redesign (client portal feel)
 - [ ] Stitch: Preview/editor redesign (interactive slide viewer + editing)
 - [ ] User reviews all Stitch designs before implementation
 
-**Tier 5: Full-Service Layer**
-- [ ] Client portal (deliverables hub + revision tracking)
-- [ ] Consultation package pricing tier ($500-2000 range)
+**Tier 9: Full-Service Layer**
+- [ ] Client portal (deliverables hub + revision tracking + all exports)
+- [ ] Portfolio / case studies page (showcase anonymized past decks)
 - [ ] Booking calendar integration for human consultation calls
 
 ### Out of Scope
 
 - White-label / agency features — future v3 consideration
-- Team collaboration / multi-user editing — deferred, not needed for consultation model
-- Custom domain per user — not relevant to service model
-- CRM integrations — not relevant yet
+- Team collaboration / multi-user editing — deferred, not needed for self-serve model
+- Custom domain per user — not relevant
+- CRM integrations — investors track via outreach templates, not built-in CRM
 - Mobile app — web-first, mobile-responsive sufficient
-- Real-time collaborative editing — single-user consultation model
-- AI-generated pitch videos with voiceover narration — Veo for animated slides only, not full video production
+- Real-time collaborative editing — single-user model
+- Full video production with voiceover — Veo for animated slides only
 
 ## Key Decisions
 
 | Decision | Rationale | Outcome |
 |----------|-----------|---------|
-| Pay-per-deck + subscription model | Two revenue streams: one-time deck + recurring branding assets | ✓ Good |
-| Both upload and guided onboarding paths | Different users have different preferences; maximize conversion | ✓ Good |
-| All 4 deliverable types in v1 | Pitch deck, sell sheet, one-pager, branding kit — comprehensive offering | ✓ Good |
-| Single subscription tier | Keep it simple, generous tokens, easy decision for users | ✓ Good |
+| Pay-per-deck + subscription model (v1) | Two revenue streams: one-time deck + recurring branding assets | ✓ Good → superseded by 3-tier in v2 |
+| All 4 deliverable types in v1 | Pitch deck, sell sheet, one-pager, branding kit — comprehensive | ✓ Good |
 | Bold & colorful design direction | Energetic, stands out from enterprise gray SaaS tools | ✓ Good |
 | Gemini APIs for image generation | Nano Banana Pro / Imagen — best quality for branding assets | ✓ Good |
-| Full product in v1 | Marketing site + working generator together, not phased | ✓ Good |
-| Gemini 2.5 for v2.0 | 2.0 Flash deprecated June 1 — mandatory migration + capability upgrade | — Pending |
-| Stitch for UI/UX design | Design-first approach — review before implementation, premium look | — Pending |
-| Consultation tier pricing $500-2000 | Full-service justifies premium over $99 self-serve | — Pending |
-| Gemini Live API for pitch coaching | Real-time voice interaction, unique differentiator | — Pending |
-| Veo for video decks | Premium add-on, emerging trend in investor presentations | — Pending |
-| Keep Claude for deck generation | Claude excels at structured content; Gemini for research + images | — Pending |
+| 3-tier Good-Better-Best pricing ($29/$79/$199) | SaaS pricing science: decoy effect, price anchoring against $5K agencies, 60-70% target on Pro tier | — Pending |
+| Annual billing at 25% discount | Research shows 25% is optimal; "3 months free" framing; reduces churn 20-30% | — Pending |
+| Feature-gate by tier (not usage-gate) | Starter = 1 deck/mo, Pro = unlimited + materials, Founder = full launch suite | — Pending |
+| Gemini 2.5 migration | 2.0 Flash deprecated June 1 — mandatory + unlocks Pro/Flash/Nano Banana | — Pending |
+| Stitch for UI/UX design | Design-first — review before implementation, premium conversion-optimized look | — Pending |
+| 6-step AI discovery session | Voice/text/upload per step; extracts everything needed for tailored deck | — Pending |
+| Investor-type tailoring | Different framing for VC vs angel vs bank vs crowdfund — higher close rates | — Pending |
+| Gemini Live API for pitch coaching | Real-time voice interaction, unique differentiator, $49/session add-on | — Pending |
+| Veo for video decks | Premium add-on $149, emerging trend in investor presentations | — Pending |
+| Keep Claude for deck generation | Claude excels at structured slide content; Gemini for research + images | — Pending |
+| Launch infrastructure in Founder Suite | Business plan, financial model, cap table, DD checklist — justifies $199/mo | — Pending |
 
 ## Constraints
 
