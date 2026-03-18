@@ -6,7 +6,7 @@ import {
   deductTokens,
 } from "@/lib/tokens"
 import { getTemplateById } from "@/lib/branding/templates"
-import { generateBrandAsset } from "@/lib/ai/gemini-image"
+import { generateBrandAsset } from "@/lib/ai/image-service"
 import { createClient } from "@/lib/supabase/server"
 import { saveAsset } from "@/lib/supabase/assets"
 import { generateAssetLimiter, getClientIp, applyRateLimit } from "@/lib/rate-limit"
