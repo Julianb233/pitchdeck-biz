@@ -1,6 +1,12 @@
 # pitchdeck.biz — Milestones
 
-## v1.0 — Full Product Launch
+## v2.0 — Full-Service Consultation Platform + Gemini API Overhaul (IN PROGRESS)
+- Status: Initializing
+- Started: 2026-03-17
+- Tiers: 5 (Gemini upgrades, Consultation layer, Premium features, Stitch UI/UX, Full-service)
+- Goal: Evolve from deck generation tool into full-service AI consultation platform
+
+## v1.0 — Full Product Launch (COMPLETE)
 - Status: Complete
 - Deployed: 2026-03-12
 - URL: https://pitchdeck.biz
