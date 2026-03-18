@@ -177,8 +177,12 @@ export interface Database {
           stripe_subscription_id: string;
           stripe_customer_id: string;
           status: string;
+          tier: string;
+          billing_period: string;
           token_balance: number;
           tokens_allocated: number;
+          image_credits_used: number;
+          deck_count_this_period: number;
           current_period_start: string;
           current_period_end: string;
           created_at: string;
@@ -189,8 +193,12 @@ export interface Database {
           stripe_subscription_id: string;
           stripe_customer_id: string;
           status?: string;
+          tier?: string;
+          billing_period?: string;
           token_balance?: number;
           tokens_allocated?: number;
+          image_credits_used?: number;
+          deck_count_this_period?: number;
           current_period_start: string;
           current_period_end: string;
           created_at?: string;
@@ -201,8 +209,12 @@ export interface Database {
           stripe_subscription_id?: string;
           stripe_customer_id?: string;
           status?: string;
+          tier?: string;
+          billing_period?: string;
           token_balance?: number;
           tokens_allocated?: number;
+          image_credits_used?: number;
+          deck_count_this_period?: number;
           current_period_start?: string;
           current_period_end?: string;
           created_at?: string;
@@ -366,7 +378,24 @@ export interface Database {
       };
     };
     Views: Record<string, never>;
-    Functions: Record<string, never>;
+    Functions: {
+      deduct_tokens: {
+        Args: { p_user_id: string; p_cost: number };
+        Returns: Array<{
+          subscription_id: string;
+          new_balance: number;
+          tokens_allocated: number;
+        }>;
+      };
+      increment_deck_count: {
+        Args: { p_user_id: string };
+        Returns: boolean;
+      };
+      use_image_credit: {
+        Args: { p_user_id: string; p_count: number };
+        Returns: boolean;
+      };
+    };
     Enums: Record<string, never>;
   };
 }

@@ -1,8 +1,32 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { verifyWebhookSignature } from '@/lib/stripe';
-import { resetMonthlyTokens, MONTHLY_TOKEN_ALLOCATION } from '@/lib/tokens';
+import { resetMonthlyTokens } from '@/lib/tokens';
 import { createAdminClient } from '@/lib/supabase/admin';
+import { getPlanFromPriceId, getTokenAllocation, getImageCreditLimit, PLANS, type PlanId } from '@/lib/pricing';
 import type Stripe from 'stripe';
+
+/** Resolve the tier and billing_period from subscription metadata or price ID */
+function resolveTier(subscription: Stripe.Subscription): {
+  tier: PlanId;
+  billingPeriod: 'monthly' | 'annual';
+} {
+  // First try metadata (set during checkout)
+  const metaPlan = subscription.metadata?.planId as PlanId | undefined;
+  const metaPeriod = subscription.metadata?.billingPeriod as 'monthly' | 'annual' | undefined;
+  if (metaPlan && PLANS[metaPlan]) {
+    return { tier: metaPlan, billingPeriod: metaPeriod ?? 'monthly' };
+  }
+
+  // Fall back to matching price ID
+  const priceId = subscription.items?.data?.[0]?.price?.id;
+  if (priceId) {
+    const match = getPlanFromPriceId(priceId);
+    if (match) return { tier: match.plan, billingPeriod: match.billingPeriod };
+  }
+
+  // Legacy subscribers without tier info default to pro
+  return { tier: 'pro', billingPeriod: 'monthly' };
+}
 
 
 export async function POST(request: NextRequest) {
@@ -34,7 +58,7 @@ export async function POST(request: NextRequest) {
       const session = event.data.object as Stripe.Checkout.Session;
 
       if (session.mode === 'payment' && session.metadata?.deckId) {
-        // One-time deck purchase
+        // One-time deck purchase (legacy)
         const deckId = session.metadata.deckId;
         const userId = session.metadata?.userId;
         const orderId = session.metadata?.orderId;
@@ -43,7 +67,6 @@ export async function POST(request: NextRequest) {
           let orderError: { message: string } | null = null;
 
           if (orderId) {
-            // Update existing pending order created during checkout
             const { error } = await supabase
               .from('orders')
               .update({
@@ -54,7 +77,6 @@ export async function POST(request: NextRequest) {
               .eq('id', orderId);
             orderError = error;
           } else {
-            // No pending order — insert directly (legacy flow)
             const { error } = await supabase.from('orders').insert({
               user_id: userId,
               deck_id: deckId,
@@ -77,8 +99,12 @@ export async function POST(request: NextRequest) {
         }
         console.log(`Deck ${deckId} marked as paid`);
       } else if (session.mode === 'subscription' && session.metadata?.userId) {
-        // Subscription checkout - insert subscription record
+        // Subscription checkout — determine tier from metadata
         const userId = session.metadata.userId;
+        const tier = (session.metadata.planId as PlanId) || 'pro';
+        const billingPeriod = session.metadata.billingPeriod || 'monthly';
+        const tokenAllocation = getTokenAllocation(tier);
+
         const subscriptionId = typeof session.subscription === 'string'
           ? session.subscription
           : (session.subscription as Stripe.Subscription | null)?.id;
@@ -96,8 +122,12 @@ export async function POST(request: NextRequest) {
             stripe_subscription_id: subscriptionId,
             stripe_customer_id: customerId,
             status: 'active',
-            token_balance: MONTHLY_TOKEN_ALLOCATION,
-            tokens_allocated: MONTHLY_TOKEN_ALLOCATION,
+            tier,
+            billing_period: billingPeriod,
+            token_balance: tokenAllocation,
+            tokens_allocated: tokenAllocation,
+            image_credits_used: 0,
+            deck_count_this_period: 0,
             current_period_start: periodStart,
             current_period_end: periodEnd,
           });
@@ -105,7 +135,7 @@ export async function POST(request: NextRequest) {
           if (error) {
             console.error('Error inserting subscription from checkout:', error);
           } else {
-            console.log(`Subscription ${subscriptionId} created from checkout for user ${userId}`);
+            console.log(`Subscription ${subscriptionId} (${tier}/${billingPeriod}) created for user ${userId}`);
           }
         }
       }
@@ -120,12 +150,12 @@ export async function POST(request: NextRequest) {
           : subscription.customer.id;
 
       if (supabase) {
-        // Look up user by stripe_customer_id, or use metadata
         const userId = subscription.metadata?.userId;
+        const { tier, billingPeriod } = resolveTier(subscription);
+        const tokenAllocation = getTokenAllocation(tier);
 
         if (userId) {
           const now = new Date();
-          // In Stripe Clover API, period dates are on SubscriptionItem
           const item = subscription.items?.data?.[0];
           const periodStart = item?.current_period_start
             ? new Date(item.current_period_start * 1000).toISOString()
@@ -134,14 +164,17 @@ export async function POST(request: NextRequest) {
             ? new Date(item.current_period_end * 1000).toISOString()
             : new Date(now.getFullYear(), now.getMonth() + 1, 1).toISOString();
 
-          // Use upsert to avoid conflicts if checkout.session.completed already inserted
           const { error } = await supabase.from('subscriptions').upsert({
             user_id: userId,
             stripe_subscription_id: subscription.id,
             stripe_customer_id: customerId,
             status: subscription.status,
-            token_balance: MONTHLY_TOKEN_ALLOCATION,
-            tokens_allocated: MONTHLY_TOKEN_ALLOCATION,
+            tier,
+            billing_period: billingPeriod,
+            token_balance: tokenAllocation,
+            tokens_allocated: tokenAllocation,
+            image_credits_used: 0,
+            deck_count_this_period: 0,
             current_period_start: periodStart,
             current_period_end: periodEnd,
           });
@@ -149,7 +182,7 @@ export async function POST(request: NextRequest) {
           if (error) {
             console.error('Error upserting subscription into Supabase:', error);
           } else {
-            console.log(`Subscription persisted to Supabase for customer ${customerId}`);
+            console.log(`Subscription ${subscription.id} (${tier}) persisted for customer ${customerId}`);
           }
         }
       }
@@ -161,14 +194,18 @@ export async function POST(request: NextRequest) {
       const subscription = event.data.object as Stripe.Subscription;
 
       if (supabase) {
+        const { tier, billingPeriod } = resolveTier(subscription);
+        const tokenAllocation = getTokenAllocation(tier);
+        const imageCredits = getImageCreditLimit(tier);
+
         const item = subscription.items?.data?.[0];
-        const updateData: {
-          status: string;
-          current_period_start?: string;
-          current_period_end?: string;
-        } = {
+        const updateData: Record<string, string | number> = {
           status: subscription.status,
+          tier,
+          billing_period: billingPeriod,
+          tokens_allocated: tokenAllocation,
         };
+
         if (item?.current_period_start) {
           updateData.current_period_start = new Date(item.current_period_start * 1000).toISOString();
         }
@@ -184,7 +221,7 @@ export async function POST(request: NextRequest) {
         if (error) {
           console.error('Error updating subscription in Supabase:', error);
         } else {
-          console.log(`Subscription ${subscription.id} updated`);
+          console.log(`Subscription ${subscription.id} updated to ${tier}/${billingPeriod}`);
         }
       }
       break;
@@ -221,17 +258,15 @@ export async function POST(request: NextRequest) {
 
       if (customerId) {
         if (supabase) {
-          // Find active subscription by stripe_customer_id
           const { data: sub } = await supabase
             .from('subscriptions')
-            .select('id, user_id, tokens_allocated')
+            .select('id, user_id, tokens_allocated, tier')
             .eq('stripe_customer_id', customerId)
             .eq('status', 'active')
             .limit(1)
             .maybeSingle();
 
           if (sub) {
-            // Reset token balance and update period dates from invoice
             const periodStart = invoice.period_start
               ? new Date(invoice.period_start * 1000).toISOString()
               : new Date().toISOString();
@@ -239,19 +274,22 @@ export async function POST(request: NextRequest) {
               ? new Date(invoice.period_end * 1000).toISOString()
               : new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString();
 
+            // Reset all usage counters for the new billing period
             const { error } = await supabase
               .from('subscriptions')
               .update({
                 token_balance: sub.tokens_allocated,
+                image_credits_used: 0,
+                deck_count_this_period: 0,
                 current_period_start: periodStart,
                 current_period_end: periodEnd,
               })
               .eq('id', sub.id);
 
             if (error) {
-              console.error('Error resetting tokens in Supabase:', error);
+              console.error('Error resetting usage counters in Supabase:', error);
             } else {
-              console.log(`Tokens reset to ${sub.tokens_allocated} for user ${sub.user_id}`);
+              console.log(`Usage reset for user ${sub.user_id} (tier: ${sub.tier})`);
             }
           }
         } else {
