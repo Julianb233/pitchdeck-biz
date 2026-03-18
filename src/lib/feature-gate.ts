@@ -59,13 +59,19 @@ type GatedFeature =
   | "promotional-materials"
   | "investor-tailored-decks"
   | "discovery-session"
-  | "advanced-analytics";
+  | "advanced-analytics"
+  | "google-slides-export"
+  | "video-deck"
+  | "pitch-coach";
 
 const FEATURE_MIN_TIER: Record<GatedFeature, UserTier> = {
   "promotional-materials": "pro",
   "investor-tailored-decks": "pro",
   "discovery-session": "pro",
   "advanced-analytics": "founder",
+  "google-slides-export": "pro",
+  "video-deck": "free",    // Available to all tiers as a paid add-on
+  "pitch-coach": "free",   // Available to all tiers as a paid add-on (Founder gets 1 free/month)
 };
 
 const TIER_RANK: Record<UserTier, number> = {

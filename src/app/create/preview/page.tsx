@@ -21,6 +21,8 @@ import {
   Palette,
   Loader2,
   AlertCircle,
+  ExternalLink,
+  Video,
 } from "lucide-react";
 
 // ── Demo content for when no generation has happened ───────────────────────
@@ -195,7 +197,7 @@ const DEMO_DECK: DeckContent = {
 
 // ── Download helper ────────────────────────────────────────────────────────
 
-type ExportType = "pptx" | "sell-sheet" | "one-pager" | "brand-kit" | "bundle";
+type ExportType = "pptx" | "sell-sheet" | "one-pager" | "brand-kit" | "bundle" | "gslides" | "video";
 
 interface ExportConfig {
   endpoint: string;
@@ -229,6 +231,16 @@ const EXPORT_CONFIGS: Record<ExportType, ExportConfig> = {
     body: (deck) => ({ deck }),
     filename: "pitchdeck-bundle.zip",
   },
+  gslides: {
+    endpoint: "/api/export/gslides",
+    body: (deck) => ({ deck }),
+    filename: "", // Returns a URL, not a file
+  },
+  video: {
+    endpoint: "/api/export/video",
+    body: (deck) => ({ deck }),
+    filename: "", // Returns JSON with video URLs
+  },
 };
 
 // ── Preview Page ───────────────────────────────────────────────────────────
@@ -240,6 +252,7 @@ function PreviewPageInner() {
   const [error] = React.useState<string | null>(null);
   const [isMock, setIsMock] = React.useState(false);
   const [downloading, setDownloading] = React.useState<ExportType | null>(null);
+  const [gslidesUrl, setGslidesUrl] = React.useState<string | null>(null);
 
   React.useEffect(() => {
     async function loadDeck() {
@@ -313,6 +326,28 @@ function PreviewPageInner() {
         throw new Error(
           (err as { error?: string }).error ?? `Download failed (${response.status})`
         );
+      }
+
+      // Google Slides returns a URL, not a file
+      if (type === "gslides") {
+        const data = await response.json();
+        if (data.url) {
+          setGslidesUrl(data.url);
+          window.open(data.url, "_blank");
+          toast.success("Google Slides presentation created!");
+        } else {
+          throw new Error("No presentation URL returned");
+        }
+        return;
+      }
+
+      // Video returns JSON with video data
+      if (type === "video") {
+        const data = await response.json();
+        toast.success(
+          `Video generation complete: ${data.completedSlides}/${data.totalSlides} slides`
+        );
+        return;
       }
 
       const blob = await response.blob();
@@ -441,20 +476,64 @@ function PreviewPageInner() {
                   {deckContent.slides.length} slides - Use arrow keys to navigate
                 </p>
               </div>
-              <Button
-                variant="outline"
-                size="sm"
-                disabled={isDownloading}
-                onClick={() => handleDownload("pptx")}
-              >
-                {downloading === "pptx" ? (
-                  <Loader2 className="mr-1 h-4 w-4 animate-spin" />
-                ) : (
-                  <Download className="mr-1 h-4 w-4" />
-                )}
-                {downloading === "pptx" ? "Generating..." : "PPTX"}
-              </Button>
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  disabled={isDownloading}
+                  onClick={() => handleDownload("pptx")}
+                >
+                  {downloading === "pptx" ? (
+                    <Loader2 className="mr-1 h-4 w-4 animate-spin" />
+                  ) : (
+                    <Download className="mr-1 h-4 w-4" />
+                  )}
+                  {downloading === "pptx" ? "Generating..." : "PPTX"}
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  disabled={isDownloading}
+                  onClick={() => handleDownload("gslides")}
+                  title="Export to Google Slides (Pro+ or add-on)"
+                >
+                  {downloading === "gslides" ? (
+                    <Loader2 className="mr-1 h-4 w-4 animate-spin" />
+                  ) : (
+                    <ExternalLink className="mr-1 h-4 w-4" />
+                  )}
+                  {downloading === "gslides" ? "Creating..." : "Google Slides"}
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  disabled={isDownloading}
+                  onClick={() => handleDownload("video")}
+                  title="Generate Video Deck ($149 add-on)"
+                >
+                  {downloading === "video" ? (
+                    <Loader2 className="mr-1 h-4 w-4 animate-spin" />
+                  ) : (
+                    <Video className="mr-1 h-4 w-4" />
+                  )}
+                  {downloading === "video" ? "Rendering..." : "Video Deck"}
+                </Button>
+              </div>
             </div>
+            {gslidesUrl && (
+              <div className="flex items-center gap-2 rounded-lg bg-emerald-500/10 border border-emerald-500/20 px-4 py-2">
+                <ExternalLink className="h-4 w-4 text-emerald-400" />
+                <span className="text-sm text-emerald-300">Google Slides ready:</span>
+                <a
+                  href={gslidesUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-sm text-emerald-400 underline underline-offset-2 hover:text-emerald-300 truncate"
+                >
+                  {gslidesUrl}
+                </a>
+              </div>
+            )}
             <DeckPreview slides={deckContent.slides} />
           </TabsContent>
 
