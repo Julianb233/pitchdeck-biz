@@ -15,13 +15,13 @@ import { generateBrandColors } from "./color-generator";
 import type { SlideContent, SlideType } from "@/lib/types";
 
 // Slide types that get chart SVGs
-const CHART_SLIDE_TYPES = new Set<SlideType>(["market", "financials", "traction"]);
+const CHART_SLIDE_TYPES = new Set<SlideType>(["market", "financials", "traction", "cash-flow", "competitive-landscape"]);
 
 // Slide types that get pie charts specifically
-const PIE_CHART_TYPES = new Set<SlideType>(["market"]);
+const PIE_CHART_TYPES = new Set<SlideType>(["market", "competitive-landscape"]);
 
 // Slide types that use growth-arrow charts
-const GROWTH_CHART_TYPES = new Set<SlideType>(["traction"]);
+const GROWTH_CHART_TYPES = new Set<SlideType>(["traction", "cash-flow"]);
 
 // ---------------------------------------------------------------------------
 // Parse numbers out of bullet points to build sample chart data

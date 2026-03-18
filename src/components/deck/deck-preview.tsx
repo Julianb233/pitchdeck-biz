@@ -24,6 +24,22 @@ const SLIDE_TYPE_LABELS: Record<SlideType, string> = {
   ask: "The Ask",
   "why-now": "Why Now",
   closing: "Closing",
+  // Investor-specific slide types
+  "founder-story": "Founder Story",
+  competition: "Competition",
+  "competitive-landscape": "Competitive Landscape",
+  "executive-summary": "Executive Summary",
+  "business-overview": "Business Overview",
+  "cash-flow": "Cash Flow",
+  collateral: "Collateral",
+  "management-team": "Management Team",
+  "loan-request": "Loan Request",
+  "repayment-plan": "Repayment Plan",
+  hook: "Hook",
+  "social-proof": "Social Proof",
+  "campaign-details": "Campaign Details",
+  rewards: "Rewards",
+  "values-impact": "Values & Impact",
 };
 
 // ── Single Slide Card ──────────────────────────────────────────────────────

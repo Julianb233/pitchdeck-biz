@@ -110,7 +110,23 @@ export type SlideType =
   | "financials"
   | "ask"
   | "why-now"
-  | "closing";
+  | "closing"
+  // Investor-specific slide types
+  | "founder-story"
+  | "competition"
+  | "competitive-landscape"
+  | "executive-summary"
+  | "business-overview"
+  | "cash-flow"
+  | "collateral"
+  | "management-team"
+  | "loan-request"
+  | "repayment-plan"
+  | "hook"
+  | "social-proof"
+  | "campaign-details"
+  | "rewards"
+  | "values-impact";
 
 export interface SlideContent {
   slideNumber: number;
