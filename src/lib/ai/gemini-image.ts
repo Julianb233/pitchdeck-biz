@@ -1,22 +1,22 @@
-import { GoogleGenerativeAI } from "@google/generative-ai";
+import { GoogleGenAI, Type } from "@google/genai";
 import { generateMockupSVG } from "./mockup-svg-generator";
 
 // ---------------------------------------------------------------------------
 // Gemini Image Generation Service
-// Primary: AI-crafted SVG graphics via Gemini text model (always works)
-// Secondary: Imagen 3 via @google/genai SDK (when installed + configured)
+// Primary: AI-crafted SVG graphics via Gemini 2.5 Flash (always works)
+// Secondary: Imagen 3 via @google/genai SDK (when configured)
 // Fallback: Algorithmic placeholder SVGs when no API key is configured
 // ---------------------------------------------------------------------------
 
 const API_KEY = process.env.GOOGLE_API_KEY ?? process.env.GEMINI_API_KEY ?? "";
 
-function getClient() {
+function getClient(): GoogleGenAI | null {
   if (!API_KEY) return null;
-  return new GoogleGenerativeAI(API_KEY);
+  return new GoogleGenAI({ apiKey: API_KEY });
 }
 
 // ---------------------------------------------------------------------------
-// Imagen 3 support (optional — requires @google/genai package)
+// Imagen 3 support (optional — uses same @google/genai SDK)
 // ---------------------------------------------------------------------------
 
 async function generateWithImagen(prompt: string): Promise<string | null> {
@@ -28,24 +28,7 @@ async function generateWithImagen(prompt: string): Promise<string | null> {
   if (!imagenKey) return null;
 
   try {
-    // Dynamic import — skipped silently when @google/genai is not installed
-    const genaiModule = await (Function('return import("@google/genai")')() as Promise<{
-      GoogleGenAI: new (opts: { apiKey: string }) => {
-        models: {
-          generateImages: (params: {
-            model: string;
-            prompt: string;
-            config: { numberOfImages: number };
-          }) => Promise<{
-            generatedImages?: Array<{
-              image?: { imageBytes?: string };
-            }>;
-          }>;
-        };
-      };
-    }>);
-
-    const client = new genaiModule.GoogleGenAI({ apiKey: imagenKey });
+    const client = new GoogleGenAI({ apiKey: imagenKey });
 
     const response = await client.models.generateImages({
       model: "imagen-3.0-generate-002",
@@ -59,13 +42,13 @@ async function generateWithImagen(prompt: string): Promise<string | null> {
     }
     return null;
   } catch {
-    // @google/genai not installed or Imagen not available — silent fallback
+    // Imagen not available — silent fallback
     return null;
   }
 }
 
 // ---------------------------------------------------------------------------
-// AI SVG generation via Gemini text model
+// AI SVG generation via Gemini 2.5 Flash
 // ---------------------------------------------------------------------------
 
 function buildSvgPrompt(
@@ -119,18 +102,18 @@ async function generateAiSvg(
   if (!client) return null;
 
   try {
-    const model = client.getGenerativeModel({ model: "gemini-2.0-flash-exp" });
     const prompt = buildSvgPrompt(description, width, height, colors, context);
 
-    const result = await model.generateContent({
-      contents: [{ role: "user", parts: [{ text: prompt }] }],
-      generationConfig: {
-        responseMimeType: "text/plain",
+    const result = await client.models.generateContent({
+      model: "gemini-2.5-flash",
+      contents: prompt,
+      config: {
         temperature: 0.8,
       },
     });
 
-    return extractSvg(result.response.text());
+    const text = result.text ?? "";
+    return extractSvg(text);
   } catch (error) {
     console.error("[gemini-image] AI SVG generation error:", error);
     return null;
@@ -230,7 +213,7 @@ export async function generateDeckGraphic(
   );
   if (imagenResult) return imagenResult;
 
-  // 2) Try AI-crafted SVG via Gemini text model
+  // 2) Try AI-crafted SVG via Gemini 2.5 Flash
   const aiSvg = await generateAiSvg(
     prompt,
     800,
@@ -295,12 +278,10 @@ export async function generateBrandAsset(
   const imagenResult = await generateWithImagen(imagenPrompt);
   if (imagenResult) return imagenResult;
 
-  // 2) Try AI-crafted SVG via Gemini (supports reference images for context)
+  // 2) Try AI-crafted SVG via Gemini 2.5 Flash (supports reference images for context)
   const client = getClient();
   if (client) {
     try {
-      const model = client.getGenerativeModel({ model: "gemini-2.0-flash-exp" });
-
       const svgPrompt = buildSvgPrompt(
         prompt,
         w,
@@ -309,6 +290,7 @@ export async function generateBrandAsset(
         `Brand asset type: ${typeDescriptions[type]}.`,
       );
 
+      // Build content parts with optional reference images
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const contentParts: any[] = [{ text: svgPrompt }];
       for (const dataUri of referenceImages.slice(0, 3)) {
@@ -320,12 +302,16 @@ export async function generateBrandAsset(
         }
       }
 
-      const result = await model.generateContent({
-        contents: [{ role: "user", parts: contentParts }],
-        generationConfig: { responseMimeType: "text/plain", temperature: 0.8 },
+      const result = await client.models.generateContent({
+        model: "gemini-2.5-flash",
+        contents: contentParts,
+        config: {
+          temperature: 0.8,
+        },
       });
 
-      const svg = extractSvg(result.response.text());
+      const text = result.text ?? "";
+      const svg = extractSvg(text);
       if (svg) return svgToDataUri(svg);
     } catch (error) {
       console.error("[gemini-image] generateBrandAsset AI SVG error:", error);
@@ -343,9 +329,25 @@ export async function generateBrandAsset(
   );
 }
 
+// ---------------------------------------------------------------------------
+// Color scheme JSON schema for structured output
+// ---------------------------------------------------------------------------
+
+const colorSchemeSchema = {
+  type: Type.OBJECT,
+  properties: {
+    primary: { type: Type.STRING, description: "Primary brand color as hex (e.g. #4F46E5)" },
+    secondary: { type: Type.STRING, description: "Secondary brand color as hex" },
+    accent: { type: Type.STRING, description: "Accent color as hex" },
+    background: { type: Type.STRING, description: "Light background color as hex (near-white)" },
+  },
+  required: ["primary", "secondary", "accent", "background"],
+};
+
 /**
  * Generate a cohesive color scheme for a given industry and mood.
- * Uses Gemini for intelligent palette generation with algorithmic fallback.
+ * Uses Gemini 2.5 Pro with structured output for intelligent palette generation,
+ * with algorithmic fallback.
  */
 export async function generateColorScheme(
   industry: string,
@@ -360,24 +362,24 @@ export async function generateColorScheme(
   }
 
   try {
-    const model = client.getGenerativeModel({ model: "gemini-2.0-flash-exp" });
-
     const prompt = [
       `Generate a professional, cohesive color scheme for a ${industry} company with a ${mood} mood.`,
       `Consider color theory: complementary, analogous, or split-complementary relationships.`,
       `The background should be very light (near-white) to work as a page background.`,
-      `Return ONLY a JSON object with exactly these keys: primary, secondary, accent, background.`,
       `Each value should be a hex color code (e.g. "#4F46E5").`,
-      `No explanation, just the JSON.`,
     ].join("\n");
 
-    const result = await model.generateContent(prompt);
-    const text = result.response.text().trim();
+    const result = await client.models.generateContent({
+      model: "gemini-2.5-pro",
+      contents: prompt,
+      config: {
+        responseMimeType: "application/json",
+        responseSchema: colorSchemeSchema,
+      },
+    });
 
-    const jsonMatch = text.match(/\{[\s\S]*\}/);
-    if (!jsonMatch) return fallback;
-
-    const parsed = JSON.parse(jsonMatch[0]);
+    const text = (result.text ?? "").trim();
+    const parsed = JSON.parse(text);
     if (parsed.primary && parsed.secondary && parsed.accent && parsed.background) {
       return {
         primary: String(parsed.primary),
