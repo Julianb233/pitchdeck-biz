@@ -177,8 +177,12 @@ export interface Database {
           stripe_subscription_id: string;
           stripe_customer_id: string;
           status: string;
+          tier: string;
+          billing_period: string;
           token_balance: number;
           tokens_allocated: number;
+          image_credits_used: number;
+          deck_count_this_period: number;
           current_period_start: string;
           current_period_end: string;
           created_at: string;
@@ -189,8 +193,12 @@ export interface Database {
           stripe_subscription_id: string;
           stripe_customer_id: string;
           status?: string;
+          tier?: string;
+          billing_period?: string;
           token_balance?: number;
           tokens_allocated?: number;
+          image_credits_used?: number;
+          deck_count_this_period?: number;
           current_period_start: string;
           current_period_end: string;
           created_at?: string;
@@ -201,8 +209,12 @@ export interface Database {
           stripe_subscription_id?: string;
           stripe_customer_id?: string;
           status?: string;
+          tier?: string;
+          billing_period?: string;
           token_balance?: number;
           tokens_allocated?: number;
+          image_credits_used?: number;
+          deck_count_this_period?: number;
           current_period_start?: string;
           current_period_end?: string;
           created_at?: string;
@@ -364,51 +376,6 @@ export interface Database {
           },
         ];
       };
-      webhook_events: {
-        Row: {
-          event_id: string;
-          event_type: string;
-          processed_at: string;
-        };
-        Insert: {
-          event_id: string;
-          event_type: string;
-          processed_at?: string;
-        };
-        Update: {
-          event_id?: string;
-          event_type?: string;
-          processed_at?: string;
-        };
-        Relationships: [];
-      };
-      rate_limits: {
-        Row: {
-          id: string;
-          key: string;
-          limiter: string;
-          count: number;
-          reset_at: string;
-          created_at: string;
-        };
-        Insert: {
-          id?: string;
-          key: string;
-          limiter: string;
-          count?: number;
-          reset_at: string;
-          created_at?: string;
-        };
-        Update: {
-          id?: string;
-          key?: string;
-          limiter?: string;
-          count?: number;
-          reset_at?: string;
-          created_at?: string;
-        };
-        Relationships: [];
-      };
     };
     Views: Record<string, never>;
     Functions: {
@@ -419,6 +386,14 @@ export interface Database {
           new_balance: number;
           tokens_allocated: number;
         }>;
+      };
+      increment_deck_count: {
+        Args: { p_user_id: string };
+        Returns: boolean;
+      };
+      use_image_credit: {
+        Args: { p_user_id: string; p_count: number };
+        Returns: boolean;
       };
     };
     Enums: Record<string, never>;

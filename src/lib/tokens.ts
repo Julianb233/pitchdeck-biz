@@ -1,4 +1,5 @@
 import { createAdminClient } from '@/lib/supabase/admin';
+import { getTokenAllocation, type PlanId } from '@/lib/pricing';
 
 export type AssetType = "social-media" | "product-mockup" | "marketing-collateral" | "brand-identity"
 
@@ -16,6 +17,7 @@ export const ASSET_TYPE_LABELS: Record<AssetType, string> = {
   "brand-identity": "Brand Identity",
 }
 
+/** @deprecated Use getTokenAllocation(tier) from pricing.ts instead */
 export const MONTHLY_TOKEN_ALLOCATION = 500
 
 // ── Public API ──────────────────────────────────────────────────────────────

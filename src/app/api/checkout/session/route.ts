@@ -3,19 +3,31 @@ import { z } from 'zod';
 import {
   createDeckCheckoutSession,
   createSubscriptionCheckoutSession,
+  createAddonCheckoutSession,
 } from '@/lib/stripe';
 import { getSessionFromRequest } from '@/lib/auth';
 import { createOrder } from '@/lib/supabase/orders';
 import { checkoutLimiter, getClientIp, applyRateLimit } from '@/lib/rate-limit';
 
 const checkoutSchema = z.union([
-  // Legacy deck + deckId format
+  // Legacy deck + deckId format (backwards compat)
   z.object({ type: z.literal('deck'), deckId: z.string().min(1) }),
-  // priceType format from pricing page
+  // Legacy priceType format
   z.object({ priceType: z.literal('one-time') }),
-  z.object({ priceType: z.literal('subscription') }),
-  // Subscription without deckId
+  // New 3-tier subscription checkout
+  z.object({
+    type: z.literal('subscription'),
+    planId: z.enum(['starter', 'pro', 'founder_suite']),
+    billingPeriod: z.enum(['monthly', 'annual']),
+  }),
+  // Legacy subscription without plan (maps to pro/monthly for backwards compat)
   z.object({ type: z.literal('subscription') }),
+  z.object({ priceType: z.literal('subscription') }),
+  // Add-on purchase
+  z.object({
+    type: z.literal('addon'),
+    addonId: z.enum(['pitch_coach', 'video_deck', 'monthly_branding']),
+  }),
 ]);
 
 export async function POST(request: NextRequest) {
@@ -41,13 +53,13 @@ export async function POST(request: NextRequest) {
 
     const data = parsed.data;
 
+    // One-time deck purchase (legacy)
     if (
       ('type' in data && data.type === 'deck') ||
       ('priceType' in data && data.priceType === 'one-time')
     ) {
       const deckId = 'deckId' in data ? data.deckId : 'pending';
 
-      // Create a pending order in Supabase if user is authenticated
       let orderId: string | undefined;
       if (userId) {
         const order = await createOrder(userId, deckId, 9900);
@@ -60,7 +72,17 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ url: session.url });
     }
 
-    const session = await createSubscriptionCheckoutSession(userId);
+    // Add-on purchase
+    if ('type' in data && data.type === 'addon') {
+      const session = await createAddonCheckoutSession(data.addonId, userId);
+      return NextResponse.json({ url: session.url });
+    }
+
+    // Subscription checkout — new 3-tier flow
+    const planId = ('planId' in data && data.planId) ? data.planId : 'pro';
+    const billingPeriod = ('billingPeriod' in data && data.billingPeriod) ? data.billingPeriod : 'monthly';
+
+    const session = await createSubscriptionCheckoutSession(planId, billingPeriod, userId);
     return NextResponse.json({ url: session.url });
   } catch (error) {
     console.error('Checkout session creation failed:', error);
