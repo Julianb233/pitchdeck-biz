@@ -4,25 +4,30 @@ import {
   generateOnePagerPDF,
   generateBrandKitPDF,
 } from "@/lib/export/pdf-generator";
+import { generateDocumentPDF } from "@/lib/export/document-pdf";
 import type { DeckContent } from "@/lib/types";
+import type { DocumentContent } from "@/types/documents";
 import type { BrandColors } from "@/lib/export/pptx-generator";
 import { exportLimiter, getClientIp, applyRateLimit } from "@/lib/rate-limit";
 
-type PdfType = "sell-sheet" | "one-pager" | "brand-kit";
+type PdfType = "sell-sheet" | "one-pager" | "brand-kit" | "business-document";
 
 const GENERATORS: Record<
   PdfType,
-  (deck: DeckContent, colors?: BrandColors) => Promise<Buffer>
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  (content: any, colors?: BrandColors) => Promise<Buffer>
 > = {
   "sell-sheet": generateSellSheetPDF,
   "one-pager": generateOnePagerPDF,
   "brand-kit": generateBrandKitPDF,
+  "business-document": (content: DocumentContent) => generateDocumentPDF(content),
 };
 
 const FILENAMES: Record<PdfType, string> = {
   "sell-sheet": "sell-sheet.pdf",
   "one-pager": "one-pager.pdf",
   "brand-kit": "brand-kit.pdf",
+  "business-document": "business-document.pdf",
 };
 
 export async function POST(request: NextRequest) {
@@ -32,8 +37,9 @@ export async function POST(request: NextRequest) {
 
   try {
     const body = await request.json();
-    const { deck, brandColors, type } = body as {
-      deck: DeckContent;
+    const { deck, documentContent, brandColors, type } = body as {
+      deck?: DeckContent;
+      documentContent?: DocumentContent;
       brandColors?: BrandColors;
       type?: PdfType;
     };
@@ -43,21 +49,23 @@ export async function POST(request: NextRequest) {
     if (!GENERATORS[pdfType]) {
       return NextResponse.json(
         {
-          error: "Invalid PDF type. Must be one of: sell-sheet, one-pager, brand-kit",
+          error: "Invalid PDF type. Must be one of: sell-sheet, one-pager, brand-kit, business-document",
         },
         { status: 400 }
       );
     }
 
-    if (!deck) {
+    // For business-document type, use documentContent; otherwise use deck
+    const content = pdfType === "business-document" ? documentContent : deck;
+    if (!content) {
       return NextResponse.json(
-        { error: "Invalid deck content" },
+        { error: pdfType === "business-document" ? "Invalid document content" : "Invalid deck content" },
         { status: 400 }
       );
     }
 
     const generate = GENERATORS[pdfType];
-    const buffer = await generate(deck, brandColors);
+    const buffer = await generate(content, brandColors);
     const filename = FILENAMES[pdfType];
 
     return new NextResponse(new Uint8Array(buffer), {
