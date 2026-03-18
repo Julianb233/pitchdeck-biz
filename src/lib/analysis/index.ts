@@ -13,6 +13,7 @@ export { analyzeBusinessInfo } from "./pipeline";
 export { transcribeAudio } from "./transcribe";
 export {
   extractTextFromFile,
+  extractStructuredFromFile,
   imageToBase64,
   validateFile,
 } from "./file-parser";

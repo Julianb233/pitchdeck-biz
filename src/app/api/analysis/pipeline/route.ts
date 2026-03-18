@@ -2,12 +2,14 @@ import { NextRequest, NextResponse } from "next/server";
 import {
   validateApiKey,
   extractTextFromFile,
+  extractStructuredFromFile,
   imageToBase64,
   validateFile,
   transcribeAudio,
   analyzeBusinessInfo,
   logger,
 } from "@/lib/analysis";
+import { formatStructuredExtraction } from "@/lib/ai/document-processor";
 import { createClient } from "@/lib/supabase/server";
 import type { Json } from "@/lib/supabase/types";
 import { saveDeck } from "@/lib/supabase/decks";
@@ -84,13 +86,27 @@ export async function POST(request: NextRequest) {
           status: "queued_for_transcription",
         });
       } else if (file.type.startsWith("image/")) {
-        images.push(imageToBase64(buffer, file.type));
-        processedFiles.push({
-          name: file.name,
-          type: file.type,
-          size: file.size,
-          status: "processed_as_image",
-        });
+        // Try Gemini structured extraction for images first (extracts text from screenshots, diagrams)
+        const structured = await extractStructuredFromFile(buffer, file.type, file.name);
+        if (structured && structured.extractedText.trim()) {
+          const enriched = formatStructuredExtraction(structured);
+          textParts.push(`[${file.name}]\n${enriched}`);
+          processedFiles.push({
+            name: file.name,
+            type: file.type,
+            size: file.size,
+            status: "gemini_vision_extracted",
+          });
+        } else {
+          // Fallback: pass as image for Claude vision analysis
+          images.push(imageToBase64(buffer, file.type));
+          processedFiles.push({
+            name: file.name,
+            type: file.type,
+            size: file.size,
+            status: "processed_as_image",
+          });
+        }
       } else {
         const text = await extractTextFromFile(buffer, file.type, file.name);
         if (text.trim()) {
