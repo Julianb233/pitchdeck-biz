@@ -6,11 +6,12 @@ import { createClient } from "@/lib/supabase/server";
 import { updateDeckContent, updateDeckStatus } from "@/lib/supabase/decks";
 import type { Json } from "@/lib/supabase/types";
 import { generationLimiter, getClientIp, applyRateLimit } from "@/lib/rate-limit";
+import { getInvestorProfile, type InvestorProfile } from "@/lib/deck/investor-profiles";
 
 export const runtime = "nodejs";
 export const maxDuration = 60;
 
-const SYSTEM_PROMPT = `You are an expert pitch deck strategist and copywriter. Given a business analysis, generate compelling pitch deck content.
+const BASE_SYSTEM_PROMPT = `You are an expert pitch deck strategist and copywriter. Given a business analysis, generate compelling pitch deck content.
 
 You MUST return valid JSON matching the exact schema below. Do NOT include any text outside the JSON object.
 
@@ -19,7 +20,7 @@ Schema:
   "slides": [
     {
       "slideNumber": number,
-      "type": "title" | "problem" | "solution" | "market" | "product" | "business-model" | "traction" | "team" | "financials" | "ask" | "why-now" | "closing",
+      "type": string,
       "title": string,
       "subtitle": string (optional),
       "bulletPoints": string[] (optional, 3-5 items),
@@ -45,13 +46,32 @@ Schema:
 }
 
 Guidelines:
-- Generate exactly 10-12 slides covering: title, problem, solution, market, product, business-model, traction, team, financials, ask, why-now, closing
 - Use specific numbers and metrics from the analysis wherever possible
-- Write punchy, investor-ready copy — avoid jargon and fluff
 - Sell sheet should have 4-5 sections summarizing the business for prospects
 - One-pager should have 4-5 sections for an executive audience
 - Brand kit should suggest fonts, colors, voice, and logo direction that match the brand essence
 - Speaker notes should give actionable presentation tips`;
+
+function buildSystemPrompt(profile: InvestorProfile): string {
+  const slideTypes = profile.slideOrder.map((t) => `"${t}"`).join(" | ");
+
+  return `${BASE_SYSTEM_PROMPT}
+
+INVESTOR AUDIENCE: ${profile.label}
+${profile.systemPromptAddition}
+
+TONE: ${profile.toneGuide}
+
+FINANCIAL FRAMING: ${profile.financialFraming}
+
+KEY METRICS TO HIGHLIGHT: ${profile.keyMetrics.join(", ")}
+
+SLIDE ORDER AND TYPES:
+Generate exactly ${profile.slideOrder.length} slides in this order using these slide types: ${slideTypes}
+Each slide's "type" field MUST be one of: ${slideTypes}
+
+Write copy that resonates with ${profile.label.toLowerCase()} audiences. Avoid generic language — tailor every slide to what this investor type cares about most.`;
+}
 
 function buildUserPrompt(analysis: BusinessAnalysis): string {
   return `Generate a complete pitch deck content package for the following business:
@@ -81,6 +101,7 @@ export async function POST(request: NextRequest) {
     const analysis = body.analysis as BusinessAnalysis;
     const analysisId = (body.analysis_id as string) || null;
     const existingDeckId = (body.deckId as string) || null;
+    const investorType = (body.investorType as string) || null;
 
     if (!analysis || !analysis.summary) {
       return NextResponse.json(
@@ -88,6 +109,10 @@ export async function POST(request: NextRequest) {
         { status: 400 }
       );
     }
+
+    // Resolve investor profile (defaults to "general" for unknown/missing types)
+    const investorProfile = getInvestorProfile(investorType);
+    const systemPrompt = buildSystemPrompt(investorProfile);
 
     const client = new Anthropic({ apiKey });
 
@@ -100,7 +125,7 @@ export async function POST(request: NextRequest) {
           content: buildUserPrompt(analysis),
         },
       ],
-      system: SYSTEM_PROMPT,
+      system: systemPrompt,
     });
 
     const textBlock = message.content.find((block) => block.type === "text");
@@ -188,6 +213,8 @@ export async function POST(request: NextRequest) {
       success: true,
       deckContent,
       deckId: savedDeckId,
+      investorType: investorProfile.type,
+      investorLabel: investorProfile.label,
     });
   } catch (error) {
     console.error("Generate deck failed:", error);
