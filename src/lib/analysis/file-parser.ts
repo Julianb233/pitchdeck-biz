@@ -19,11 +19,9 @@ const GEMINI_NATIVE_TYPES = new Set([
 /**
  * Extract text content from various file types.
  *
- * Primary: Gemini 2.5 Pro native document understanding (vision-based).
- * Fallback: Legacy parsers (pdf-parse for PDFs, mammoth for DOCX).
- *
- * Gemini provides richer extraction — it can "see" charts, tables, diagrams,
- * and layout structure that text-only parsers miss.
+ * Uses Gemini 2.5 Pro native document understanding (vision-based) exclusively.
+ * Gemini can "see" charts, tables, diagrams, and layout structure that
+ * text-only parsers miss. Failures surface as explicit errors.
  */
 export async function extractTextFromFile(
   buffer: Buffer,
@@ -42,46 +40,21 @@ export async function extractTextFromFile(
     return "";
   }
 
-  // For documents and images that Gemini can understand natively, try Gemini first
+  // For documents and images that Gemini can understand natively
   if (GEMINI_NATIVE_TYPES.has(mimeType)) {
-    try {
-      const result = await processDocumentWithGemini(buffer, mimeType, fileName);
-      const enrichedText = formatStructuredExtraction(result);
-      if (enrichedText.trim()) {
-        logger.info("Gemini document extraction succeeded", {
-          fileName,
-          sections: result.structuredData.sections.length,
-          tables: result.structuredData.tables.length,
-          charts: result.structuredData.charts.length,
-          metrics: result.structuredData.keyMetrics.length,
-        });
-        return enrichedText;
-      }
-    } catch (error) {
-      logger.warn("Gemini document processing failed, falling back to legacy parser", {
-        fileName,
-        error: error instanceof Error ? error.message : String(error),
-      });
-    }
-  }
-
-  // Fallback: legacy parsers
-  if (mimeType === "application/pdf") {
-    return extractFromPdf(buffer);
-  }
-
-  if (
-    mimeType ===
-      "application/vnd.openxmlformats-officedocument.wordprocessingml.document" ||
-    mimeType === "application/msword" ||
-    fileName.endsWith(".docx") ||
-    fileName.endsWith(".doc")
-  ) {
-    return extractFromDocx(buffer);
+    const result = await processDocumentWithGemini(buffer, mimeType, fileName);
+    const enrichedText = formatStructuredExtraction(result);
+    logger.info("Gemini document extraction succeeded", {
+      fileName,
+      sections: result.structuredData.sections.length,
+      tables: result.structuredData.tables.length,
+      charts: result.structuredData.charts.length,
+      metrics: result.structuredData.keyMetrics.length,
+    });
+    return enrichedText;
   }
 
   if (mimeType.startsWith("image/")) {
-    // Images that Gemini couldn't process — return empty for Claude vision fallback
     return "";
   }
 
@@ -104,42 +77,7 @@ export async function extractStructuredFromFile(
     return null;
   }
 
-  try {
-    return await processDocumentWithGemini(buffer, mimeType, fileName);
-  } catch (error) {
-    logger.warn("Structured extraction failed", {
-      fileName,
-      error: error instanceof Error ? error.message : String(error),
-    });
-    return null;
-  }
-}
-
-async function extractFromPdf(buffer: Buffer): Promise<string> {
-  try {
-    const { PDFParse } = await import("pdf-parse");
-    const parser = new PDFParse({ data: new Uint8Array(buffer) });
-    const result = await parser.getText();
-    return result.text;
-  } catch (error) {
-    logger.error("Failed to parse PDF", {
-      error: error instanceof Error ? error.message : String(error),
-    });
-    throw new Error("Failed to parse PDF file");
-  }
-}
-
-async function extractFromDocx(buffer: Buffer): Promise<string> {
-  try {
-    const mammoth = await import("mammoth");
-    const result = await mammoth.extractRawText({ buffer });
-    return result.value;
-  } catch (error) {
-    logger.error("Failed to parse DOCX", {
-      error: error instanceof Error ? error.message : String(error),
-    });
-    throw new Error("Failed to parse DOCX file");
-  }
+  return await processDocumentWithGemini(buffer, mimeType, fileName);
 }
 
 /**
