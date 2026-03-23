@@ -434,7 +434,7 @@ export default function DocumentsPage() {
 
   const isPro =
     user.subscriptionStatus === "pro" ||
-    (user.subscriptionStatus as string) === "founder_suite";
+    user.subscriptionStatus === "founder_suite";
 
   // If viewing a specific document
   if (activeDocument) {

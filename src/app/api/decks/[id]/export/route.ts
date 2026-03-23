@@ -69,7 +69,7 @@ export async function GET(
 
     // Reconstruct DeckContent from the database row
     const deckContent: DeckContent = {
-      slides: (deck.slides as DeckContent["slides"]) ?? [],
+      slides: (deck.slides as unknown as DeckContent["slides"]) ?? [],
       sellSheet: deck.sell_sheet as DeckContent["sellSheet"],
       onePager: deck.one_pager as DeckContent["onePager"],
       brandKit: deck.brand_kit as DeckContent["brandKit"],

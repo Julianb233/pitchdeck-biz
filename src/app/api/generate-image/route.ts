@@ -8,6 +8,8 @@ import {
   type ImagePurpose,
 } from "@/lib/ai/image-service";
 import { generateImageLimiter, getClientIp, applyRateLimit } from "@/lib/rate-limit";
+import { createClient } from "@/lib/supabase/server";
+import { getUserTier, canUseImageCredit } from "@/lib/feature-gate";
 
 // ---------------------------------------------------------------------------
 // POST /api/generate-image
@@ -29,6 +31,22 @@ export async function POST(request: NextRequest) {
     const ip = getClientIp(request);
     const limited = applyRateLimit(generateImageLimiter, ip, "Rate limit exceeded. Please wait a moment and try again.");
     if (limited) return limited;
+
+    // Enforce image credit limits for subscribed users
+    const supabase = await createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    if (user) {
+      const tierInfo = await getUserTier(user.id);
+      if (tierInfo && !canUseImageCredit(tierInfo)) {
+        return NextResponse.json(
+          {
+            error: "You've used all your AI image credits for this billing period. Upgrade your plan for more credits.",
+            currentTier: tierInfo.tier,
+          },
+          { status: 403 },
+        );
+      }
+    }
 
     const body = await request.json();
     const { action } = body;
