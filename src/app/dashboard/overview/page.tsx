@@ -181,18 +181,17 @@ export default function DashboardOverviewPage() {
         <div className="bg-gradient-to-r from-violet-500/10 to-cyan-500/10 border border-violet-500/20 rounded-xl p-5 flex items-center justify-between">
           <div>
             <p className="text-white font-medium">Upgrade to Pro</p>
-            <p className="text-zinc-400 text-sm">Subscribe for $49/mo for unlimited deck creation</p>
+            <p className="text-zinc-400 text-sm">Unlimited decks, promo materials, business docs starting at $29/mo</p>
           </div>
-          <button
-            onClick={() => handleCheckout("subscription")}
-            disabled={checkoutLoading}
-            className="px-4 py-2 rounded-lg font-semibold text-white text-sm disabled:opacity-50"
+          <a
+            href="/pricing"
+            className="px-4 py-2 rounded-lg font-semibold text-white text-sm"
             style={{
               background: "linear-gradient(135deg, #ff006e 0%, #8b5cf6 50%, #00d4ff 100%)",
             }}
           >
-            {checkoutLoading ? "Loading..." : "Subscribe Now"}
-          </button>
+            View Plans
+          </a>
         </div>
       )}
 
