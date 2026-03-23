@@ -11,11 +11,11 @@ See: .planning/PROJECT.md (updated 2026-03-17)
 
 Milestone: v2.0 — Funding Launch Platform + Gemini API Overhaul
 Phase: 16 of 28 (Gemini SDK Migration)
-Plan: Not started
-Status: Ready to plan
-Last activity: 2026-03-17 — v2.0 roadmap created (13 phases)
+Plan: 02 of N in phase 16
+Status: In progress
+Last activity: 2026-03-23 — Completed 16-02-PLAN.md (pitch-coach feedback structured output)
 
-Progress: ░░░░░░░░░░ 0%
+Progress: ░░░░░░░░░░ (2 plans complete in phase 16)
 
 ## Performance Metrics
 
@@ -43,6 +43,8 @@ Recent decisions affecting current work:
 - Gemini 2.0 Flash → 2.5 migration is URGENT (June 1 deadline)
 - Stitch designs before implementation (user reviews all pages)
 - Keep Claude for deck content gen, Gemini for research + images
+- result.parsed does not exist on GenerateContentResponse (@google/genai SDK) — use JSON.parse(result.text) for structured output responses
+- Dynamic GoogleGenAI import inside Next.js API route function bodies is intentional (Edge runtime bundling); only add top-level imports for zod/zod-to-json-schema helpers
 
 ### Pending Todos
 
@@ -54,6 +56,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-17
-Stopped at: Roadmap created, ready to plan Phase 16
+Last session: 2026-03-23
+Stopped at: Completed 16-02-PLAN.md (pitch-coach feedback structured output)
 Resume file: None
