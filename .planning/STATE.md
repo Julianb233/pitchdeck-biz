@@ -11,11 +11,11 @@ See: .planning/PROJECT.md (updated 2026-03-17)
 
 Milestone: v2.0 — Funding Launch Platform + Gemini API Overhaul
 Phase: 16 of 28 (Gemini SDK Migration)
-Plan: 02 of N in phase 16
+Plan: 03 of N in phase 16
 Status: In progress
-Last activity: 2026-03-23 — Completed 16-02-PLAN.md (pitch-coach feedback structured output)
+Last activity: 2026-03-23 — Completed 16-03-PLAN.md (discovery/summarize + document-processor structured output)
 
-Progress: ░░░░░░░░░░ (2 plans complete in phase 16)
+Progress: ░░░░░░░░░░ (3 plans complete in phase 16)
 
 ## Performance Metrics
 
@@ -45,6 +45,7 @@ Recent decisions affecting current work:
 - Keep Claude for deck content gen, Gemini for research + images
 - result.parsed does not exist on GenerateContentResponse (@google/genai SDK) — use JSON.parse(result.text) for structured output responses
 - Dynamic GoogleGenAI import inside Next.js API route function bodies is intentional (Edge runtime bundling); only add top-level imports for zod/zod-to-json-schema helpers
+- SUMMARIZE_PROMPT inline JSON schema block should be removed when responseJsonSchema is used — structured output handles format, prompt handles extraction quality
 
 ### Pending Todos
 
@@ -57,5 +58,5 @@ None yet.
 ## Session Continuity
 
 Last session: 2026-03-23
-Stopped at: Completed 16-02-PLAN.md (pitch-coach feedback structured output)
+Stopped at: Completed 16-03-PLAN.md (discovery/summarize + document-processor structured output)
 Resume file: None
