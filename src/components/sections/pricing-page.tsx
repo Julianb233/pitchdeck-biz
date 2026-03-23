@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, Fragment } from "react"
 import { Check, X, Sparkles, Crown, Zap, Gift, Video, Palette } from "lucide-react"
 import { PLAN_LIST, ADDON_LIST, type PlanId, type BillingPeriod } from "@/lib/pricing"
 
@@ -419,9 +419,9 @@ export function PricingPage() {
               </thead>
               <tbody>
                 {COMPARISON_DATA.map((section) => (
-                  <>
+                  <Fragment key={section.category}>
                     {/* Category header */}
-                    <tr key={section.category}>
+                    <tr>
                       <td
                         colSpan={4}
                         className="pt-8 pb-3 px-4 text-sm font-semibold uppercase tracking-wider text-muted-foreground"
@@ -469,7 +469,7 @@ export function PricingPage() {
                         )}
                       </tr>
                     ))}
-                  </>
+                  </Fragment>
                 ))}
               </tbody>
               {/* CTA row at the bottom of the table */}
