@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { GoogleGenAI } from "@google/genai";
+import { z } from "zod";
+import { zodToJsonSchema } from "zod-to-json-schema";
 import type { StepResponse, BusinessDiscoverySummary } from "@/types/discovery";
 import { analysisLimiter, getClientIp, applyRateLimit } from "@/lib/rate-limit";
 
@@ -8,32 +10,52 @@ export const maxDuration = 60;
 
 const API_KEY = process.env.GOOGLE_API_KEY ?? process.env.GEMINI_API_KEY ?? "";
 
+const BusinessDiscoverySummarySchema = z.object({
+  businessDescription: z.string(),
+  businessModel: z.string(),
+  product: z.string(),
+  market: z.string(),
+  uniqueValue: z.string(),
+  goals: z.array(z.string()),
+  primaryGoal: z.string(),
+  investorType: z.string(),
+  investorDetails: z.string(),
+  fundingAmount: z.string(),
+  timeline: z.string(),
+  useOfFunds: z.array(z.string()),
+  fundingSource: z.string(),
+  platform: z.string(),
+  geography: z.string(),
+  stage: z.string(),
+  teamSize: z.string(),
+  traction: z.array(z.string()),
+  existingInvestors: z.string(),
+  confidence: z.number().min(0).max(1),
+});
+
 const SUMMARIZE_PROMPT = `You are an expert business analyst and pitch deck strategist. A user has completed a 6-step discovery session about their business. Analyze all their responses and create a comprehensive structured summary.
 
-You MUST return valid JSON matching this exact schema — no markdown, no code fences, no extra text:
-
-{
-  "businessDescription": "2-3 sentence description of the business",
-  "businessModel": "How they make money (SaaS, marketplace, services, etc.)",
-  "product": "What they sell or offer",
-  "market": "Who their customers are and the market they serve",
-  "uniqueValue": "What makes them different from competitors",
-  "goals": ["goal1", "goal2"],
-  "primaryGoal": "Their most important goal (raise capital, sell business, find partners, etc.)",
-  "investorType": "Type of investor they're targeting (angel, VC, bank, crowdfunding, etc.)",
-  "investorDetails": "More detail about their target investors",
-  "fundingAmount": "How much they want to raise (e.g. '$500K', '$2M', 'TBD')",
-  "timeline": "When they want to close (e.g. '3 months', 'Q2 2026', 'ASAP')",
-  "useOfFunds": ["use1", "use2"],
-  "fundingSource": "Where they plan to raise (platform, network, geography)",
-  "platform": "Specific platform if mentioned (AngelList, Republic, etc.)",
-  "geography": "Geographic focus if mentioned",
-  "stage": "Business stage (Idea, MVP, Revenue, Growth, Profitable)",
-  "teamSize": "Team size or description",
-  "traction": ["traction metric 1", "traction metric 2"],
-  "existingInvestors": "Existing investors if mentioned",
-  "confidence": 0.85
-}
+Extract the following information from the user's responses:
+- businessDescription: 2-3 sentence description of the business
+- businessModel: How they make money (SaaS, marketplace, services, etc.)
+- product: What they sell or offer
+- market: Who their customers are and the market they serve
+- uniqueValue: What makes them different from competitors
+- goals: Array of their stated goals
+- primaryGoal: Their most important goal (raise capital, sell business, find partners, etc.)
+- investorType: Type of investor they're targeting (angel, VC, bank, crowdfunding, etc.)
+- investorDetails: More detail about their target investors
+- fundingAmount: How much they want to raise (e.g. "$500K", "$2M", "TBD")
+- timeline: When they want to close (e.g. "3 months", "Q2 2026", "ASAP")
+- useOfFunds: Array of how they plan to use the funds
+- fundingSource: Where they plan to raise (platform, network, geography)
+- platform: Specific platform if mentioned (AngelList, Republic, etc.)
+- geography: Geographic focus if mentioned
+- stage: Business stage (Idea, MVP, Revenue, Growth, Profitable)
+- teamSize: Team size or description
+- traction: Array of traction metrics
+- existingInvestors: Existing investors if mentioned
+- confidence: Score (0-1) reflecting how complete and clear the inputs were
 
 Rules:
 - Extract ALL relevant information from the user's responses
@@ -114,13 +136,13 @@ export async function POST(request: NextRequest) {
     const ai = new GoogleGenAI({ apiKey: API_KEY });
 
     const response = await ai.models.generateContent({
-      model: "gemini-2.5-pro-preview-06-05",
+      model: "gemini-2.5-pro",
       contents: [
         {
           role: "user",
           parts: [
             {
-              text: `${SUMMARIZE_PROMPT}\n\nHere are the user's discovery session responses:\n\n${userContent}\n\nReturn ONLY the JSON object.`,
+              text: `${SUMMARIZE_PROMPT}\n\nHere are the user's discovery session responses:\n\n${userContent}`,
             },
           ],
         },
@@ -129,6 +151,7 @@ export async function POST(request: NextRequest) {
         temperature: 0.3,
         maxOutputTokens: 4096,
         responseMimeType: "application/json",
+        responseJsonSchema: zodToJsonSchema(BusinessDiscoverySummarySchema),
       },
     });
 
@@ -141,16 +164,17 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Parse — strip code fences if present
-    let jsonText = rawText;
-    if (jsonText.startsWith("```")) {
-      jsonText = jsonText
-        .replace(/^```(?:json)?\s*\n?/, "")
-        .replace(/\n?```\s*$/, "");
+    const parseResult = BusinessDiscoverySummarySchema.safeParse(
+      JSON.parse(rawText)
+    );
+    if (!parseResult.success) {
+      console.error("Discovery summarize: invalid schema from Gemini:", parseResult.error);
+      return NextResponse.json(
+        { error: "AI returned unexpected summary format", details: parseResult.error.message },
+        { status: 500 }
+      );
     }
-
-    const summary: BusinessDiscoverySummary = JSON.parse(jsonText);
-
+    const summary = parseResult.data as BusinessDiscoverySummary;
     return NextResponse.json({ success: true, summary });
   } catch (error) {
     console.error("Discovery summarize failed:", error);

@@ -1,4 +1,4 @@
-import { GoogleGenAI } from "@google/genai";
+import { GoogleGenAI, Type } from "@google/genai";
 
 // ---------------------------------------------------------------------------
 // Gemini Native Document Understanding
@@ -125,6 +125,58 @@ export async function processDocumentWithGemini(
     ],
     config: {
       responseMimeType: "application/json",
+      responseSchema: {
+        type: Type.OBJECT,
+        properties: {
+          summary:    { type: Type.STRING },
+          fullText:   { type: Type.STRING },
+          sections: {
+            type: Type.ARRAY,
+            items: {
+              type: Type.OBJECT,
+              properties: {
+                title:   { type: Type.STRING },
+                content: { type: Type.STRING },
+              },
+              required: ["title", "content"],
+            },
+          },
+          tables: {
+            type: Type.ARRAY,
+            items: {
+              type: Type.OBJECT,
+              properties: {
+                title: { type: Type.STRING },
+                data:  { type: Type.ARRAY, items: { type: Type.ARRAY, items: { type: Type.STRING } } },
+              },
+              required: ["title", "data"],
+            },
+          },
+          charts: {
+            type: Type.ARRAY,
+            items: {
+              type: Type.OBJECT,
+              properties: {
+                title:       { type: Type.STRING },
+                description: { type: Type.STRING },
+              },
+              required: ["title", "description"],
+            },
+          },
+          keyMetrics: {
+            type: Type.ARRAY,
+            items: {
+              type: Type.OBJECT,
+              properties: {
+                label: { type: Type.STRING },
+                value: { type: Type.STRING },
+              },
+              required: ["label", "value"],
+            },
+          },
+        },
+        required: ["summary", "fullText", "sections", "tables", "charts", "keyMetrics"],
+      },
     },
   });
 
