@@ -13,6 +13,7 @@ const navItems = [
   { href: "#how-it-works", label: "How It Works" },
   { href: "#deliverables", label: "Deliverables" },
   { href: "/branding-assets", label: "Asset Studio" },
+  { href: "/work", label: "Our Work" },
   { href: "#pricing", label: "Pricing" },
   { href: "#faq", label: "FAQ" },
 ]
