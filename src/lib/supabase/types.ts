@@ -335,6 +335,83 @@ export interface Database {
           },
         ];
       };
+      addon_purchases: {
+        Row: {
+          id: string;
+          user_id: string;
+          addon_id: string;
+          stripe_session_id: string | null;
+          stripe_subscription_id: string | null;
+          amount_cents: number;
+          status: string;
+          used: boolean;
+          used_at: string | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          addon_id: string;
+          stripe_session_id?: string | null;
+          stripe_subscription_id?: string | null;
+          amount_cents?: number;
+          status?: string;
+          used?: boolean;
+          used_at?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          user_id?: string;
+          addon_id?: string;
+          stripe_session_id?: string | null;
+          stripe_subscription_id?: string | null;
+          amount_cents?: number;
+          status?: string;
+          used?: boolean;
+          used_at?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "addon_purchases_user_id_fkey";
+            columns: ["user_id"];
+            isOneToOne: false;
+            referencedRelation: "users";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      rate_limits: {
+        Row: {
+          id: string;
+          key: string;
+          limiter: string;
+          count: number;
+          reset_at: string;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          key: string;
+          limiter: string;
+          count: number;
+          reset_at: string;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          key?: string;
+          limiter?: string;
+          count?: number;
+          reset_at?: string;
+          created_at?: string;
+        };
+        Relationships: [];
+      };
       verification_tokens: {
         Row: {
           id: string;

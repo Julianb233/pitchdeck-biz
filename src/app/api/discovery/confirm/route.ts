@@ -2,6 +2,9 @@ import { NextRequest, NextResponse } from "next/server";
 import type { BusinessDiscoverySummary } from "@/types/discovery";
 import type { BusinessAnalysis } from "@/lib/types";
 import { analysisLimiter, getClientIp, applyRateLimit } from "@/lib/rate-limit";
+import type { InvestorType } from "@/lib/deck/investor-profiles";
+import { createClient } from "@/lib/supabase/server";
+import type { Json } from "@/lib/supabase/types";
 
 export const runtime = "nodejs";
 
@@ -56,6 +59,42 @@ function summaryToAnalysis(summary: BusinessDiscoverySummary): BusinessAnalysis 
 }
 
 /**
+ * Map free-text investor type and funding source from discovery session
+ * to the InvestorType enum used by the deck generator.
+ */
+function resolveInvestorType(
+  investorType?: string,
+  fundingSource?: string,
+): InvestorType {
+  const text = (investorType || "").toLowerCase();
+  const source = (fundingSource || "").toLowerCase();
+
+  // Check funding source first — bank/SBA is a distinct profile
+  if (source.includes("bank") || source.includes("sba") || source.includes("loan")) {
+    return "bank_sba";
+  }
+  if (source.includes("crowdfund") || source.includes("kickstarter") || source.includes("indiegogo")) {
+    return "crowdfunding";
+  }
+
+  // Map investor type text to enum
+  if (text.includes("venture") || text.includes("vc") || text.includes("series")) {
+    return "vc";
+  }
+  if (text.includes("angel")) {
+    return "angel";
+  }
+  if (text.includes("family office") || text.includes("family-office")) {
+    return "family_office";
+  }
+  if (text.includes("crowd") || text.includes("kickstarter")) {
+    return "crowdfunding";
+  }
+
+  return "general";
+}
+
+/**
  * POST /api/discovery/confirm
  *
  * User confirms the summary. Transforms it into a BusinessAnalysis
@@ -82,11 +121,45 @@ export async function POST(request: NextRequest) {
     }
 
     const analysis = summaryToAnalysis(summary);
+    const investorType = resolveInvestorType(
+      summary.investorType,
+      summary.fundingSource,
+    );
+
+    // Persist analysis to Supabase (if authenticated)
+    let analysisId: string | null = null;
+    try {
+      const supabase = await createClient();
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        const { data: row } = await supabase
+          .from("analyses")
+          .insert({
+            user_id: user.id,
+            status: "complete",
+            confidence: summary.confidence,
+            summary: analysis.summary,
+            business_model: analysis.businessModel as unknown as Json,
+            value_proposition: analysis.valueProposition as unknown as Json,
+            market: analysis.market as unknown as Json,
+            team: analysis.team as unknown as Json,
+            financials: analysis.financials as unknown as Json,
+            brand_essence: analysis.brandEssence as unknown as Json,
+            raw_input_summary: analysis.rawInputSummary,
+          })
+          .select("id")
+          .single();
+        if (row) analysisId = row.id;
+      }
+    } catch {
+      // Non-fatal — analysis save is best-effort
+    }
 
     return NextResponse.json({
       success: true,
       analysis,
-      investorType: summary.investorType,
+      analysisId,
+      investorType,
       fundingSource: summary.fundingSource,
     });
   } catch (error) {

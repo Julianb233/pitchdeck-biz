@@ -7,6 +7,7 @@ import { updateDeckContent, updateDeckStatus } from "@/lib/supabase/decks";
 import type { Json } from "@/lib/supabase/types";
 import { generationLimiter, getClientIp, applyRateLimit } from "@/lib/rate-limit";
 import { getInvestorProfile, type InvestorProfile } from "@/lib/deck/investor-profiles";
+import { getUserTier, canGenerateDeck } from "@/lib/feature-gate";
 
 export const runtime = "nodejs";
 export const maxDuration = 60;
@@ -95,6 +96,23 @@ export async function POST(request: NextRequest) {
         { error: "ANTHROPIC_API_KEY not configured" },
         { status: 500 }
       );
+    }
+
+    // Enforce deck generation limits for subscribed users
+    const supabaseAuth = await createClient();
+    const { data: { user } } = await supabaseAuth.auth.getUser();
+    if (user) {
+      const tierInfo = await getUserTier(user.id);
+      if (tierInfo && !canGenerateDeck(tierInfo)) {
+        return NextResponse.json(
+          {
+            error: "You've reached your deck generation limit for this billing period. Upgrade to Pro for unlimited decks.",
+            requiredTier: "pro",
+            currentTier: tierInfo.tier,
+          },
+          { status: 403 },
+        );
+      }
     }
 
     const body = await request.json();
