@@ -164,7 +164,7 @@ export function Benefits() {
                 <span
                   className="text-sm font-semibold uppercase tracking-wider bg-clip-text text-transparent"
                   style={{
-                    background: "linear-gradient(135deg, #203eec, #00d4ff)",
+                    background: "linear-gradient(135deg, #7c3aed, #ec4899)",
                     WebkitBackgroundClip: "text",
                     WebkitTextFillColor: "transparent",
                   }}
@@ -196,11 +196,11 @@ export function Benefits() {
                   <div
                     className="relative rounded-xl md:rounded-2xl p-4 md:p-5 border transition-all duration-300 hover:-translate-y-0.5"
                     style={{
-                      borderColor: "rgba(32, 62, 236, 0.25)",
-                      background: "linear-gradient(135deg, rgba(32, 62, 236, 0.06), rgba(0, 212, 255, 0.06))",
+                      borderColor: "rgba(124, 58, 237, 0.25)",
+                      background: "linear-gradient(135deg, rgba(124, 58, 237, 0.06), rgba(236, 72, 153, 0.06))",
                     }}
                     onMouseEnter={(e) => {
-                      e.currentTarget.style.boxShadow = "0 4px 20px rgba(32, 62, 236, 0.15)"
+                      e.currentTarget.style.boxShadow = "0 4px 20px rgba(124, 58, 237, 0.15)"
                     }}
                     onMouseLeave={(e) => {
                       e.currentTarget.style.boxShadow = "none"
@@ -210,7 +210,7 @@ export function Benefits() {
                       <div
                         className="w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5"
                         style={{
-                          background: "linear-gradient(135deg, #203eec, #00d4ff)",
+                          background: "linear-gradient(135deg, #7c3aed, #ec4899)",
                         }}
                       >
                         <Check className="w-3.5 h-3.5 text-white" />
