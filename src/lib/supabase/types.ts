@@ -385,6 +385,79 @@ export interface Database {
           },
         ];
       };
+      discovery_sessions: {
+        Row: {
+          id: string;
+          user_id: string | null;
+          status: string;
+          current_step: number;
+          responses: Json;
+          file_references: Json;
+          ai_context: Json;
+          summary: Json | null;
+          analysis_id: string | null;
+          deck_id: string | null;
+          investor_type: string | null;
+          completed_at: string | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id?: string | null;
+          status?: string;
+          current_step?: number;
+          responses?: Json;
+          file_references?: Json;
+          ai_context?: Json;
+          summary?: Json | null;
+          analysis_id?: string | null;
+          deck_id?: string | null;
+          investor_type?: string | null;
+          completed_at?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          user_id?: string | null;
+          status?: string;
+          current_step?: number;
+          responses?: Json;
+          file_references?: Json;
+          ai_context?: Json;
+          summary?: Json | null;
+          analysis_id?: string | null;
+          deck_id?: string | null;
+          investor_type?: string | null;
+          completed_at?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "discovery_sessions_user_id_fkey";
+            columns: ["user_id"];
+            isOneToOne: false;
+            referencedRelation: "users";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "discovery_sessions_analysis_id_fkey";
+            columns: ["analysis_id"];
+            isOneToOne: false;
+            referencedRelation: "analyses";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "discovery_sessions_deck_id_fkey";
+            columns: ["deck_id"];
+            isOneToOne: false;
+            referencedRelation: "decks";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       rate_limits: {
         Row: {
           id: string;
