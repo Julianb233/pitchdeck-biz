@@ -7,9 +7,10 @@ interface AuthUser {
   id: string;
   email: string;
   name: string;
-  subscriptionStatus: "free" | "pro";
+  subscriptionStatus: "free" | "starter" | "pro" | "founder_suite";
   emailVerified: boolean;
   createdAt: string;
+  isGrandfathered?: boolean;
 }
 
 interface UseAuthReturn {
@@ -30,22 +31,40 @@ export function useAuth(): UseAuthReturn {
       const supabase = createClient();
       const { data: { user: supaUser } } = await supabase.auth.getUser();
       if (supaUser) {
-        // Check subscription status from DB
-        const { data: sub } = await supabase
-          .from("subscriptions")
-          .select("status")
+        // Check subscription status and tier from DB
+        // Columns tier, grandfathered_until added by migration 008 — not yet in generated types
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const { data: sub } = (await (supabase
+          .from("subscriptions") as any)
+          .select("status, tier, grandfathered_until")
           .eq("user_id", supaUser.id)
           .eq("status", "active")
+          .order("created_at", { ascending: false })
           .limit(1)
-          .maybeSingle();
+          .maybeSingle()) as { data: { status: string; tier?: string; grandfathered_until?: string } | null };
+
+        let subscriptionStatus: AuthUser["subscriptionStatus"] = "free";
+        let isGrandfathered = false;
+        if (sub) {
+          const tier = sub.tier;
+          if (tier === "starter" || tier === "pro" || tier === "founder_suite") {
+            subscriptionStatus = tier;
+          } else {
+            subscriptionStatus = "pro";
+          }
+          if (sub.grandfathered_until) {
+            isGrandfathered = new Date(sub.grandfathered_until) > new Date();
+          }
+        }
 
         setUser({
           id: supaUser.id,
           email: supaUser.email ?? "",
           name: supaUser.user_metadata?.name ?? supaUser.email ?? "",
-          subscriptionStatus: sub ? "pro" : "free",
+          subscriptionStatus,
           emailVerified: !!(supaUser.email_confirmed_at || supaUser.confirmed_at),
           createdAt: supaUser.created_at,
+          isGrandfathered,
         });
       } else {
         setUser(null);
