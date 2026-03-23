@@ -6,9 +6,10 @@ export interface SafeUser {
   id: string;
   email: string;
   name: string;
-  subscriptionStatus: "free" | "pro";
+  subscriptionStatus: "free" | "starter" | "pro" | "founder_suite";
   emailVerified: boolean;
   createdAt: Date;
+  isGrandfathered?: boolean;
 }
 
 // ── Supabase Auth wrappers ─────────────────────────────────────────────────
@@ -81,18 +82,29 @@ export async function getSessionFromCookies(): Promise<SafeUser | null> {
   const { data: { user }, error } = await supabase.auth.getUser();
   if (error || !user) return null;
 
-  // Check subscription status from DB
-  const { data: subscription } = await supabase
-    .from("subscriptions")
-    .select("status")
+  // Check subscription status and tier from DB
+  // Columns tier, grandfathered_until added by migration 008 — not yet in generated types
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const { data: subscription } = (await (supabase
+    .from("subscriptions") as any)
+    .select("status, tier, grandfathered_until")
     .eq("user_id", user.id)
     .eq("status", "active")
+    .order("created_at", { ascending: false })
     .limit(1)
-    .maybeSingle();
+    .maybeSingle()) as { data: { status: string; tier?: string; grandfathered_until?: string } | null };
 
   const safeUser = toSafeUser(user);
   if (subscription) {
-    safeUser.subscriptionStatus = "pro";
+    const tier = subscription.tier || "pro";
+    if (tier === "starter" || tier === "pro" || tier === "founder_suite") {
+      safeUser.subscriptionStatus = tier;
+    } else {
+      safeUser.subscriptionStatus = "pro";
+    }
+    if (subscription.grandfathered_until) {
+      safeUser.isGrandfathered = new Date(subscription.grandfathered_until) > new Date();
+    }
   }
   return safeUser;
 }
