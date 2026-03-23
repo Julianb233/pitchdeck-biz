@@ -84,7 +84,7 @@ export async function processDocumentWithGemini(
   if (file.byteLength > LARGE_FILE_THRESHOLD) {
     // Large file: upload via Files API first
     const uploaded = await ai.files.upload({
-      file: new Blob([file], { type: mimeType }),
+      file: new Blob([new Uint8Array(file)], { type: mimeType }),
       config: { mimeType },
     });
 
