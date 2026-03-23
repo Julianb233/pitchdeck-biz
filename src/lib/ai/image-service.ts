@@ -8,6 +8,7 @@
 //   - Fallback -> AI-crafted SVGs or algorithmic placeholders
 // ---------------------------------------------------------------------------
 
+import { GoogleGenAI, Type } from "@google/genai";
 import { generateMockupSVG } from "./mockup-svg-generator";
 
 // ---------------------------------------------------------------------------
@@ -47,7 +48,7 @@ export interface ImageGenerationResult {
 const IMAGEN_MODEL =
   process.env.IMAGEN_MODEL ?? "imagen-3.0-generate-002";
 const SLIDE_IMAGE_MODEL =
-  process.env.SLIDE_IMAGE_MODEL ?? "gemini-2.0-flash-exp";
+  process.env.SLIDE_IMAGE_MODEL ?? "gemini-2.5-flash";
 
 const API_KEY =
   process.env.GOOGLE_API_KEY ??
@@ -303,9 +304,7 @@ async function generateWithGeminiSvg(
   if (!API_KEY) return null;
 
   try {
-    const { GoogleGenerativeAI } = await import("@google/generative-ai");
-    const client = new GoogleGenerativeAI(API_KEY);
-    const model = client.getGenerativeModel({ model: SLIDE_IMAGE_MODEL });
+    const client = new GoogleGenAI({ apiKey: API_KEY });
 
     const svgPrompt = [
       `Generate a sophisticated, professional SVG graphic. Return ONLY the SVG markup starting with <svg, no explanation, no markdown fences, no backticks.`,
@@ -337,12 +336,15 @@ async function generateWithGeminiSvg(
       }
     }
 
-    const result = await model.generateContent({
-      contents: [{ role: "user", parts: contentParts }],
-      generationConfig: { responseMimeType: "text/plain", temperature: 0.8 },
+    const result = await client.models.generateContent({
+      model: "gemini-2.5-flash",
+      contents: contentParts,
+      config: {
+        temperature: 0.8,
+      },
     });
 
-    const text = result.response.text();
+    const text = result.text ?? "";
     const svgMatch = text.match(/<svg[\s\S]*?<\/svg>/i);
     if (!svgMatch) return null;
 
@@ -702,9 +704,7 @@ export async function generateColorScheme(
   }
 
   try {
-    const { GoogleGenerativeAI } = await import("@google/generative-ai");
-    const client = new GoogleGenerativeAI(API_KEY);
-    const model = client.getGenerativeModel({ model: SLIDE_IMAGE_MODEL });
+    const client = new GoogleGenAI({ apiKey: API_KEY });
 
     const prompt = [
       `Generate a professional, cohesive color scheme for a ${industry} company with a ${mood} mood.`,
@@ -715,8 +715,24 @@ export async function generateColorScheme(
       `No explanation, just the JSON.`,
     ].join("\n");
 
-    const result = await model.generateContent(prompt);
-    const text = result.response.text().trim();
+    const result = await client.models.generateContent({
+      model: "gemini-2.5-flash",
+      contents: prompt,
+      config: {
+        responseMimeType: "application/json",
+        responseSchema: {
+          type: Type.OBJECT,
+          properties: {
+            primary:    { type: Type.STRING },
+            secondary:  { type: Type.STRING },
+            accent:     { type: Type.STRING },
+            background: { type: Type.STRING },
+          },
+          required: ["primary", "secondary", "accent", "background"],
+        },
+      },
+    });
+    const text = (result.text ?? "").trim();
 
     const jsonMatch = text.match(/\{[\s\S]*\}/);
     if (!jsonMatch) return algorithmicColorScheme(industry, mood);
