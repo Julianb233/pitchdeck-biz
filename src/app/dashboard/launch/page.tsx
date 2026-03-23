@@ -208,7 +208,7 @@ export default function LaunchInfrastructurePage() {
   const [previewDoc, setPreviewDoc] = useState<LaunchDocument | null>(null);
   const [dataLoading, setDataLoading] = useState(true);
 
-  const isFounderSuite = user?.subscriptionStatus === "pro"; // Will be "founder_suite" when tier is added
+  const isFounderSuite = user?.subscriptionStatus === "founder_suite";
 
   // Load analyses
   useEffect(() => {
