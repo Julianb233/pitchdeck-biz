@@ -5,6 +5,17 @@ import { useState, useCallback, useEffect } from "react";
 import { useAuth } from "@/hooks/use-auth";
 import { MONTHLY_TOKEN_ALLOCATION } from "@/lib/tokens";
 import { TokenUsage } from "@/components/dashboard/token-usage";
+import {
+  Presentation,
+  FileText,
+  FileCheck,
+  Palette,
+  Package,
+  Briefcase,
+  ArrowUpRight,
+  Sparkles,
+  TrendingUp,
+} from "lucide-react";
 
 interface DeckRow {
   id: string;
@@ -29,6 +40,57 @@ interface AssetRow {
   tokens_used: number;
   created_at: string;
 }
+
+const DELIVERABLES_HUB = [
+  {
+    icon: Presentation,
+    title: "Pitch Deck",
+    description: "10-15 slide investor deck",
+    href: "/create",
+    gradient: "from-[#7c3aed] to-[#3b82f6]",
+    accentColor: "#7c3aed",
+  },
+  {
+    icon: FileText,
+    title: "Sell Sheet",
+    description: "1-2 page business overview",
+    href: "/create/preview",
+    gradient: "from-[#ec4899] to-[#f97316]",
+    accentColor: "#ec4899",
+  },
+  {
+    icon: FileCheck,
+    title: "One-Pager",
+    description: "Executive summary",
+    href: "/create/preview",
+    gradient: "from-[#06b6d4] to-[#10b981]",
+    accentColor: "#06b6d4",
+  },
+  {
+    icon: Palette,
+    title: "Brand Kit",
+    description: "Colors, fonts & guidelines",
+    href: "/dashboard/assets",
+    gradient: "from-[#f97316] to-[#7c3aed]",
+    accentColor: "#f97316",
+  },
+  {
+    icon: Package,
+    title: "Promo Materials",
+    description: "Social kit & ad creatives",
+    href: "/dashboard/materials",
+    gradient: "from-[#3b82f6] to-[#06b6d4]",
+    accentColor: "#3b82f6",
+  },
+  {
+    icon: Briefcase,
+    title: "Business Docs",
+    description: "Executive summary & more",
+    href: "/dashboard/documents",
+    gradient: "from-[#10b981] to-[#3b82f6]",
+    accentColor: "#10b981",
+  },
+];
 
 export default function DashboardOverviewPage() {
   const { user, loading } = useAuth();
@@ -112,7 +174,7 @@ export default function DashboardOverviewPage() {
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-[60vh]">
-        <div className="text-zinc-400">Loading...</div>
+        <div className="text-muted-foreground">Loading...</div>
       </div>
     );
   }
@@ -132,80 +194,142 @@ export default function DashboardOverviewPage() {
       {/* Welcome header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-white">Welcome, {user.name}</h1>
-          <p className="text-zinc-400 text-sm mt-1">
-            {user.email}
+          <h1 className="text-2xl font-bold">Welcome back, {user.name}</h1>
+          <p className="text-muted-foreground text-sm mt-1">
+            Here&apos;s an overview of your pitch deck workspace
           </p>
         </div>
         <Link
           href="/create"
-          className="px-5 py-2.5 rounded-lg font-semibold text-white text-sm transition-all hover:opacity-90"
+          className="hidden sm:inline-flex items-center gap-2 px-5 py-2.5 rounded-xl font-semibold text-white text-sm transition-all hover:opacity-90 hover:scale-[1.02]"
           style={{
-            background: "linear-gradient(135deg, #ff006e 0%, #8b5cf6 50%, #00d4ff 100%)",
+            background: "var(--brand-gradient-cta)",
+            boxShadow: "0 4px 16px rgba(124, 58, 237, 0.3)",
           }}
         >
+          <Sparkles className="w-4 h-4" />
           Create New Deck
         </Link>
       </div>
 
-      {/* Token Balance */}
-      <TokenUsage tokensRemaining={tokenBalance} resetDate={tokenResetDate} />
-
-      {/* Stats cards */}
+      {/* Stats row */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-5">
-          <p className="text-zinc-500 text-xs font-medium uppercase tracking-wider">Plan</p>
-          <div className="mt-2 flex items-center gap-2">
-            <span className={`inline-block w-2 h-2 rounded-full ${user.subscriptionStatus === "pro" ? "bg-emerald-500" : "bg-zinc-600"}`} />
-            <span className="text-lg font-semibold text-white capitalize">{user.subscriptionStatus}</span>
+        <div className="rounded-xl border border-border bg-card p-5">
+          <div className="flex items-center gap-3 mb-3">
+            <div className="w-9 h-9 rounded-lg flex items-center justify-center" style={{ background: "rgba(124, 58, 237, 0.1)" }}>
+              <TrendingUp className="w-4 h-4" style={{ color: "#7c3aed" }} />
+            </div>
+            <p className="text-muted-foreground text-xs font-medium uppercase tracking-wider">Plan</p>
+          </div>
+          <div className="flex items-center gap-2">
+            <span className={`inline-block w-2 h-2 rounded-full ${user.subscriptionStatus === "pro" ? "bg-emerald-500" : "bg-muted-foreground/30"}`} />
+            <span className="text-lg font-semibold capitalize">{user.subscriptionStatus}</span>
           </div>
         </div>
 
-        <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-5">
-          <p className="text-zinc-500 text-xs font-medium uppercase tracking-wider">Analyses</p>
-          <p className="mt-2 text-lg font-semibold text-white">
+        <div className="rounded-xl border border-border bg-card p-5">
+          <div className="flex items-center gap-3 mb-3">
+            <div className="w-9 h-9 rounded-lg flex items-center justify-center" style={{ background: "rgba(236, 72, 153, 0.1)" }}>
+              <Sparkles className="w-4 h-4" style={{ color: "#ec4899" }} />
+            </div>
+            <p className="text-muted-foreground text-xs font-medium uppercase tracking-wider">Analyses</p>
+          </div>
+          <p className="text-lg font-semibold">
             {dataLoading ? "..." : analyses.length}
           </p>
         </div>
 
-        <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-5">
-          <p className="text-zinc-500 text-xs font-medium uppercase tracking-wider">Total Decks</p>
-          <p className="mt-2 text-lg font-semibold text-white">
+        <div className="rounded-xl border border-border bg-card p-5">
+          <div className="flex items-center gap-3 mb-3">
+            <div className="w-9 h-9 rounded-lg flex items-center justify-center" style={{ background: "rgba(6, 182, 212, 0.1)" }}>
+              <Presentation className="w-4 h-4" style={{ color: "#06b6d4" }} />
+            </div>
+            <p className="text-muted-foreground text-xs font-medium uppercase tracking-wider">Total Decks</p>
+          </div>
+          <p className="text-lg font-semibold">
             {dataLoading ? "..." : decks.length}
           </p>
         </div>
       </div>
 
+      {/* Token Balance */}
+      <TokenUsage tokensRemaining={tokenBalance} resetDate={tokenResetDate} />
+
       {/* Upgrade CTA */}
       {user.subscriptionStatus !== "pro" && (
-        <div className="bg-gradient-to-r from-violet-500/10 to-cyan-500/10 border border-violet-500/20 rounded-xl p-5 flex items-center justify-between">
+        <div
+          className="rounded-xl p-5 flex items-center justify-between border"
+          style={{
+            borderColor: "rgba(124, 58, 237, 0.2)",
+            background: "linear-gradient(135deg, rgba(124, 58, 237, 0.08), rgba(236, 72, 153, 0.06))",
+          }}
+        >
           <div>
-            <p className="text-white font-medium">Upgrade to Pro</p>
-            <p className="text-zinc-400 text-sm">Subscribe for $49/mo for unlimited deck creation</p>
+            <p className="font-semibold">Upgrade to Pro</p>
+            <p className="text-muted-foreground text-sm">Unlimited deck creation, branding materials & priority support</p>
           </div>
           <button
             onClick={() => handleCheckout("subscription")}
             disabled={checkoutLoading}
-            className="px-4 py-2 rounded-lg font-semibold text-white text-sm disabled:opacity-50"
+            className="px-5 py-2.5 rounded-xl font-semibold text-white text-sm disabled:opacity-50 transition-all hover:opacity-90 shrink-0"
             style={{
-              background: "linear-gradient(135deg, #ff006e 0%, #8b5cf6 50%, #00d4ff 100%)",
+              background: "var(--brand-gradient-cta)",
+              boxShadow: "0 4px 16px rgba(124, 58, 237, 0.3)",
             }}
           >
-            {checkoutLoading ? "Loading..." : "Subscribe Now"}
+            {checkoutLoading ? "Loading..." : "Upgrade Now"}
           </button>
         </div>
       )}
 
-      {/* Decks list */}
+      {/* Deliverables Hub */}
       <div>
-        <h2 className="text-lg font-semibold text-white mb-4">Your Decks</h2>
+        <h2 className="text-lg font-semibold mb-4">Deliverables Hub</h2>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          {DELIVERABLES_HUB.map((item) => {
+            const Icon = item.icon;
+            return (
+              <Link
+                key={item.title}
+                href={item.href}
+                className="group rounded-xl border border-border bg-card p-5 transition-all duration-300 hover:border-primary/30 hover:shadow-lg hover:-translate-y-0.5"
+              >
+                <div className="flex items-center gap-3 mb-3">
+                  <div
+                    className={`w-10 h-10 rounded-xl bg-gradient-to-br ${item.gradient} flex items-center justify-center shadow-lg`}
+                  >
+                    <Icon className="w-5 h-5 text-white" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <h3 className="text-sm font-semibold">{item.title}</h3>
+                    <p className="text-xs text-muted-foreground">{item.description}</p>
+                  </div>
+                  <ArrowUpRight className="w-4 h-4 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
+                </div>
+              </Link>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* Recent Decks */}
+      <div>
+        <h2 className="text-lg font-semibold mb-4">Recent Decks</h2>
         {dataLoading ? (
-          <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-12 text-center">
-            <p className="text-zinc-400">Loading decks...</p>
+          <div className="rounded-xl border border-border bg-card p-12 text-center">
+            <p className="text-muted-foreground">Loading decks...</p>
           </div>
         ) : decks.length === 0 ? (
-          <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-12 text-center">
-            <p className="text-zinc-400">No decks yet. Create your first pitch deck!</p>
+          <div className="rounded-xl border border-border bg-card p-12 text-center">
+            <Presentation className="w-10 h-10 text-muted-foreground/30 mx-auto mb-3" />
+            <p className="text-muted-foreground">No decks yet. Create your first pitch deck!</p>
+            <Link
+              href="/create"
+              className="inline-flex items-center gap-1 mt-3 text-sm font-medium"
+              style={{ color: "var(--brand-primary)" }}
+            >
+              Get started <ArrowUpRight className="w-3.5 h-3.5" />
+            </Link>
           </div>
         ) : (
           <div className="space-y-3">
@@ -213,23 +337,19 @@ export default function DashboardOverviewPage() {
               <Link
                 key={deck.id}
                 href={`/create/preview?deck_id=${deck.id}`}
-                className="block bg-zinc-900 border border-zinc-800 rounded-xl p-4 hover:border-zinc-700 transition-colors"
+                className="block rounded-xl border border-border bg-card p-4 hover:border-primary/30 hover:shadow-md transition-all"
               >
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-4">
-                    <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-violet-500/20 to-cyan-500/20 flex items-center justify-center text-violet-400">
-                      <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={1.5}
-                          d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-                        />
-                      </svg>
+                    <div
+                      className="w-10 h-10 rounded-lg flex items-center justify-center"
+                      style={{ background: "linear-gradient(135deg, rgba(124, 58, 237, 0.15), rgba(6, 182, 212, 0.15))" }}
+                    >
+                      <Presentation className="w-5 h-5" style={{ color: "#7c3aed" }} />
                     </div>
                     <div>
-                      <p className="text-white font-medium">{deck.title}</p>
-                      <p className="text-zinc-500 text-sm">{formatDate(deck.created_at)}</p>
+                      <p className="font-medium">{deck.title}</p>
+                      <p className="text-muted-foreground text-sm">{formatDate(deck.created_at)}</p>
                     </div>
                   </div>
                   <span
@@ -251,23 +371,28 @@ export default function DashboardOverviewPage() {
       {/* Recent Assets */}
       <div>
         <div className="flex items-center justify-between mb-4">
-          <h2 className="text-lg font-semibold text-white">Recent Assets</h2>
+          <h2 className="text-lg font-semibold">Recent Assets</h2>
           <Link
             href="/dashboard/assets/history"
-            className="text-sm text-zinc-400 hover:text-white transition-colors"
+            className="text-sm text-muted-foreground hover:text-foreground transition-colors"
           >
             View all
           </Link>
         </div>
         {dataLoading ? (
-          <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-12 text-center">
-            <p className="text-zinc-400">Loading assets...</p>
+          <div className="rounded-xl border border-border bg-card p-12 text-center">
+            <p className="text-muted-foreground">Loading assets...</p>
           </div>
         ) : recentAssets.length === 0 ? (
-          <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-12 text-center">
-            <p className="text-zinc-400">No assets yet.</p>
-            <Link href="/dashboard/assets" className="text-sm text-violet-400 hover:underline mt-2 inline-block">
-              Generate your first asset
+          <div className="rounded-xl border border-border bg-card p-12 text-center">
+            <Palette className="w-10 h-10 text-muted-foreground/30 mx-auto mb-3" />
+            <p className="text-muted-foreground">No assets yet.</p>
+            <Link
+              href="/dashboard/assets"
+              className="inline-flex items-center gap-1 mt-3 text-sm font-medium"
+              style={{ color: "var(--brand-primary)" }}
+            >
+              Generate your first asset <ArrowUpRight className="w-3.5 h-3.5" />
             </Link>
           </div>
         ) : (
@@ -275,9 +400,9 @@ export default function DashboardOverviewPage() {
             {recentAssets.map((asset) => (
               <div
                 key={asset.id}
-                className="rounded-xl border border-zinc-800 bg-zinc-900/30 overflow-hidden"
+                className="rounded-xl border border-border bg-card overflow-hidden"
               >
-                <div className="aspect-video bg-zinc-900 flex items-center justify-center overflow-hidden">
+                <div className="aspect-video bg-muted flex items-center justify-center overflow-hidden">
                   {asset.image_data?.startsWith("data:") ? (
                     // eslint-disable-next-line @next/next/no-img-element
                     <img
@@ -286,14 +411,12 @@ export default function DashboardOverviewPage() {
                       className="w-full h-full object-contain"
                     />
                   ) : (
-                    <svg className="w-8 h-8 text-zinc-700" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M2.25 15.75l5.159-5.159a2.25 2.25 0 013.182 0l5.159 5.159m-1.5-1.5l1.409-1.409a2.25 2.25 0 013.182 0l2.909 2.909M6.75 6.75h.008v.008H6.75V6.75z" />
-                    </svg>
+                    <Palette className="w-8 h-8 text-muted-foreground/30" />
                   )}
                 </div>
                 <div className="p-3">
-                  <p className="text-xs text-zinc-400 line-clamp-1">{asset.prompt ?? asset.asset_type}</p>
-                  <p className="text-xs text-zinc-600 mt-1">{formatDate(asset.created_at)}</p>
+                  <p className="text-xs text-muted-foreground line-clamp-1">{asset.prompt ?? asset.asset_type}</p>
+                  <p className="text-xs text-muted-foreground/60 mt-1">{formatDate(asset.created_at)}</p>
                 </div>
               </div>
             ))}
@@ -301,38 +424,34 @@ export default function DashboardOverviewPage() {
         )}
       </div>
 
-      {/* Analyses list */}
+      {/* Recent Analyses */}
       <div>
-        <h2 className="text-lg font-semibold text-white mb-4">Recent Analyses</h2>
+        <h2 className="text-lg font-semibold mb-4">Recent Analyses</h2>
         {dataLoading ? (
-          <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-12 text-center">
-            <p className="text-zinc-400">Loading analyses...</p>
+          <div className="rounded-xl border border-border bg-card p-12 text-center">
+            <p className="text-muted-foreground">Loading analyses...</p>
           </div>
         ) : analyses.length === 0 ? (
-          <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-12 text-center">
-            <p className="text-zinc-400">No analyses yet.</p>
+          <div className="rounded-xl border border-border bg-card p-12 text-center">
+            <p className="text-muted-foreground">No analyses yet.</p>
           </div>
         ) : (
           <div className="space-y-3">
             {analyses.map((analysis) => (
               <div
                 key={analysis.id}
-                className="bg-zinc-900 border border-zinc-800 rounded-xl p-4 flex items-center justify-between hover:border-zinc-700 transition-colors"
+                className="rounded-xl border border-border bg-card p-4 flex items-center justify-between hover:border-primary/30 transition-all"
               >
                 <div className="flex items-center gap-4">
-                  <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-pink-500/20 to-violet-500/20 flex items-center justify-center text-pink-400">
-                    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={1.5}
-                        d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"
-                      />
-                    </svg>
+                  <div
+                    className="w-10 h-10 rounded-lg flex items-center justify-center"
+                    style={{ background: "linear-gradient(135deg, rgba(236, 72, 153, 0.15), rgba(124, 58, 237, 0.15))" }}
+                  >
+                    <Sparkles className="w-5 h-5" style={{ color: "#ec4899" }} />
                   </div>
                   <div>
-                    <p className="text-white font-medium">{analysis.business_name}</p>
-                    <p className="text-zinc-500 text-sm">{formatDate(analysis.created_at)}</p>
+                    <p className="font-medium">{analysis.business_name}</p>
+                    <p className="text-muted-foreground text-sm">{formatDate(analysis.created_at)}</p>
                   </div>
                 </div>
               </div>

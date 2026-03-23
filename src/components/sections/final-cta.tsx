@@ -18,22 +18,21 @@ export function FinalCTA() {
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mt-10">
             <a
               href="/create"
-              className="inline-flex items-center justify-center gap-2 px-8 py-4 text-base font-medium text-white rounded-full transition-all hover:shadow-2xl relative overflow-hidden group"
+              className="inline-flex items-center justify-center gap-2 px-8 py-4 text-base font-medium text-white rounded-full transition-all hover:shadow-2xl hover:scale-105 relative overflow-hidden group brand-gradient-glow"
               style={{
-                background: "linear-gradient(135deg, #203eec 0%, #00d4ff 100%)",
-                boxShadow: "0 8px 32px rgba(32, 62, 236, 0.4)",
+                background: "var(--brand-gradient-cta)",
+                boxShadow: "0 8px 32px rgba(124, 58, 237, 0.4)",
               }}
             >
               <span className="relative z-10 inline-flex items-center gap-2">
-                Create Your Pitch Deck — $497
+                Create Your Pitch Deck
                 <ArrowUpRight className="w-4 h-4" />
               </span>
-              <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 blur-2xl bg-gradient-to-r from-[#203eec] to-[#00d4ff]" />
             </a>
             <a
               href="#pricing"
               className="inline-flex items-center justify-center px-8 py-4 text-base font-medium rounded-full hover:bg-secondary transition-colors"
-              style={{ borderColor: "#203eec", borderWidth: "1px", color: "#203eec" }}
+              style={{ borderColor: "#7c3aed", borderWidth: "1px", color: "#7c3aed" }}
             >
               See Pricing Plans
             </a>

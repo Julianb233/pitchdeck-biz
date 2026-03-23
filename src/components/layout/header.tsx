@@ -131,12 +131,12 @@ export function Header() {
                     href="/signup"
                     className="inline-flex items-center justify-center px-6 py-2.5 text-sm font-semibold rounded-full text-white transition-all hover:scale-105 relative overflow-hidden group"
                     style={{
-                      background: "linear-gradient(135deg, #ff006e 0%, #8b5cf6 50%, #203eec 100%)",
-                      boxShadow: "0 4px 20px rgba(255, 0, 110, 0.3)",
+                      background: "linear-gradient(135deg, #7c3aed 0%, #ec4899 50%, #06b6d4 100%)",
+                      boxShadow: "0 4px 20px rgba(124, 58, 237, 0.3)",
                     }}
                   >
                     <span className="relative z-10">Create Your Deck</span>
-                    <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 blur-xl bg-gradient-to-r from-[#ff006e] via-[#8b5cf6] to-[#203eec]" />
+                    <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 blur-xl bg-gradient-to-r from-[#7c3aed] via-[#ec4899] to-[#06b6d4]" />
                   </Link>
                 </>
               )}
@@ -190,8 +190,8 @@ export function Header() {
                     href="/create"
                     className="inline-flex items-center justify-center w-full px-5 py-3 text-base font-semibold rounded-full text-white transition-all hover:scale-105"
                     style={{
-                      background: "linear-gradient(135deg, #ff006e 0%, #8b5cf6 50%, #203eec 100%)",
-                      boxShadow: "0 4px 20px rgba(255, 0, 110, 0.3)",
+                      background: "linear-gradient(135deg, #7c3aed 0%, #ec4899 50%, #06b6d4 100%)",
+                      boxShadow: "0 4px 20px rgba(124, 58, 237, 0.3)",
                     }}
                     onClick={() => setIsMobileMenuOpen(false)}
                   >
@@ -218,12 +218,12 @@ export function Header() {
                     onClick={() => setIsMobileMenuOpen(false)}
                     className="inline-flex items-center justify-center w-full px-5 py-3 text-base font-semibold rounded-full text-white transition-all hover:scale-105 relative overflow-hidden group"
                     style={{
-                      background: "linear-gradient(135deg, #ff006e 0%, #8b5cf6 50%, #203eec 100%)",
-                      boxShadow: "0 4px 20px rgba(255, 0, 110, 0.3)",
+                      background: "linear-gradient(135deg, #7c3aed 0%, #ec4899 50%, #06b6d4 100%)",
+                      boxShadow: "0 4px 20px rgba(124, 58, 237, 0.3)",
                     }}
                   >
                     <span className="relative z-10">Create Your Deck</span>
-                    <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 blur-xl bg-gradient-to-r from-[#ff006e] via-[#8b5cf6] to-[#203eec]" />
+                    <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 blur-xl bg-gradient-to-r from-[#7c3aed] via-[#ec4899] to-[#06b6d4]" />
                   </Link>
                   <Link
                     href="/login"

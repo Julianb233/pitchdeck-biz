@@ -154,14 +154,14 @@ export function Pricing() {
                 key={plan.id}
                 className={`relative rounded-3xl p-8 md:p-10 transition-all duration-300 flex flex-col ${
                   isRecommended
-                    ? "border-2 border-[#203eec] shadow-2xl md:scale-105 z-10"
+                    ? "border-2 border-[#7c3aed] shadow-2xl md:scale-105 z-10"
                     : "border border-border hover:border-muted-foreground/30 hover:shadow-lg"
                 }`}
                 style={
                   isRecommended
                     ? {
                         boxShadow:
-                          "0 20px 60px rgba(32, 62, 236, 0.15), 0 8px 24px rgba(0, 212, 255, 0.1)",
+                          "0 20px 60px rgba(124, 58, 237, 0.2), 0 8px 24px rgba(236, 72, 153, 0.1)",
                       }
                     : undefined
                 }
@@ -171,7 +171,7 @@ export function Pricing() {
                   <div
                     className="absolute inset-0 rounded-3xl opacity-[0.03]"
                     style={{
-                      background: "linear-gradient(135deg, #203eec 0%, #00d4ff 100%)",
+                      background: "linear-gradient(135deg, #7c3aed 0%, #ec4899 100%)",
                     }}
                   />
                 )}
@@ -181,7 +181,7 @@ export function Pricing() {
                   <span
                     className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold ${
                       isRecommended
-                        ? "bg-gradient-to-r from-[#203eec] to-[#00d4ff] text-white"
+                        ? "bg-gradient-to-r from-[#7c3aed] to-[#ec4899] text-white"
                         : "bg-secondary text-secondary-foreground"
                     }`}
                   >
@@ -201,7 +201,7 @@ export function Pricing() {
                   <span
                     className={`text-5xl font-bold tracking-tight ${
                       isRecommended
-                        ? "bg-gradient-to-r from-[#203eec] to-[#00d4ff] bg-clip-text text-transparent"
+                        ? "bg-gradient-to-r from-[#7c3aed] to-[#ec4899] bg-clip-text text-transparent"
                         : ""
                     }`}
                   >
@@ -234,17 +234,17 @@ export function Pricing() {
                   style={
                     isRecommended
                       ? {
-                          background: "linear-gradient(135deg, #203eec 0%, #00d4ff 100%)",
-                          boxShadow: "0 8px 32px rgba(32, 62, 236, 0.4)",
+                          background: "linear-gradient(135deg, #7c3aed 0%, #ec4899 100%)",
+                          boxShadow: "0 8px 32px rgba(124, 58, 237, 0.4)",
                         }
-                      : { border: "1px solid #203eec", color: "#203eec" }
+                      : { border: "1px solid #7c3aed", color: "#7c3aed" }
                   }
                 >
                   <span className="relative z-10">
                     {loading === plan.id ? "Redirecting..." : ctaLabels[plan.id]}
                   </span>
                   {isRecommended && (
-                    <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 blur-2xl bg-gradient-to-r from-[#203eec] to-[#00d4ff]" />
+                    <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 blur-2xl bg-gradient-to-r from-[#7c3aed] to-[#ec4899]" />
                   )}
                 </button>
 
@@ -254,12 +254,12 @@ export function Pricing() {
                     <li key={feature} className="flex items-start gap-3">
                       <div
                         className={`w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5 ${
-                          isRecommended ? "bg-[#203eec]/10" : "bg-zinc-100 dark:bg-zinc-800"
+                          isRecommended ? "bg-[#7c3aed]/10" : "bg-zinc-100 dark:bg-zinc-800"
                         }`}
                       >
                         <Check
                           className="w-3 h-3"
-                          style={{ color: isRecommended ? "#203eec" : "#71717a" }}
+                          style={{ color: isRecommended ? "#7c3aed" : "#71717a" }}
                         />
                       </div>
                       <span className="text-sm text-muted-foreground">{feature}</span>
@@ -308,7 +308,7 @@ export function Pricing() {
                       onClick={() => handleAddonCheckout(addon.id)}
                       disabled={loading !== null}
                       className="px-4 py-2 rounded-full text-sm font-medium transition-all hover:bg-secondary disabled:opacity-70 disabled:cursor-not-allowed"
-                      style={{ border: "1px solid #203eec", color: "#203eec" }}
+                      style={{ border: "1px solid #7c3aed", color: "#7c3aed" }}
                     >
                       {loading === addon.id ? "..." : "Add"}
                     </button>
