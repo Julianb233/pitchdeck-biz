@@ -5,17 +5,17 @@
 See: .planning/PROJECT.md (updated 2026-03-17)
 
 **Core value:** Transform any business idea into investor-ready materials through an AI-powered full-service consultation experience
-**Current focus:** Phase 16 — Gemini SDK Migration
+**Current focus:** Phase 17 — Nano Banana Pro + Imagen 4
 
 ## Current Position
 
 Milestone: v2.0 — Funding Launch Platform + Gemini API Overhaul
-Phase: 16 of 28 (Gemini SDK Migration)
-Plan: 03 of N in phase 16
-Status: In progress
-Last activity: 2026-03-23 — Completed 16-03-PLAN.md (discovery/summarize + document-processor structured output)
+Phase: 17 of 28 (Nano Banana Pro + Imagen 4)
+Plan: Not started
+Status: Ready to plan
+Last activity: 2026-03-23 — Phase 16 COMPLETE (Gemini SDK Migration — all 3 plans executed)
 
-Progress: ░░░░░░░░░░ (3 plans complete in phase 16)
+Progress: ░░░░░░░░░░ (Phase 16 done, 12 phases remain)
 
 ## Performance Metrics
 
@@ -53,10 +53,10 @@ None yet.
 
 ### Blockers/Concerns
 
-- Gemini 2.0 Flash deprecation June 1, 2026 — Phase 16 is time-critical
+- ~~Gemini 2.0 Flash deprecation June 1, 2026~~ — Phase 16 complete, all calls migrated to 2.5
 
 ## Session Continuity
 
 Last session: 2026-03-23
-Stopped at: Completed 16-03-PLAN.md (discovery/summarize + document-processor structured output)
+Stopped at: Phase 16 complete — all 3 plans executed, committed, verified. Ready for Phase 17 planning.
 Resume file: None
