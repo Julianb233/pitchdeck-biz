@@ -37,7 +37,7 @@
 - Decimal phases (17.1, 17.2): Urgent insertions (marked with INSERTED)
 
 - [ ] **Phase 16: Gemini SDK Migration** — Replace deprecated 2.0 Flash with 2.5 Flash/Pro + structured output
-- [ ] **Phase 17: Nano Banana Pro + Imagen 4** — Branded slide visuals + hero/stock imagery
+- [x] **Phase 17: Nano Banana Pro + Imagen 4** — Branded slide visuals + hero/stock imagery
 - [ ] **Phase 18: Native Document Understanding** — Replace pdf-parse/mammoth with Gemini Files API
 - [ ] **Phase 19: Stitch Design System + Page Designs** — DESIGN.md synthesis + all page designs for review
 - [ ] **Phase 20: AI Discovery Session** — 6-step voice/text guided onboarding replacing current create flow
