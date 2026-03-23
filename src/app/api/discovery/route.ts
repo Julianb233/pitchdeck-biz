@@ -1,54 +1,79 @@
 import { NextRequest, NextResponse } from "next/server";
 import { v4 as uuidv4 } from "uuid";
-import type { DiscoverySession, StepResponse } from "@/types/discovery";
+import { createClient } from "@/lib/supabase/server";
 import { analysisLimiter, getClientIp, applyRateLimit } from "@/lib/rate-limit";
+import { STEP_CONFIGS } from "@/lib/ai/discovery-engine";
 
 export const runtime = "nodejs";
 
 /**
- * In-memory session store. In production this would use Redis or Supabase,
- * but for the MVP we keep it simple and stateless-friendly by also accepting
- * the full session object from the client on PUT.
- */
-const sessions = new Map<string, DiscoverySession>();
-
-/**
- * POST /api/discovery
- * Create a new discovery session.
+ * POST /api/discovery — Start a new discovery session
+ *
+ * Creates a session in Supabase (if authenticated) or returns an ephemeral
+ * session object for unauthenticated users.
  */
 export async function POST(request: NextRequest) {
   const ip = getClientIp(request);
   const limited = applyRateLimit(
     analysisLimiter,
     ip,
-    "Too many requests. Please try again later."
+    "Too many requests. Please try again later.",
   );
   if (limited) return limited;
 
-  const session: DiscoverySession = {
-    id: uuidv4(),
-    steps: [],
-    status: "in-progress",
-    createdAt: new Date().toISOString(),
-  };
+  const sessionId = uuidv4();
 
-  sessions.set(session.id, session);
+  // Try to persist to Supabase if user is authenticated
+  let userId: string | null = null;
+  try {
+    const supabase = await createClient();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
 
-  return NextResponse.json({ success: true, session });
+    if (user) {
+      userId = user.id;
+      await supabase.from("discovery_sessions").insert({
+        id: sessionId,
+        user_id: user.id,
+        status: "in_progress",
+        current_step: 1,
+        responses: {},
+        file_references: [],
+        ai_context: [],
+      });
+    }
+  } catch {
+    // Non-fatal — session works without persistence
+  }
+
+  return NextResponse.json({
+    success: true,
+    session: {
+      id: sessionId,
+      userId,
+      status: "in_progress",
+      currentStep: 1,
+      steps: STEP_CONFIGS.map((s) => ({
+        id: s.id,
+        title: s.title,
+        openingQuestion: s.openingQuestion,
+      })),
+    },
+  });
 }
 
 /**
- * PUT /api/discovery
- * Update a step response in the session.
+ * PUT /api/discovery — Update session step response (legacy compat)
  *
- * Body: { sessionId: string, stepResponse: StepResponse }
+ * Kept for backward compatibility; new code should use /api/discovery/step/[N].
  */
 export async function PUT(request: NextRequest) {
   const ip = getClientIp(request);
   const limited = applyRateLimit(
     analysisLimiter,
     ip,
-    "Too many requests. Please try again later."
+    "Too many requests. Please try again later.",
   );
   if (limited) return limited;
 
@@ -56,48 +81,53 @@ export async function PUT(request: NextRequest) {
     const body = await request.json();
     const { sessionId, stepResponse } = body as {
       sessionId: string;
-      stepResponse: StepResponse;
+      stepResponse: { stepId: number; textInput?: string; audioTranscription?: string; uploadedFiles?: Array<{ name: string; extractedText: string }> };
     };
 
     if (!sessionId || !stepResponse || !stepResponse.stepId) {
       return NextResponse.json(
         { error: "sessionId and stepResponse with stepId are required" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
-    let session = sessions.get(sessionId);
+    // Try to persist to Supabase
+    try {
+      const supabase = await createClient();
+      const { data: session } = await supabase
+        .from("discovery_sessions")
+        .select("responses")
+        .eq("id", sessionId)
+        .single();
 
-    if (!session) {
-      // Allow client-side session reconstruction
-      session = {
-        id: sessionId,
-        steps: [],
-        status: "in-progress",
-        createdAt: new Date().toISOString(),
-      };
+      if (session) {
+        const responses = (session.responses as Record<string, unknown>) || {};
+        responses[String(stepResponse.stepId)] = {
+          text: stepResponse.textInput,
+          transcript: stepResponse.audioTranscription,
+          files: stepResponse.uploadedFiles,
+        };
+
+        await supabase
+          .from("discovery_sessions")
+          .update({
+            responses,
+            current_step: stepResponse.stepId,
+          })
+          .eq("id", sessionId);
+      }
+    } catch {
+      // Non-fatal
     }
 
-    // Upsert: replace existing step response or add new one
-    const existingIdx = session.steps.findIndex(
-      (s) => s.stepId === stepResponse.stepId
-    );
-    if (existingIdx >= 0) {
-      session.steps[existingIdx] = stepResponse;
-    } else {
-      session.steps.push(stepResponse);
-    }
-
-    sessions.set(sessionId, session);
-
-    return NextResponse.json({ success: true, session });
+    return NextResponse.json({ success: true });
   } catch (error) {
     return NextResponse.json(
       {
         error: "Failed to update session",
         details: error instanceof Error ? error.message : "Unknown error",
       },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
