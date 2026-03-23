@@ -6,7 +6,7 @@ export interface SafeUser {
   id: string;
   email: string;
   name: string;
-  subscriptionStatus: "free" | "pro";
+  subscriptionStatus: "free" | "starter" | "pro" | "founder_suite";
   emailVerified: boolean;
   createdAt: Date;
 }
@@ -84,15 +84,18 @@ export async function getSessionFromCookies(): Promise<SafeUser | null> {
   // Check subscription status from DB
   const { data: subscription } = await supabase
     .from("subscriptions")
-    .select("status")
+    .select("status, tier")
     .eq("user_id", user.id)
-    .eq("status", "active")
+    .in("status", ["active", "canceling"])
     .limit(1)
     .maybeSingle();
 
   const safeUser = toSafeUser(user);
   if (subscription) {
-    safeUser.subscriptionStatus = "pro";
+    const tier = (subscription as Record<string, unknown>).tier as string;
+    safeUser.subscriptionStatus = (tier === "starter" || tier === "pro" || tier === "founder_suite")
+      ? tier
+      : "pro"; // legacy fallback
   }
   return safeUser;
 }

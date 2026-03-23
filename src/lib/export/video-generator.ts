@@ -132,7 +132,8 @@ export async function generateSlideVideo(
     });
 
     // Veo returns an operation that needs polling
-    if (!response.generatedVideos || response.generatedVideos.length === 0) {
+    const generatedVideos = response.response?.generatedVideos;
+    if (!generatedVideos || generatedVideos.length === 0) {
       return {
         slideNumber: slide.slideNumber,
         slideTitle: slide.title,
@@ -144,7 +145,7 @@ export async function generateSlideVideo(
       };
     }
 
-    const video = response.generatedVideos[0];
+    const video = generatedVideos[0];
 
     return {
       slideNumber: slide.slideNumber,

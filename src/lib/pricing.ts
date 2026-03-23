@@ -55,8 +55,8 @@ export const PLANS: Record<PlanId, Plan> = {
     id: 'starter',
     name: 'Starter',
     monthlyPrice: 29,
-    annualPrice: 19,
-    annualTotal: 228,
+    annualPrice: 21.75,
+    annualTotal: 261,
     description: 'Everything you need to pitch your business professionally',
     features: [
       '1 pitch deck per month (10-15 slides)',
@@ -79,8 +79,8 @@ export const PLANS: Record<PlanId, Plan> = {
     id: 'pro',
     name: 'Pro',
     monthlyPrice: 79,
-    annualPrice: 59,
-    annualTotal: 708,
+    annualPrice: 59.25,
+    annualTotal: 711,
     description: 'Unlimited decks with premium deliverables for growing startups',
     recommended: true,
     features: [
@@ -109,8 +109,8 @@ export const PLANS: Record<PlanId, Plan> = {
     id: 'founder_suite',
     name: 'Founder Suite',
     monthlyPrice: 199,
-    annualPrice: 149,
-    annualTotal: 1788,
+    annualPrice: 149.25,
+    annualTotal: 1791,
     description: 'The complete fundraising toolkit for serious founders',
     features: [
       'Everything in Pro',

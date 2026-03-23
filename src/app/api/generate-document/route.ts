@@ -46,8 +46,8 @@ export async function POST(request: NextRequest) {
     }
 
     // Tier check — Pro+ only
-    const tier = await getUserTier(user.id);
-    if (!canAccess(tier, "business_documents")) {
+    const tierInfo = await getUserTier(user.id);
+    if (!tierInfo || !canAccess(tierInfo.tier, "business_documents")) {
       return NextResponse.json(
         {
           error: "Business documents require a Pro or Founder Suite subscription",

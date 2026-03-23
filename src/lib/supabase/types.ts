@@ -335,6 +335,156 @@ export interface Database {
           },
         ];
       };
+      addon_purchases: {
+        Row: {
+          id: string;
+          user_id: string;
+          addon_id: string;
+          stripe_session_id: string | null;
+          stripe_subscription_id: string | null;
+          amount_cents: number;
+          status: string;
+          used: boolean;
+          used_at: string | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          addon_id: string;
+          stripe_session_id?: string | null;
+          stripe_subscription_id?: string | null;
+          amount_cents?: number;
+          status?: string;
+          used?: boolean;
+          used_at?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          user_id?: string;
+          addon_id?: string;
+          stripe_session_id?: string | null;
+          stripe_subscription_id?: string | null;
+          amount_cents?: number;
+          status?: string;
+          used?: boolean;
+          used_at?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "addon_purchases_user_id_fkey";
+            columns: ["user_id"];
+            isOneToOne: false;
+            referencedRelation: "users";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      discovery_sessions: {
+        Row: {
+          id: string;
+          user_id: string | null;
+          status: string;
+          current_step: number;
+          responses: Json;
+          file_references: Json;
+          ai_context: Json;
+          summary: Json | null;
+          analysis_id: string | null;
+          deck_id: string | null;
+          investor_type: string | null;
+          completed_at: string | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id?: string | null;
+          status?: string;
+          current_step?: number;
+          responses?: Json;
+          file_references?: Json;
+          ai_context?: Json;
+          summary?: Json | null;
+          analysis_id?: string | null;
+          deck_id?: string | null;
+          investor_type?: string | null;
+          completed_at?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          user_id?: string | null;
+          status?: string;
+          current_step?: number;
+          responses?: Json;
+          file_references?: Json;
+          ai_context?: Json;
+          summary?: Json | null;
+          analysis_id?: string | null;
+          deck_id?: string | null;
+          investor_type?: string | null;
+          completed_at?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "discovery_sessions_user_id_fkey";
+            columns: ["user_id"];
+            isOneToOne: false;
+            referencedRelation: "users";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "discovery_sessions_analysis_id_fkey";
+            columns: ["analysis_id"];
+            isOneToOne: false;
+            referencedRelation: "analyses";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "discovery_sessions_deck_id_fkey";
+            columns: ["deck_id"];
+            isOneToOne: false;
+            referencedRelation: "decks";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      rate_limits: {
+        Row: {
+          id: string;
+          key: string;
+          limiter: string;
+          count: number;
+          reset_at: string;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          key: string;
+          limiter: string;
+          count: number;
+          reset_at: string;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          key?: string;
+          limiter?: string;
+          count?: number;
+          reset_at?: string;
+          created_at?: string;
+        };
+        Relationships: [];
+      };
       verification_tokens: {
         Row: {
           id: string;

@@ -16,6 +16,8 @@ import {
   Sparkles,
   PenLine,
   Edit3,
+  Bot,
+  Check,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
@@ -31,6 +33,11 @@ const ACCEPTED_FILE_TYPES =
   ".pdf,.doc,.docx,.txt,.csv,.md,.png,.jpg,.jpeg,.webp,.gif"
 
 type InputMode = "voice" | "text" | "upload" | null
+
+interface AIResponse {
+  acknowledgment: string
+  takeaways: string[]
+}
 
 export default function DiscoveryPage() {
   const router = useRouter()
@@ -54,6 +61,11 @@ export default function DiscoveryPage() {
   >([])
   const [isDragging, setIsDragging] = useState(false)
 
+  // ── AI response state ─────────────────────────────────────────────────
+  const [aiResponses, setAiResponses] = useState<Record<number, AIResponse>>({})
+  const [isAiResponding, setIsAiResponding] = useState(false)
+  const [showAiResponse, setShowAiResponse] = useState(false)
+
   // ── Loading / error ────────────────────────────────────────────────────
   const [isTranscribing, setIsTranscribing] = useState(false)
   const [isUploading, setIsUploading] = useState(false)
@@ -61,6 +73,10 @@ export default function DiscoveryPage() {
   const [isConfirming, setIsConfirming] = useState(false)
   const [isGenerating, setIsGenerating] = useState(false)
   const [error, setError] = useState<string | null>(null)
+
+  // ── Animation state ────────────────────────────────────────────────────
+  const [slideDirection, setSlideDirection] = useState<"left" | "right">("left")
+  const [isTransitioning, setIsTransitioning] = useState(false)
 
   const fileInputRef = useRef<HTMLInputElement>(null)
 
@@ -80,6 +96,36 @@ export default function DiscoveryPage() {
     throw new Error("Failed to create discovery session")
   }, [sessionId])
 
+  // ── Fetch AI response for step ────────────────────────────────────────
+  const fetchAiResponse = useCallback(
+    async (response: StepResponse) => {
+      setIsAiResponding(true)
+      try {
+        const res = await fetch("/api/discovery/respond", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ stepResponse: response }),
+        })
+        const data = await res.json()
+        if (data.success) {
+          setAiResponses((prev) => ({
+            ...prev,
+            [response.stepId]: {
+              acknowledgment: data.acknowledgment,
+              takeaways: data.takeaways,
+            },
+          }))
+          setShowAiResponse(true)
+        }
+      } catch {
+        // Non-fatal — AI response is supplementary
+      } finally {
+        setIsAiResponding(false)
+      }
+    },
+    []
+  )
+
   // ── Save current step ─────────────────────────────────────────────────
   const saveCurrentStep = useCallback(async () => {
     const response: StepResponse = {
@@ -89,7 +135,6 @@ export default function DiscoveryPage() {
       uploadedFiles: uploadedFiles.length > 0 ? uploadedFiles : undefined,
     }
 
-    // Only save if there's some input
     const hasInput =
       response.textInput ||
       response.audioTranscription ||
@@ -107,15 +152,11 @@ export default function DiscoveryPage() {
         body: JSON.stringify({ sessionId: sid, stepResponse: response }),
       })
     } catch {
-      // Non-fatal — state is maintained client-side
+      // Non-fatal
     }
-  }, [
-    currentStep,
-    textInput,
-    transcription,
-    uploadedFiles,
-    ensureSession,
-  ])
+
+    return response
+  }, [currentStep, textInput, transcription, uploadedFiles, ensureSession])
 
   // ── Load step state when navigating ────────────────────────────────────
   const loadStepState = useCallback(
@@ -125,7 +166,6 @@ export default function DiscoveryPage() {
         setTextInput(existing.textInput || "")
         setTranscription(existing.audioTranscription || null)
         setUploadedFiles(existing.uploadedFiles || [])
-        // Set active mode based on what data exists
         if (existing.audioTranscription) setActiveMode("voice")
         else if (existing.uploadedFiles && existing.uploadedFiles.length > 0)
           setActiveMode("upload")
@@ -138,35 +178,70 @@ export default function DiscoveryPage() {
         setActiveMode(null)
       }
       setError(null)
+      setShowAiResponse(!!aiResponses[stepId])
     },
-    [stepResponses]
+    [stepResponses, aiResponses]
+  )
+
+  // ── Animated step transition ──────────────────────────────────────────
+  const animateTransition = useCallback(
+    (direction: "left" | "right", callback: () => void) => {
+      setSlideDirection(direction)
+      setIsTransitioning(true)
+      setTimeout(() => {
+        callback()
+        setIsTransitioning(false)
+      }, 200)
+    },
+    []
   )
 
   // ── Navigation ────────────────────────────────────────────────────────
   const goNext = useCallback(async () => {
-    await saveCurrentStep()
+    const response = await saveCurrentStep()
+
+    // Fetch AI response if we have input and don't already have one
+    if (response && !aiResponses[currentStep]) {
+      await fetchAiResponse(response)
+      // Show AI response briefly before transitioning
+      await new Promise((resolve) => setTimeout(resolve, 2000))
+    }
+
     if (currentStep < totalSteps) {
-      const next = currentStep + 1
-      setCurrentStep(next)
-      loadStepState(next)
+      animateTransition("left", () => {
+        const next = currentStep + 1
+        setCurrentStep(next)
+        loadStepState(next)
+      })
     } else {
-      // All 6 steps done — go to summary
       setCurrentStep(totalSteps + 1)
       await generateSummary()
     }
-  }, [currentStep, totalSteps, saveCurrentStep, loadStepState])
+  }, [
+    currentStep,
+    totalSteps,
+    saveCurrentStep,
+    loadStepState,
+    aiResponses,
+    fetchAiResponse,
+    animateTransition,
+  ])
 
   const goBack = useCallback(async () => {
     if (showSummary) {
-      setCurrentStep(totalSteps)
-      loadStepState(totalSteps)
-      setSummary(null)
-      setEditingSummary(null)
+      animateTransition("right", () => {
+        setCurrentStep(totalSteps)
+        loadStepState(totalSteps)
+        setSummary(null)
+        setEditingSummary(null)
+      })
     } else if (currentStep > 1) {
       await saveCurrentStep()
-      const prev = currentStep - 1
-      setCurrentStep(prev)
-      loadStepState(prev)
+      animateTransition("right", () => {
+        const prev = currentStep - 1
+        setCurrentStep(prev)
+        loadStepState(prev)
+      })
     }
   }, [
     currentStep,
@@ -174,6 +249,7 @@ export default function DiscoveryPage() {
     showSummary,
     saveCurrentStep,
     loadStepState,
+    animateTransition,
   ])
 
   // ── Audio recording handler ───────────────────────────────────────────
@@ -267,11 +343,11 @@ export default function DiscoveryPage() {
   )
 
   // ── Generate summary ──────────────────────────────────────────────────
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   const generateSummary = useCallback(async () => {
     setIsSummarizing(true)
     setError(null)
 
-    // Save the final step first
     const finalResponse: StepResponse = {
       stepId: currentStep,
       textInput: textInput || undefined,
@@ -285,7 +361,10 @@ export default function DiscoveryPage() {
     }
 
     const stepsArray = Object.values(allResponses).filter(
-      (s) => s.textInput || s.audioTranscription || (s.uploadedFiles && s.uploadedFiles.length > 0)
+      (s) =>
+        s.textInput ||
+        s.audioTranscription ||
+        (s.uploadedFiles && s.uploadedFiles.length > 0)
     )
 
     try {
@@ -305,7 +384,6 @@ export default function DiscoveryPage() {
       setEditingSummary(data.summary)
     } catch (err) {
       setError(err instanceof Error ? err.message : "Summarization failed")
-      // Go back to last step so user can retry
       setCurrentStep(totalSteps)
     } finally {
       setIsSummarizing(false)
@@ -320,7 +398,6 @@ export default function DiscoveryPage() {
     setError(null)
 
     try {
-      // Step 1: Confirm and get analysis
       const confirmRes = await fetch("/api/discovery/confirm", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -333,13 +410,16 @@ export default function DiscoveryPage() {
         throw new Error(confirmData.error || "Confirmation failed")
       }
 
-      // Step 2: Generate deck
       setIsGenerating(true)
 
       const genRes = await fetch("/api/generate-deck", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ analysis: confirmData.analysis }),
+        body: JSON.stringify({
+          analysis: confirmData.analysis,
+          analysis_id: confirmData.analysisId,
+          investorType: confirmData.investorType,
+        }),
       })
 
       const genData = await genRes.json()
@@ -371,8 +451,7 @@ export default function DiscoveryPage() {
     (transcription && transcription.trim().length > 0) ||
     uploadedFiles.length > 0
 
-  // ── Check how many steps have responses ────────────────────────────────
-  const completedSteps = Object.keys(stepResponses).length
+  const currentAiResponse = aiResponses[currentStep]
 
   // ── Render ────────────────────────────────────────────────────────────
   return (
@@ -401,42 +480,120 @@ export default function DiscoveryPage() {
       </header>
 
       <main className="max-w-4xl mx-auto px-6 py-12">
-        {/* ── Progress Bar ─────────────────────────────────────────────── */}
+        {/* ── Step Progress Indicator ─────────────────────────────────── */}
         <div className="mb-12">
-          <div className="flex items-center justify-between mb-3">
+          {/* Step circles with labels */}
+          <div className="flex items-center justify-between mb-6">
+            {DISCOVERY_STEPS.map((s, i) => {
+              const isCompleted = s.id < currentStep || showSummary
+              const isCurrent = s.id === currentStep && !showSummary
+              const hasResponse = !!stepResponses[s.id]
+
+              return (
+                <div key={s.id} className="flex flex-col items-center flex-1">
+                  {/* Connector line + circle row */}
+                  <div className="flex items-center w-full">
+                    {/* Left connector */}
+                    {i > 0 && (
+                      <div
+                        className={cn(
+                          "h-0.5 flex-1 transition-all duration-500",
+                          isCompleted || isCurrent
+                            ? "bg-gradient-to-r from-[#ff006e] via-[#8b5cf6] to-[#203eec]"
+                            : "bg-border"
+                        )}
+                      />
+                    )}
+                    {i === 0 && <div className="flex-1" />}
+
+                    {/* Step circle */}
+                    <button
+                      onClick={() => {
+                        if (hasResponse && s.id !== currentStep && !showSummary) {
+                          saveCurrentStep()
+                          animateTransition(
+                            s.id < currentStep ? "right" : "left",
+                            () => {
+                              setCurrentStep(s.id)
+                              loadStepState(s.id)
+                            }
+                          )
+                        }
+                      }}
+                      className={cn(
+                        "relative w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold transition-all duration-300 shrink-0",
+                        isCompleted
+                          ? "text-white shadow-lg"
+                          : isCurrent
+                            ? "text-white shadow-lg shadow-primary/30 ring-4 ring-primary/20"
+                            : "bg-muted text-muted-foreground border-2 border-border",
+                        hasResponse && !isCompleted && !isCurrent
+                          ? "cursor-pointer hover:border-primary/50"
+                          : !isCompleted && !isCurrent
+                            ? "cursor-default"
+                            : ""
+                      )}
+                      style={
+                        isCompleted || isCurrent
+                          ? {
+                              background:
+                                "linear-gradient(135deg, #ff006e 0%, #8b5cf6 50%, #203eec 100%)",
+                            }
+                          : undefined
+                      }
+                      disabled={!hasResponse && !isCompleted && !isCurrent}
+                    >
+                      {isCompleted ? (
+                        <Check className="w-4 h-4" />
+                      ) : (
+                        s.id
+                      )}
+
+                      {/* Pulse for current step */}
+                      {isCurrent && (
+                        <span className="absolute inset-0 rounded-full animate-ping opacity-20 bg-primary" />
+                      )}
+                    </button>
+
+                    {/* Right connector */}
+                    {i < DISCOVERY_STEPS.length - 1 && (
+                      <div
+                        className={cn(
+                          "h-0.5 flex-1 transition-all duration-500",
+                          isCompleted
+                            ? "bg-gradient-to-r from-[#ff006e] via-[#8b5cf6] to-[#203eec]"
+                            : "bg-border"
+                        )}
+                      />
+                    )}
+                    {i === DISCOVERY_STEPS.length - 1 && <div className="flex-1" />}
+                  </div>
+
+                  {/* Label under circle */}
+                  <span
+                    className={cn(
+                      "mt-2 text-[11px] font-medium text-center leading-tight hidden sm:block",
+                      isCurrent
+                        ? "text-foreground"
+                        : isCompleted
+                          ? "text-primary"
+                          : "text-muted-foreground"
+                    )}
+                  >
+                    {s.title}
+                  </span>
+                </div>
+              )
+            })}
+          </div>
+
+          {/* Mobile step label */}
+          <div className="sm:hidden text-center">
             <span className="text-sm font-medium text-muted-foreground">
               {showSummary
                 ? "Review & Confirm"
-                : `Step ${currentStep} of ${totalSteps}`}
+                : `Step ${currentStep} of ${totalSteps} — ${stepConfig?.title}`}
             </span>
-            {!showSummary && stepConfig && (
-              <span className="text-sm font-semibold">{stepConfig.title}</span>
-            )}
-          </div>
-          <div className="flex gap-1.5">
-            {DISCOVERY_STEPS.map((s) => (
-              <div
-                key={s.id}
-                className="flex-1 h-2 rounded-full overflow-hidden bg-muted"
-              >
-                <div
-                  className={cn(
-                    "h-full rounded-full transition-all duration-500",
-                    s.id < currentStep
-                      ? "w-full"
-                      : s.id === currentStep && !showSummary
-                        ? "w-1/2"
-                        : showSummary
-                          ? "w-full"
-                          : "w-0"
-                  )}
-                  style={{
-                    background:
-                      "linear-gradient(90deg, #ff006e, #8b5cf6, #203eec)",
-                  }}
-                />
-              </div>
-            ))}
           </div>
         </div>
 
@@ -480,7 +637,7 @@ export default function DiscoveryPage() {
 
         {/* ── Summary / Step 7 ──────────────────────────────────────── */}
         {showSummary && !isSummarizing && editingSummary && (
-          <div className="space-y-8">
+          <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
             <div className="text-center">
               <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-green-500/10 text-green-600 text-sm font-medium mb-4 border border-green-500/20">
                 <CheckCircle2 className="w-4 h-4" />
@@ -515,7 +672,6 @@ export default function DiscoveryPage() {
 
             {/* Summary cards */}
             <div className="grid gap-4 md:grid-cols-2">
-              {/* Business Description */}
               <SummaryCard
                 title="Business Description"
                 span={2}
@@ -697,7 +853,16 @@ export default function DiscoveryPage() {
 
         {/* ── Discovery Steps 1-6 ──────────────────────────────────── */}
         {!showSummary && !isSummarizing && stepConfig && (
-          <div className="space-y-8">
+          <div
+            className={cn(
+              "space-y-8 transition-all duration-200",
+              isTransitioning && slideDirection === "left"
+                ? "opacity-0 translate-x-8"
+                : isTransitioning && slideDirection === "right"
+                  ? "opacity-0 -translate-x-8"
+                  : "opacity-100 translate-x-0"
+            )}
+          >
             {/* Question */}
             <div className="text-center">
               <h1 className="text-3xl sm:text-4xl font-bold tracking-tight">
@@ -809,7 +974,6 @@ export default function DiscoveryPage() {
                   className="min-h-[160px] text-base rounded-2xl border-border bg-card resize-none"
                 />
 
-                {/* Follow-up suggestions */}
                 {stepConfig.followUpQuestions &&
                   stepConfig.followUpQuestions.length > 0 &&
                   !textInput && (
@@ -883,7 +1047,6 @@ export default function DiscoveryPage() {
                   </p>
                 </div>
 
-                {/* Uploaded files list */}
                 {uploadedFiles.length > 0 && (
                   <div className="space-y-2">
                     {uploadedFiles.map((f, i) => (
@@ -942,9 +1105,71 @@ export default function DiscoveryPage() {
               </div>
             )}
 
+            {/* ── Real-time AI Response Display ──────────────────────── */}
+            {(showAiResponse && currentAiResponse) || isAiResponding ? (
+              <div className="max-w-xl mx-auto">
+                <div
+                  className={cn(
+                    "p-5 rounded-2xl border bg-card transition-all duration-500",
+                    isAiResponding
+                      ? "border-primary/30 bg-primary/5"
+                      : "border-green-500/30 bg-green-500/5"
+                  )}
+                >
+                  <div className="flex items-start gap-3">
+                    <div
+                      className="w-8 h-8 rounded-full flex items-center justify-center shrink-0"
+                      style={{
+                        background:
+                          "linear-gradient(135deg, #ff006e 0%, #8b5cf6 50%, #203eec 100%)",
+                      }}
+                    >
+                      {isAiResponding ? (
+                        <Loader2 className="w-4 h-4 text-white animate-spin" />
+                      ) : (
+                        <Bot className="w-4 h-4 text-white" />
+                      )}
+                    </div>
+
+                    <div className="flex-1 min-w-0">
+                      {isAiResponding ? (
+                        <div className="space-y-2">
+                          <div className="h-4 bg-muted rounded animate-pulse w-3/4" />
+                          <div className="h-4 bg-muted rounded animate-pulse w-1/2" />
+                        </div>
+                      ) : currentAiResponse ? (
+                        <div className="space-y-3">
+                          <p className="text-sm leading-relaxed">
+                            {currentAiResponse.acknowledgment}
+                          </p>
+                          {currentAiResponse.takeaways.length > 0 && (
+                            <div className="space-y-1.5">
+                              <p className="text-xs uppercase tracking-wider text-muted-foreground font-medium">
+                                Key takeaways
+                              </p>
+                              {currentAiResponse.takeaways.map((t, i) => (
+                                <div
+                                  key={i}
+                                  className="flex items-start gap-2 text-sm"
+                                >
+                                  <CheckCircle2 className="w-3.5 h-3.5 text-green-500 shrink-0 mt-0.5" />
+                                  <span>{t}</span>
+                                </div>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      ) : null}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ) : null}
+
             {/* ── Collected inputs indicator ──────────────────────────── */}
             {(textInput || transcription || uploadedFiles.length > 0) &&
-              activeMode !== null && (
+              activeMode !== null &&
+              !showAiResponse && (
                 <div className="max-w-xl mx-auto flex flex-wrap gap-2">
                   {transcription && (
                     <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-green-500/10 text-green-600 text-xs border border-green-500/20">
@@ -986,9 +1211,11 @@ export default function DiscoveryPage() {
                     variant="ghost"
                     className="rounded-full px-6 text-muted-foreground"
                     onClick={async () => {
-                      const next = currentStep + 1
-                      setCurrentStep(next)
-                      loadStepState(next)
+                      animateTransition("left", () => {
+                        const next = currentStep + 1
+                        setCurrentStep(next)
+                        loadStepState(next)
+                      })
                     }}
                   >
                     Skip
@@ -1007,9 +1234,19 @@ export default function DiscoveryPage() {
                       : undefined,
                   }}
                   onClick={goNext}
-                  disabled={!hasCurrentInput || isTranscribing || isUploading}
+                  disabled={
+                    !hasCurrentInput ||
+                    isTranscribing ||
+                    isUploading ||
+                    isAiResponding
+                  }
                 >
-                  {currentStep === totalSteps ? (
+                  {isAiResponding ? (
+                    <>
+                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                      Analyzing...
+                    </>
+                  ) : currentStep === totalSteps ? (
                     <>
                       Review Summary
                       <Sparkles className="w-4 h-4 ml-2" />
