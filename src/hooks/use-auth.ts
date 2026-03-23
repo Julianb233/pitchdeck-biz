@@ -7,7 +7,7 @@ interface AuthUser {
   id: string;
   email: string;
   name: string;
-  subscriptionStatus: "free" | "pro";
+  subscriptionStatus: "free" | "starter" | "pro" | "founder_suite";
   emailVerified: boolean;
   createdAt: string;
 }
@@ -33,17 +33,25 @@ export function useAuth(): UseAuthReturn {
         // Check subscription status from DB
         const { data: sub } = await supabase
           .from("subscriptions")
-          .select("status")
+          .select("status, tier")
           .eq("user_id", supaUser.id)
-          .eq("status", "active")
+          .in("status", ["active", "canceling"])
           .limit(1)
           .maybeSingle();
+
+        let subscriptionStatus: "free" | "starter" | "pro" | "founder_suite" = "free";
+        if (sub) {
+          const tier = (sub as Record<string, unknown>).tier as string;
+          subscriptionStatus = (tier === "starter" || tier === "pro" || tier === "founder_suite")
+            ? tier
+            : "pro"; // legacy fallback
+        }
 
         setUser({
           id: supaUser.id,
           email: supaUser.email ?? "",
           name: supaUser.user_metadata?.name ?? supaUser.email ?? "",
-          subscriptionStatus: sub ? "pro" : "free",
+          subscriptionStatus,
           emailVerified: !!(supaUser.email_confirmed_at || supaUser.confirmed_at),
           createdAt: supaUser.created_at,
         });

@@ -14,7 +14,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Check access: Founder Suite includes 1 session/month, others need purchase
-    const hasFounderAccess = meetsMinimumTier(tierInfo.tier, "founder");
+    const hasFounderAccess = meetsMinimumTier(tierInfo.tier, "founder_suite");
 
     if (!hasFounderAccess) {
       // Check if user has purchased a pitch coach add-on

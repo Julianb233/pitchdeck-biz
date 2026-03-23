@@ -156,8 +156,8 @@ export default function DashboardOverviewPage() {
         <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-5">
           <p className="text-zinc-500 text-xs font-medium uppercase tracking-wider">Plan</p>
           <div className="mt-2 flex items-center gap-2">
-            <span className={`inline-block w-2 h-2 rounded-full ${user.subscriptionStatus === "pro" ? "bg-emerald-500" : "bg-zinc-600"}`} />
-            <span className="text-lg font-semibold text-white capitalize">{user.subscriptionStatus}</span>
+            <span className={`inline-block w-2 h-2 rounded-full ${user.subscriptionStatus !== "free" ? "bg-emerald-500" : "bg-zinc-600"}`} />
+            <span className="text-lg font-semibold text-white capitalize">{user.subscriptionStatus === "founder_suite" ? "Founder Suite" : user.subscriptionStatus}</span>
           </div>
         </div>
 
@@ -177,7 +177,7 @@ export default function DashboardOverviewPage() {
       </div>
 
       {/* Upgrade CTA */}
-      {user.subscriptionStatus !== "pro" && (
+      {user.subscriptionStatus === "free" && (
         <div className="bg-gradient-to-r from-violet-500/10 to-cyan-500/10 border border-violet-500/20 rounded-xl p-5 flex items-center justify-between">
           <div>
             <p className="text-white font-medium">Upgrade to Pro</p>

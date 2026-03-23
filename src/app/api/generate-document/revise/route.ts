@@ -38,8 +38,8 @@ export async function POST(request: NextRequest) {
     }
 
     // Tier check
-    const tier = await getUserTier(user.id);
-    if (!canAccess(tier, "business_documents")) {
+    const tierInfo = await getUserTier(user.id);
+    if (!tierInfo || !canAccess(tierInfo.tier, "business_documents")) {
       return NextResponse.json(
         {
           error: "Business documents require a Pro or Founder Suite subscription",
@@ -78,7 +78,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Check revision cycle limits for Pro tier
-    if (tier === "pro" && !canAccess(tier, "unlimited_revisions")) {
+    if (tierInfo.tier === "pro" && !canAccess(tierInfo.tier, "unlimited_revisions")) {
       const maxRevisions = 2;
       if (document.version >= maxRevisions + 1) {
         return NextResponse.json(
