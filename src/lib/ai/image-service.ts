@@ -46,9 +46,12 @@ export interface ImageGenerationResult {
 // ---------------------------------------------------------------------------
 
 const IMAGEN_MODEL =
-  process.env.IMAGEN_MODEL ?? "imagen-3.0-generate-002";
+  process.env.IMAGEN_MODEL ?? "imagen-4.0-ultra-generate-001";
 const SLIDE_IMAGE_MODEL =
-  process.env.SLIDE_IMAGE_MODEL ?? "gemini-2.5-flash";
+  process.env.SLIDE_IMAGE_MODEL ?? "gemini-3-pro-image-preview";
+
+// Fallback model when SLIDE_IMAGE_MODEL fails (e.g. preview quota exhausted)
+const SLIDE_IMAGE_FALLBACK_MODEL = "gemini-2.5-flash-image";
 
 const API_KEY =
   process.env.GOOGLE_API_KEY ??
@@ -141,7 +144,7 @@ async function generateWithImagen(
           generateImages: (params: {
             model: string;
             prompt: string;
-            config: { numberOfImages: number; aspectRatio?: string };
+            config: { numberOfImages: number; aspectRatio?: string; imageSize?: string };
           }) => Promise<{
             generatedImages?: Array<{
               image?: { imageBytes?: string };
@@ -159,6 +162,7 @@ async function generateWithImagen(
       config: {
         numberOfImages: 1,
         aspectRatio: aspectRatio as "1:1" | "16:9" | "9:16" | "3:4" | "4:3",
+        imageSize: "2K" as "1K" | "2K",
       },
     });
 
@@ -260,16 +264,40 @@ async function generateWithGeminiNativeImage(
       }
     }
 
-    const response = await client.models.generateContent({
-      model: SLIDE_IMAGE_MODEL,
-      contents: [{ parts }],
-      config: {
-        responseModalities: ["IMAGE", "TEXT"],
-      },
-    });
+    // First attempt: primary model (Nano Banana Pro or env override)
+    let response;
+    try {
+      response = await client.models.generateContent({
+        model: SLIDE_IMAGE_MODEL,
+        contents: [{ parts }],
+        config: {
+          responseModalities: ["TEXT", "IMAGE"],
+        },
+      });
+    } catch (primaryError) {
+      // Primary model failed (quota, preview access, etc.) — try stable fallback
+      if (SLIDE_IMAGE_MODEL !== SLIDE_IMAGE_FALLBACK_MODEL) {
+        console.warn(`[image-service] Primary model ${SLIDE_IMAGE_MODEL} failed, falling back to ${SLIDE_IMAGE_FALLBACK_MODEL}:`, primaryError);
+        try {
+          response = await client.models.generateContent({
+            model: SLIDE_IMAGE_FALLBACK_MODEL,
+            contents: [{ parts }],
+            config: {
+              responseModalities: ["TEXT", "IMAGE"],
+            },
+          });
+        } catch (fallbackError) {
+          console.error("[image-service] Gemini native image gen error (both models failed):", fallbackError);
+          return null;
+        }
+      } else {
+        console.error("[image-service] Gemini native image gen error:", primaryError);
+        return null;
+      }
+    }
 
     // Extract image from response
-    const candidate = response.candidates?.[0];
+    const candidate = response?.candidates?.[0];
     if (candidate?.content?.parts) {
       for (const part of candidate.content.parts) {
         if (part.inlineData?.data) {

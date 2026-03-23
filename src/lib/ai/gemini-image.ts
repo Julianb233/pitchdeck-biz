@@ -2,6 +2,13 @@ import { GoogleGenAI, Type } from "@google/genai";
 import { generateMockupSVG } from "./mockup-svg-generator";
 
 // ---------------------------------------------------------------------------
+// DEPRECATED: This file is no longer imported by any route.
+// All image generation now goes through src/lib/ai/image-service.ts.
+// This file is kept as dead code reference only. DO NOT add new imports here.
+// Last active importer removed: Phase 17 audit confirmed zero active imports.
+// ---------------------------------------------------------------------------
+
+// ---------------------------------------------------------------------------
 // Gemini Image Generation Service
 // Primary: AI-crafted SVG graphics via Gemini 2.5 Flash (always works)
 // Secondary: Imagen 3 via @google/genai SDK (when configured)
@@ -31,7 +38,7 @@ async function generateWithImagen(prompt: string): Promise<string | null> {
     const client = new GoogleGenAI({ apiKey: imagenKey });
 
     const response = await client.models.generateImages({
-      model: "imagen-3.0-generate-002",
+      model: "imagen-4.0-ultra-generate-001",
       prompt,
       config: { numberOfImages: 1 },
     });
