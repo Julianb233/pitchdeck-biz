@@ -1,6 +1,18 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getUserTier } from "@/lib/feature-gate";
 import type { PitchFeedback } from "@/lib/pitch-coach/session";
+import { z } from "zod";
+import { zodToJsonSchema } from "zod-to-json-schema";
+
+const PitchFeedbackSchema = z.object({
+  overallScore: z.number().min(1).max(100),
+  clarity: z.object({ score: z.number(), feedback: z.string() }),
+  confidence: z.object({ score: z.number(), feedback: z.string() }),
+  pacing: z.object({ score: z.number(), feedback: z.string() }),
+  contentCoverage: z.object({ score: z.number(), feedback: z.string() }),
+  suggestions: z.array(z.string()),
+  strongPoints: z.array(z.string()),
+});
 
 interface FeedbackRequestBody {
   sessionId: string;
@@ -102,60 +114,26 @@ ${slideContext}
 SPEAKER'S PITCH TRANSCRIPT:
 "${transcript}"
 
-Analyze the pitch delivery and provide a JSON response with this exact structure:
-{
-  "overallScore": <number 1-100>,
-  "clarity": {
-    "score": <number 1-100>,
-    "feedback": "<specific feedback on clarity of message, jargon usage, and audience comprehension>"
-  },
-  "confidence": {
-    "score": <number 1-100>,
-    "feedback": "<feedback on confidence level, hedging language, authority, and conviction>"
-  },
-  "pacing": {
-    "score": <number 1-100>,
-    "feedback": "<feedback on pacing — too rushed, too slow, good rhythm, use of pauses>"
-  },
-  "contentCoverage": {
-    "score": <number 1-100>,
-    "feedback": "<feedback on how well they covered the slide's key points and added value beyond what's written>"
-  },
-  "suggestions": ["<actionable improvement 1>", "<actionable improvement 2>", "<actionable improvement 3>"],
-  "strongPoints": ["<strength 1>", "<strength 2>"]
-}
-
-Be encouraging but honest. Provide specific examples from their transcript. Focus on what would make an investor say yes.
-Return ONLY the JSON object, no markdown or explanation.`;
+Analyze the pitch delivery for overallScore, clarity, confidence, pacing, contentCoverage, suggestions, and strongPoints. Be encouraging but honest. Provide specific examples from their transcript. Focus on what would make an investor say yes.`;
 
     const result = await ai.models.generateContent({
-      model: "gemini-2.5-pro-preview-06-05",
+      model: "gemini-2.5-pro",
       contents: prompt,
+      config: {
+        temperature: 0.3,
+        responseMimeType: "application/json",
+        responseJsonSchema: zodToJsonSchema(PitchFeedbackSchema),
+      },
     });
 
-    const text = result.text ?? "";
-    // Extract JSON from response (handle potential markdown wrapping)
-    const jsonMatch = text.match(/\{[\s\S]*\}/);
-    if (!jsonMatch) {
-      console.error("[pitch-coach] No JSON found in Gemini response:", text);
+    const parseResult = PitchFeedbackSchema.safeParse(
+      JSON.parse(result.text ?? "{}")
+    );
+    if (!parseResult.success) {
+      console.error("[pitch-coach] Invalid feedback structure from Gemini:", parseResult.error);
       return generateFallbackFeedback(transcript);
     }
-
-    const parsed = JSON.parse(jsonMatch[0]) as PitchFeedback;
-
-    // Validate the structure
-    if (
-      typeof parsed.overallScore !== "number" ||
-      !parsed.clarity ||
-      !parsed.confidence ||
-      !parsed.pacing ||
-      !parsed.contentCoverage
-    ) {
-      console.error("[pitch-coach] Invalid feedback structure from Gemini");
-      return generateFallbackFeedback(transcript);
-    }
-
-    return parsed;
+    return parseResult.data;
   } catch (error) {
     console.error("[pitch-coach] Gemini analysis failed:", error);
     return generateFallbackFeedback(transcript);
