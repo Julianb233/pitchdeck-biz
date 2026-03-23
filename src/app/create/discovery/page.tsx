@@ -333,13 +333,17 @@ export default function DiscoveryPage() {
         throw new Error(confirmData.error || "Confirmation failed")
       }
 
-      // Step 2: Generate deck
+      // Step 2: Generate deck (pass investor type for tailored generation)
       setIsGenerating(true)
 
       const genRes = await fetch("/api/generate-deck", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ analysis: confirmData.analysis }),
+        body: JSON.stringify({
+          analysis: confirmData.analysis,
+          analysis_id: confirmData.analysisId,
+          investorType: confirmData.investorType,
+        }),
       })
 
       const genData = await genRes.json()
